@@ -10,6 +10,7 @@ export interface WorkspaceProps {
   creatorName?: string;
   creatorEmail?: string;
   contentCount?: number;
+  deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

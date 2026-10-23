@@ -3,6 +3,8 @@ import WorkspacePage from './pages/workspace.svelte';
 import ContentDetailPage from './pages/content-detail.svelte';
 import CreatorDashboardPage from './pages/creator-dashboard.svelte';
 import SuperadminPage from './pages/superadmin.svelte';
+import ReviewerQueuePage from './pages/reviewer-queue.svelte';
+import SpacedPracticePage from './pages/spaced-practice.svelte';
 
 export const routes = [
   {
@@ -28,5 +30,13 @@ export const routes = [
   {
     path: '/admin',
     component: SuperadminPage,
+  },
+  {
+    path: '/reviewer',
+    component: ReviewerQueuePage,
+  },
+  {
+    path: '/practice',
+    component: SpacedPracticePage,
   },
 ];

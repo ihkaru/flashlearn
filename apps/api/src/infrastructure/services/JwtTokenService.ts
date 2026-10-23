@@ -9,7 +9,7 @@ export class JwtTokenService implements ITokenService {
   }
 
   signToken(payload: TokenPayload, expiresIn = '7d'): string {
-    return jwt.sign(payload, this.secret, { expiresIn });
+    return jwt.sign(payload, this.secret, { expiresIn: expiresIn as any });
   }
 
   verifyToken(token: string): TokenPayload | null {

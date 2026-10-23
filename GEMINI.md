@@ -7,8 +7,11 @@ Welcome to **FlashLearn**, an active-recall learning application built with Bun,
 - **Run dev environment (all apps)**: `bun run dev`
 - **Run backend API only**: `cd apps/api && bun run dev` (Runs on `http://localhost:3000`)
 - **Run frontend Web only**: `cd apps/web && bun run dev` (Runs on `http://localhost:5173`)
-- **Database migrations**: `cd apps/api && bun run db:push`
+- **Database migrations**: `cd apps/api && bun run db:generate` (generate SQL) & `bun run db:migrate` (safe migration runner)
 - **API Documentation**: `http://localhost:3000/docs` (Scalar UI) or `http://localhost:3000/swagger`
+- **Run SRP & File Length Linter**: `bun run lint:srp`
+- **Run automated test suite**: `cd apps/api && bun test`
+- **Competency Engine Roadmap**: See [docs/roadmap-competency-engine.md](docs/roadmap-competency-engine.md)
 - **Run Impeccable detector**: `npx impeccable detect`
 
 ---
@@ -40,6 +43,20 @@ All backend logic in `apps/api` strictly conforms to Hexagonal boundaries:
 - Client ID & Secret configured in `apps/api/.env` (shared with Cerdas stack in Infisical / Coolify).
 - Flow: Frontend obtains ID Token (credential) via Google Identity Services (`gsi/client`) and posts to `/api/v1/auth/google`. The backend validates the cryptographic signature against Google's public JWKS.
 
+### 6. Competency & Oracle Verification Evolution
+The platform is transitioning into an evidence-based competency authorization engine for complex domains:
+- Refer to [docs/roadmap-competency-engine.md](docs/roadmap-competency-engine.md) for Phase 01–05 specifications.
+- **Invariant 1**: Mandatory deterministic citation verification against stored chunks (`source_chunks`).
+- **Invariant 2**: Generator $\neq$ Verifier dual-agent boundary.
+- **Invariant 4**: Strict Oracle classification (Class A: Deterministic script runner, Class B: Benchmarked case comparator, Class C: Human expert reviewer queue).
+
+### 7. Safe Production Deployments & Migration Mandates (Coolify)
+To guarantee zero-downtime and protect the end-to-end data pipeline from UI to database:
+- **Pre-flight Advisory Lock**: `migrate.ts` automatically acquires PostgreSQL Advisory Lock `84920384` to prevent migration race conditions during rolling container deployments.
+- **Safe Expand-and-Contract**: Never drop or rename columns in the same release as code changes. Add new columns as optional/nullable or with defaults.
+- **Strict Migration Artifacts**: Always run `bun run db:generate` to generate tested `.sql` files into `apps/api/drizzle/` before committing. Coolify executes `bun run db:migrate` via `start.sh`.
+- **Failure Isolation**: If a database migration fails, `start.sh` exits with code 1, aborting container startup so Coolify preserves the running healthy container without service disruption.
+
 ---
 
 ## 🎨 Impeccable Design & Frontend Discipline
@@ -52,12 +69,8 @@ All backend logic in `apps/api` strictly conforms to Hexagonal boundaries:
 ---
 
 ## 🗄️ Database Configuration
-- **Database**: PostgreSQL 16
-- **Host**: `localhost:5432`
-- **Database Name**: `flashlearn`
-- **Username**: `postgres`
-- **Password**: `T1sy7cEhciZI4FeMSCc6JzwkBcokqA4ubRBNVmRhLZWLrvKEoGjsORiF6nIoRcSl`
-- **Connection URI**:
+- **Database**: PostgreSQL 16+
+- **Connection URI**: Configured via `DATABASE_URL` in `.env` (or via Infisical in production)
   ```
-  postgresql://postgres:T1sy7cEhciZI4FeMSCc6JzwkBcokqA4ubRBNVmRhLZWLrvKEoGjsORiF6nIoRcSl@localhost:5432/flashlearn
+  DATABASE_URL=postgresql://<user>:<password>@<host>:5432/<dbname>
   ```

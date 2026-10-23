@@ -11,7 +11,8 @@
     "dev:api": "bun --filter ./apps/api dev",
     "dev:web": "bun --filter ./apps/web dev",
     "build": "bun --filter \"*\" build",
-    "test": "bun test"
+    "test": "bun test",
+    "lint:srp": "bun run scripts/check_srp_limits.ts"
   },
   "devDependencies": {
     "typescript": "^5.8.0"

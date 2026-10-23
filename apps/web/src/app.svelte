@@ -75,6 +75,26 @@
           Eksplorasi
         </a>
 
+        <a
+          href="#/practice"
+          onclick={(e) => navigateTo('/practice', e)}
+          style="color: #0369a1; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 4px;"
+        >
+          <Icon name="bolt" size={14} />
+          <span>Latihan SM-2</span>
+        </a>
+
+        {#if auth.isCreator || auth.isSuperadmin}
+          <a
+            href="#/reviewer"
+            onclick={(e) => navigateTo('/reviewer', e)}
+            style="color: #7e22ce; text-decoration: none; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 4px;"
+          >
+            <Icon name="award" size={14} />
+            <span>Penilai Pakar</span>
+          </a>
+        {/if}
+
         {#if auth.isCreator}
           <a
             href="#/creator"
@@ -178,6 +198,26 @@
             <Icon name="book-open" size={17} style="color: #64748b;" />
             <span>Eksplorasi Modul & Kuis</span>
           </a>
+
+          <a
+            href="#/practice"
+            onclick={(e) => navigateTo('/practice', e)}
+            style="padding: 10px 14px; border-radius: 10px; text-decoration: none; color: #0369a1; font-weight: 600; font-size: 0.95rem; background: #f0f9ff; display: flex; align-items: center; gap: 10px;"
+          >
+            <Icon name="bolt" size={17} style="color: #0284c7;" />
+            <span>Latihan SM-2 Spaced Retrieval</span>
+          </a>
+
+          {#if auth.isCreator || auth.isSuperadmin}
+            <a
+              href="#/reviewer"
+              onclick={(e) => navigateTo('/reviewer', e)}
+              style="padding: 10px 14px; border-radius: 10px; text-decoration: none; color: #7e22ce; font-weight: 700; font-size: 0.95rem; background: #faf5ff; border: 1px solid #f3e8ff; display: flex; align-items: center; gap: 10px;"
+            >
+              <Icon name="award" size={17} style="color: #7e22ce;" />
+              <span>Antrean Penilai Pakar (Kelas C)</span>
+            </a>
+          {/if}
 
           {#if auth.isCreator}
             <a

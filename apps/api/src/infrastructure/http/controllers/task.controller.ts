@@ -1,0 +1,145 @@
+import { Elysia, t } from 'elysia';
+import { container } from '../../di/container';
+import { resolveAuth } from '../middlewares/auth';
+
+export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
+  .get(
+    '/',
+    async ({ query, set }) => {
+      const competencyId = query.competencyId;
+      if (!competencyId) {
+        set.status = 400;
+        return { error: 'competencyId query parameter is required' };
+      }
+      return await container.taskRepository.listByCompetency(competencyId);
+    },
+    {
+      query: t.Object({
+        competencyId: t.String(),
+      }),
+      detail: {
+        tags: ['Task Bank & Oracle'],
+        summary: 'List Tasks by Competency',
+      },
+    }
+  )
+  .get(
+    '/:id',
+    async ({ params, set }) => {
+      const task = await container.taskRepository.findById(params.id);
+      if (!task) {
+        set.status = 404;
+        return { error: 'Task not found' };
+      }
+      return task;
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      detail: {
+        tags: ['Task Bank & Oracle'],
+        summary: 'Get Task by ID',
+      },
+    }
+  )
+  .post(
+    '/',
+    async ({ headers, body, set }) => {
+      const auth = await resolveAuth(headers);
+      if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
+        set.status = 403;
+        return { error: 'Forbidden: Creating tasks is restricted to creators and superadmins' };
+      }
+
+      try {
+        const task = await container.createTaskUseCase.execute(body);
+        set.status = 201;
+        return task;
+      } catch (err: any) {
+        set.status = 400;
+        return { error: err.message };
+      }
+    },
+    {
+      body: t.Object({
+        competencyId: t.String(),
+        title: t.String({ minLength: 3 }),
+        scenario: t.String({ minLength: 10 }),
+        taskType: t.Union([
+          t.Literal('calculation'),
+          t.Literal('case_study'),
+          t.Literal('document_draft'),
+          t.Literal('checklist'),
+        ]),
+        oracleData: t.Any(),
+        rubricCriteria: t.Array(
+          t.Object({
+            id: t.String(),
+            title: t.String(),
+            weight: t.Integer({ minimum: 1 }),
+            description: t.String(),
+          })
+        ),
+        passingScore: t.Optional(t.Integer({ minimum: 1, maximum: 100 })),
+      }),
+      detail: {
+        tags: ['Task Bank & Oracle'],
+        summary: 'Create Task with Oracle Rubric',
+      },
+    }
+  )
+  .post(
+    '/:id/submit',
+    async ({ headers, params, body, set }) => {
+      const auth = await resolveAuth(headers);
+      if (!auth.user) {
+        set.status = 401;
+        return { error: 'Unauthorized: Sign in required to submit task attempts' };
+      }
+
+      try {
+        return await container.evaluateAttemptUseCase.execute(auth.user.id, {
+          taskId: params.id,
+          submission: body.submission,
+        });
+      } catch (err: any) {
+        set.status = 400;
+        return { error: err.message };
+      }
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      body: t.Object({
+        submission: t.Record(t.String(), t.Any()),
+      }),
+      detail: {
+        tags: ['Task Bank & Oracle'],
+        summary: 'Submit Task for Multi-Tier Oracle Evaluation',
+        description: 'Evaluates candidate submission against Oracle (Class A deterministic formula/checklist, Class B contrastive benchmark AI-judge). Unlocks downstream DAG nodes and generates instant 3D Flashcards on mistakes.',
+      },
+    }
+  )
+  .get(
+    '/:id/attempts',
+    async ({ headers, params, set }) => {
+      const auth = await resolveAuth(headers);
+      if (!auth.user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      return await container.attemptRepository.listByTask(params.id);
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      detail: {
+        tags: ['Task Bank & Oracle'],
+        summary: 'List Attempts for Task',
+      },
+    }
+  );

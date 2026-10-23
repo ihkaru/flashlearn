@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
+    "test": "bun test",
+    "db:migrate": "bun run src/infrastructure/database/migrate.ts",
     "db:push": "bun run drizzle-kit push",
     "db:generate": "bun run drizzle-kit generate",
     "db:seed": "bun run src/infrastructure/database/seed.ts"
@@ -22,6 +24,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@types/bun": "^1.4.4",
     "@types/jsonwebtoken": "^9.0.9",
     "drizzle-kit": "^0.30.5",
     "typescript": "^5.8.0"

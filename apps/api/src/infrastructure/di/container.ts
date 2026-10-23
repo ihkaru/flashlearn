@@ -2,9 +2,25 @@ import { DrizzleUserRepository } from '../repositories/DrizzleUserRepository';
 import { DrizzleWorkspaceRepository } from '../repositories/DrizzleWorkspaceRepository';
 import { DrizzleContentRepository } from '../repositories/DrizzleContentRepository';
 import { DrizzleApiKeyRepository } from '../repositories/DrizzleApiKeyRepository';
+import { DrizzleSourceRepository } from '../repositories/DrizzleSourceRepository';
+import { DrizzleCompetencyRepository } from '../repositories/DrizzleCompetencyRepository';
+import { DrizzleMasteryRepository } from '../repositories/DrizzleMasteryRepository';
+import { DrizzleTaskRepository } from '../repositories/DrizzleTaskRepository';
+import { DrizzleAttemptRepository } from '../repositories/DrizzleAttemptRepository';
+import { DrizzleGateRepository } from '../repositories/DrizzleGateRepository';
+import { DrizzleAuditLogRepository } from '../repositories/DrizzleAuditLogRepository';
+import { DrizzleSpacedFlashcardRepository } from '../repositories/DrizzleSpacedFlashcardRepository';
 
 import { JwtTokenService } from '../services/JwtTokenService';
 import { GoogleAuthVerifier } from '../services/GoogleAuthVerifier';
+import { AiGatewayService } from '../services/AiGatewayService';
+import { CitationValidatorService } from '../services/CitationValidatorService';
+import { CompetencyGraphEngine } from '../../domain/services/CompetencyGraphEngine';
+import { OracleEvaluatorClassA } from '../../domain/services/OracleEvaluatorClassA';
+import { OracleEvaluatorClassB } from '../../domain/services/OracleEvaluatorClassB';
+import { FlashcardGeneratorService } from '../../domain/services/FlashcardGeneratorService';
+import { GateAuthorizationEngine } from '../../domain/services/GateAuthorizationEngine';
+import { SpacedRepetitionScheduler } from '../../domain/services/SpacedRepetitionScheduler';
 
 import { LoginWithGoogleUseCase } from '../../application/use-cases/auth/LoginWithGoogleUseCase';
 import { GetCurrentUserUseCase } from '../../application/use-cases/auth/GetCurrentUserUseCase';
@@ -36,16 +52,53 @@ import { ListApiKeysUseCase } from '../../application/use-cases/apikey/ListApiKe
 import { RevokeApiKeyUseCase } from '../../application/use-cases/apikey/RevokeApiKeyUseCase';
 import { VerifyApiKeyUseCase } from '../../application/use-cases/apikey/VerifyApiKeyUseCase';
 
+import { IngestSourceUseCase } from '../../application/use-cases/source/IngestSourceUseCase';
+import { ValidateCitationsUseCase } from '../../application/use-cases/source/ValidateCitationsUseCase';
+import { GenerateVerifiedLessonUseCase } from '../../application/use-cases/source/GenerateVerifiedLessonUseCase';
+
+import { CreateCompetencyNodeUseCase } from '../../application/use-cases/competency/CreateCompetencyNodeUseCase';
+import { LinkPrerequisiteUseCase } from '../../application/use-cases/competency/LinkPrerequisiteUseCase';
+import { GetCompetencyGraphUseCase } from '../../application/use-cases/competency/GetCompetencyGraphUseCase';
+import { ApproveCompetencyUseCase } from '../../application/use-cases/competency/ApproveCompetencyUseCase';
+
+import { CreateTaskUseCase } from '../../application/use-cases/task/CreateTaskUseCase';
+import { EvaluateAttemptUseCase } from '../../application/use-cases/task/EvaluateAttemptUseCase';
+
+import { CreateGateUseCase } from '../../application/use-cases/gate/CreateGateUseCase';
+import { EvaluateAndGrantGateUseCase } from '../../application/use-cases/gate/EvaluateAndGrantGateUseCase';
+import { ReviewClassCAttemptUseCase } from '../../application/use-cases/gate/ReviewClassCAttemptUseCase';
+import { ListPendingClassCReviewsUseCase } from '../../application/use-cases/gate/ListPendingClassCReviewsUseCase';
+
+import { SupersedeSourceUseCase } from '../../application/use-cases/staleness/SupersedeSourceUseCase';
+import { PracticeSpacedCardUseCase } from '../../application/use-cases/spaced/PracticeSpacedCardUseCase';
+import { GetDueSpacedCardsUseCase } from '../../application/use-cases/spaced/GetDueSpacedCardsUseCase';
+
 export class Container {
   // Repositories (Ports -> Driven Adapters)
   public readonly userRepository = new DrizzleUserRepository();
   public readonly workspaceRepository = new DrizzleWorkspaceRepository();
   public readonly contentRepository = new DrizzleContentRepository();
   public readonly apiKeyRepository = new DrizzleApiKeyRepository();
+  public readonly sourceRepository = new DrizzleSourceRepository();
+  public readonly competencyRepository = new DrizzleCompetencyRepository();
+  public readonly masteryRepository = new DrizzleMasteryRepository();
+  public readonly taskRepository = new DrizzleTaskRepository();
+  public readonly attemptRepository = new DrizzleAttemptRepository();
+  public readonly gateRepository = new DrizzleGateRepository();
+  public readonly auditLogRepository = new DrizzleAuditLogRepository();
+  public readonly spacedFlashcardRepository = new DrizzleSpacedFlashcardRepository();
 
   // Services
   public readonly tokenService = new JwtTokenService();
   public readonly googleVerifier = new GoogleAuthVerifier();
+  public readonly aiGateway = new AiGatewayService();
+  public readonly citationValidator = new CitationValidatorService(this.sourceRepository);
+  public readonly competencyGraphEngine = new CompetencyGraphEngine();
+  public readonly oracleEvaluatorClassA = new OracleEvaluatorClassA();
+  public readonly oracleEvaluatorClassB = new OracleEvaluatorClassB(this.aiGateway);
+  public readonly flashcardGenerator = new FlashcardGeneratorService();
+  public readonly gateAuthorizationEngine = new GateAuthorizationEngine();
+  public readonly spacedScheduler = new SpacedRepetitionScheduler();
 
   // Use Cases (Application Layer)
   public readonly loginWithGoogleUseCase = new LoginWithGoogleUseCase(
@@ -115,6 +168,87 @@ export class Container {
   public readonly verifyApiKeyUseCase = new VerifyApiKeyUseCase(
     this.apiKeyRepository,
     this.userRepository
+  );
+
+  // Phase 01: Source & Citation Use Cases
+  public readonly ingestSourceUseCase = new IngestSourceUseCase(this.sourceRepository);
+  public readonly validateCitationsUseCase = new ValidateCitationsUseCase(this.citationValidator);
+  public readonly generateVerifiedLessonUseCase = new GenerateVerifiedLessonUseCase(
+    this.sourceRepository,
+    this.aiGateway,
+    this.citationValidator
+  );
+
+  // Phase 02: Competency Graph & Mastery Use Cases
+  public readonly createCompetencyNodeUseCase = new CreateCompetencyNodeUseCase(
+    this.competencyRepository,
+    this.competencyGraphEngine
+  );
+  public readonly linkPrerequisiteUseCase = new LinkPrerequisiteUseCase(
+    this.competencyRepository,
+    this.competencyGraphEngine
+  );
+  public readonly getCompetencyGraphUseCase = new GetCompetencyGraphUseCase(
+    this.competencyRepository,
+    this.masteryRepository,
+    this.competencyGraphEngine
+  );
+  public readonly approveCompetencyUseCase = new ApproveCompetencyUseCase(this.competencyRepository);
+
+  // Phase 03: Task Bank & Multi-Tier Oracle Use Cases
+  public readonly createTaskUseCase = new CreateTaskUseCase(
+    this.taskRepository,
+    this.competencyRepository
+  );
+  public readonly evaluateAttemptUseCase = new EvaluateAttemptUseCase(
+    this.taskRepository,
+    this.attemptRepository,
+    this.competencyRepository,
+    this.masteryRepository,
+    this.oracleEvaluatorClassA,
+    this.oracleEvaluatorClassB,
+    this.flashcardGenerator,
+    this.competencyGraphEngine
+  );
+
+  // Phase 04: Progressive Authorization Gates & Human Expert Use Cases
+  public readonly createGateUseCase = new CreateGateUseCase(this.gateRepository);
+  public readonly evaluateAndGrantGateUseCase = new EvaluateAndGrantGateUseCase(
+    this.gateRepository,
+    this.competencyRepository,
+    this.masteryRepository,
+    this.attemptRepository,
+    this.auditLogRepository,
+    this.gateAuthorizationEngine
+  );
+  public readonly reviewClassCAttemptUseCase = new ReviewClassCAttemptUseCase(
+    this.attemptRepository,
+    this.taskRepository,
+    this.competencyRepository,
+    this.masteryRepository,
+    this.auditLogRepository
+  );
+  public readonly listPendingClassCReviewsUseCase = new ListPendingClassCReviewsUseCase(
+    this.attemptRepository,
+    this.taskRepository,
+    this.competencyRepository,
+    this.userRepository
+  );
+
+  // Phase 05: Staleness Engine & Spaced Repetition Use Cases
+  public readonly supersedeSourceUseCase = new SupersedeSourceUseCase(
+    this.sourceRepository,
+    this.competencyRepository,
+    this.masteryRepository,
+    this.gateRepository,
+    this.auditLogRepository
+  );
+  public readonly practiceSpacedCardUseCase = new PracticeSpacedCardUseCase(
+    this.spacedFlashcardRepository,
+    this.spacedScheduler
+  );
+  public readonly getDueSpacedCardsUseCase = new GetDueSpacedCardsUseCase(
+    this.spacedFlashcardRepository
   );
 }
 

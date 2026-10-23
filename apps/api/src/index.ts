@@ -4,7 +4,14 @@ import { swagger } from '@elysiajs/swagger';
 import { authController } from './infrastructure/http/controllers/auth.controller';
 import { workspaceController } from './infrastructure/http/controllers/workspace.controller';
 import { contentController } from './infrastructure/http/controllers/content.controller';
+import { quizController } from './infrastructure/http/controllers/quiz.controller';
 import { apiKeyController } from './infrastructure/http/controllers/apikey.controller';
+import { sourceController } from './infrastructure/http/controllers/source.controller';
+import { competencyController } from './infrastructure/http/controllers/competency.controller';
+import { taskController } from './infrastructure/http/controllers/task.controller';
+import { gateController } from './infrastructure/http/controllers/gate.controller';
+import { reviewerController } from './infrastructure/http/controllers/reviewer.controller';
+import { spacedController } from './infrastructure/http/controllers/spaced.controller';
 
 import { join } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
@@ -64,11 +71,18 @@ const app = new Elysia()
   .use(authController)
   .use(workspaceController)
   .use(contentController)
+  .use(quizController)
   .use(apiKeyController)
-  .get('/c/:id', ({ params, redirect }) => redirect(`/#/content/${params.id}`, 302))
-  .get('/content/:id', ({ params, redirect }) => redirect(`/#/content/${params.id}`, 302))
-  .get('/workspace/:id', ({ params, redirect }) => redirect(`/#/workspace/${params.id}`, 302))
-  .all('*', ({ path, set }) => {
+  .use(sourceController)
+  .use(competencyController)
+  .use(taskController)
+  .use(gateController)
+  .use(reviewerController)
+  .use(spacedController)
+  .get('/c/:id', ({ params, redirect }: any) => redirect(`/#/content/${params.id}`, 302))
+  .get('/content/:id', ({ params, redirect }: any) => redirect(`/#/content/${params.id}`, 302))
+  .get('/workspace/:id', ({ params, redirect }: any) => redirect(`/#/workspace/${params.id}`, 302))
+  .all('*', ({ path, set }: any) => {
     if (path.startsWith('/api') || path.startsWith('/docs') || path.startsWith('/health')) {
       return;
     }
