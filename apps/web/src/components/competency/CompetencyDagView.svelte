@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { api, type CompetencyGraphResponse } from '../../stores/api';
+  import type { CompetencyNode } from '@flashlearn/shared';
+  import TaskRunnerModal from './TaskRunnerModal.svelte';
   import Icon from '../ui/Icon.svelte';
 
   interface Props {
@@ -13,6 +15,8 @@
   let graphData = $state<CompetencyGraphResponse | null>(null);
   let isLoading = $state(true);
   let errorMessage = $state<string | null>(null);
+  let selectedNodeForTask = $state<CompetencyNode | null>(null);
+  let showTaskModal = $state(false);
 
   onMount(() => {
     loadGraph();
@@ -28,6 +32,16 @@
     } finally {
       isLoading = false;
     }
+  }
+
+  function handleNodeClick(node: any) {
+    if (node.userStatus === 'locked') {
+      alert('Kompetensi ini terkunci. Tuntaskan modul prasyarat sebelumnya terlebih dahulu.');
+      return;
+    }
+    selectedNodeForTask = node;
+    showTaskModal = true;
+    onSelectCompetency?.(node.id);
   }
 
   function getStatusBadge(status: string) {
@@ -46,16 +60,11 @@
   }
 
   function getOracleClassBadge(cls: string) {
-    switch (cls) {
-      case 'class_a':
-        return { label: 'Kelas A · Deterministik', bg: '#f0fdf4', text: '#166534' };
-      case 'class_b':
-        return { label: 'Kelas B · AI Benchmark', bg: '#eff6ff', text: '#1d4ed8' };
-      case 'class_c':
-        return { label: 'Kelas C · Pakar Manusia', bg: '#faf5ff', text: '#7e22ce' };
-      default:
-        return { label: cls, bg: '#f8fafc', text: '#475569' };
-    }
+    const c = (cls || '').toUpperCase();
+    if (c.includes('A')) return { label: 'Kelas A · Deterministik', bg: '#f0fdf4', text: '#166534' };
+    if (c.includes('B')) return { label: 'Kelas B · AI Benchmark', bg: '#eff6ff', text: '#1d4ed8' };
+    if (c.includes('C')) return { label: 'Kelas C · Pakar Manusia', bg: '#faf5ff', text: '#7e22ce' };
+    return { label: cls, bg: '#f8fafc', text: '#475569' };
   }
 </script>
 
@@ -99,8 +108,8 @@
           class="competency-card"
           role="button"
           tabindex="0"
-          onclick={() => onSelectCompetency?.(node.id)}
-          onkeydown={(e) => e.key === 'Enter' && onSelectCompetency?.(node.id)}
+          onclick={() => handleNodeClick(node)}
+          onkeydown={(e) => e.key === 'Enter' && handleNodeClick(node)}
           style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;"
         >
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
@@ -135,4 +144,11 @@
       {/each}
     </div>
   {/if}
+
+  <TaskRunnerModal
+    isOpen={showTaskModal}
+    competency={selectedNodeForTask}
+    onClose={() => (showTaskModal = false)}
+    onMasteryUpdated={loadGraph}
+  />
 </div>

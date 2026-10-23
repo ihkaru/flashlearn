@@ -7,37 +7,37 @@ describe('Phase 05: Reactive Staleness Engine & Spaced Retention Flashcards', ()
   let workspaceId: string;
   let learnerId: string;
   let sourceId: string;
+  let testSourceCode: string;
   let compNode: any;
   let taskLegacy: any;
   let gateId: string;
   let flashcardId: string;
 
   beforeAll(async () => {
-    const workspaces = await container.workspaceRepository.listAll();
-    if (workspaces.length === 0) throw new Error('No workspace found');
-    workspaceId = workspaces[0].id;
-
     const admin = await container.userRepository.findByEmail('ihza2karunia@gmail.com');
     if (!admin) throw new Error('Admin user not found');
     learnerId = admin.id;
 
-    // Ingest temporary legal source to test superseding
-    let existingSource = await container.sourceRepository.findByCode('PERPRES-16-2018-TEST');
-    if (!existingSource) {
-      const ingestRes = await container.ingestSourceUseCase.execute({
-        workspaceId,
-        title: 'Peraturan Presiden Nomor 16 Tahun 2018 (Legacy Source)',
-        code: 'PERPRES-16-2018-TEST',
-        version: '1.0',
-        owner: 'LKPP RI',
-        effectiveDate: new Date('2018-07-01'),
-        rawText: `Pasal 51: Tender Gagal dapat dilakukan evaluasi ulang atau tender ulang.
+    const testWs = await container.workspaceRepository.create({
+      name: `Hermetic Phase 05 Test Workspace ${Date.now()}`,
+      slug: `phase-05-test-${Date.now()}`,
+      creatorId: learnerId,
+      isPublic: false,
+    });
+    workspaceId = testWs.id;
+
+    testSourceCode = `PERPRES-16-TEST-${Date.now()}`;
+    const ingestRes = await container.ingestSourceUseCase.execute({
+      workspaceId,
+      title: 'Peraturan Presiden Nomor 16 Tahun 2018 (Legacy Source)',
+      code: testSourceCode,
+      version: '1.0',
+      owner: 'LKPP RI',
+      effectiveDate: new Date('2018-07-01'),
+      rawText: `Pasal 51: Tender Gagal dapat dilakukan evaluasi ulang atau tender ulang.
 Pasal 52: Pengadaan Langsung untuk Barang/Jasa Lainnya bernilai paling banyak Rp 200.000.000.`,
-      });
-      sourceId = ingestRes.source.id;
-    } else {
-      sourceId = existingSource.id;
-    }
+    });
+    sourceId = ingestRes.source.id;
 
     // Create linked competency
     let existingComp = await container.competencyRepository.findByCode(workspaceId, 'LEGACY-HPS-99');
@@ -154,7 +154,7 @@ Pasal 52: Pengadaan Langsung untuk Barang/Jasa Lainnya bernilai paling banyak Rp
     });
 
     expect(report.sourceId).toBe(sourceId);
-    expect(report.sourceCode).toBe('PERPRES-16-2018-TEST');
+    expect(report.sourceCode).toBe(testSourceCode);
     expect(report.invalidatedMasteriesCount).toBeGreaterThan(0);
     expect(report.suspendedGateGrantsCount).toBeGreaterThan(0);
 

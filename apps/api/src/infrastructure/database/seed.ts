@@ -1,6 +1,7 @@
 import { db } from './db';
 import { users, workspaces, contents, apiKeys } from './schema';
 import { createHash } from 'crypto';
+import { seedProcurement } from './seeds/procurement.seed';
 
 async function seed() {
   console.log('🌱 Starting FlashLearn Database Seeding...');
@@ -237,6 +238,10 @@ Pisahkan use case berdasarkan aktor:
 
   console.log('✓ Master API Key seeded for Superadmin:');
   console.log(`  Key: ${sampleKey}`);
+
+  // 5. Seed Procurement (PBJ) Domain Blueprint
+  await seedProcurement(creator.id);
+
   console.log('🎉 FlashLearn Database Seeding Finished Successfully!');
   process.exit(0);
 }

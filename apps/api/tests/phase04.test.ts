@@ -15,14 +15,19 @@ describe('Phase 04: Progressive Authorization Gates & Human Reviewer Workflow', 
   let gateLevel3: GateEntity;
 
   beforeAll(async () => {
-    const workspaces = await container.workspaceRepository.listAll();
-    if (workspaces.length === 0) throw new Error('No workspace found');
-    workspaceId = workspaces[0].id;
-
     // Learner: admin user
     const admin = await container.userRepository.findByEmail('ihza2karunia@gmail.com');
     if (!admin) throw new Error('Admin user not found');
     learnerId = admin.id;
+
+    // Create an isolated workspace for Phase 04 hermetic test run
+    const testWs = await container.workspaceRepository.create({
+      name: `Hermetic Phase 04 Test Workspace ${Date.now()}`,
+      slug: `phase-04-test-${Date.now()}`,
+      creatorId: learnerId,
+      isPublic: false,
+    });
+    workspaceId = testWs.id;
 
     // Reviewer: second superadmin or creator
     let expert = await container.userRepository.findByEmail('admin@dvlpid.my.id');
@@ -114,8 +119,25 @@ describe('Phase 04: Progressive Authorization Gates & Human Reviewer Workflow', 
   });
 
   test('Learner earns Gate Level 0 passport when Class A competency is mastered', async () => {
-    // Ensure learner mastered compNodeA
-    await container.masteryRepository.upsertStatus(learnerId, compNodeA.id, 'mastered');
+    // Create and execute a verified Class A task to satisfy the minimum score invariant
+    const taskA = await container.createTaskUseCase.execute({
+      competencyId: compNodeA.id,
+      title: 'Kalkulasi HPS Pengadaan Perangkat Komputer (Test A)',
+      scenario: 'Hitung HPS resmi berdasarkan survei pasar.',
+      taskType: 'calculation',
+      passingScore: 80,
+      oracleData: {
+        formula: 'basePrice * 1.11',
+        variables: { basePrice: 100000 },
+      },
+      rubricCriteria: [{ name: 'Akurasi', weight: 100 }],
+    });
+
+    const evalRes = await container.evaluateAttemptUseCase.execute(learnerId, {
+      taskId: taskA.id,
+      submission: { calculatedValue: 111000 },
+    });
+    expect(evalRes.passed).toBe(true);
 
     const result = await container.evaluateAndGrantGateUseCase.execute(learnerId, gateLevel0.id, learnerId);
     expect(result.granted).toBe(true);
