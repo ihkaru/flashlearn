@@ -63,25 +63,28 @@ export async function handleSourceCommand(
       const title = flags.title;
       const code = flags.code;
       const filePath = flags.file;
+      const inlineText = flags.text || flags.rawText;
 
-      if (!workspaceId || !title || !code || !filePath) {
+      if (!workspaceId || !title || !code || (!filePath && !inlineText)) {
         throw new CliError({
           code: 'MISSING_ARGUMENT',
-          message: 'Required flags: --workspace-id, --title, --code, and --file.',
+          message: 'Required flags: --workspace-id, --title, --code, and either --file or --text.',
           exitCode: ExitCode.VALIDATION_ERROR,
-          suggestedFix: 'flashlearn source ingest --workspace-id <id> --title "Title" --code "CODE-01" --file ./doc.md',
+          suggestedFix: 'flashlearn source ingest --workspace-id <id> --title "Title" --code "CODE-01" --file ./doc.md (or --text "...")',
         });
       }
 
-      let rawText = '';
-      try {
-        rawText = readFileSync(filePath, 'utf-8');
-      } catch (err: any) {
-        throw new CliError({
-          code: 'INVALID_FILE',
-          message: `Cannot read text file ${filePath}: ${err.message}`,
-          exitCode: ExitCode.VALIDATION_ERROR,
-        });
+      let rawText = inlineText || '';
+      if (filePath) {
+        try {
+          rawText = readFileSync(filePath, 'utf-8');
+        } catch (err: any) {
+          throw new CliError({
+            code: 'INVALID_FILE',
+            message: `Cannot read text file ${filePath}: ${err.message}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+          });
+        }
       }
 
       const body = {

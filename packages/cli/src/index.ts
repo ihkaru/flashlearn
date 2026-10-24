@@ -1,14 +1,15 @@
 import { parseCliArgs } from './core/parser';
-import { resolveConfig } from './core/config';
+import { resolveConfig, type CliConfig } from './core/config';
 import { ApiClient } from './core/client';
 import {
   SCHEMA_VERSION,
   ExitCode,
   CliError,
-  filterFields,
   type SuccessEnvelope,
   type ErrorEnvelope,
 } from './core/envelope';
+import { transformData } from './core/transform';
+import { generateHelp } from './core/help';
 
 // Command Handlers
 import { handleWorkspaceCommand } from './commands/workspace';
@@ -39,13 +40,16 @@ export async function runCli(rawArgv: string[]): Promise<number> {
     // Dynamic Schema Introspection flags
     if (parsed.flags.describe || parsed.flags['json-schema'] || parsed.noun === 'schema') {
       const res = await handleSchemaCommand(parsed.action || 'introspect', parsed.positionals, parsed.flags);
-      emitSuccess(commandStr, res.data, res.nextActions, startTime, config.fields);
+      emitSuccess(commandStr, res.data, res.nextActions, startTime, config);
       return ExitCode.SUCCESS;
     }
 
-    if (!parsed.noun || parsed.flags.help || parsed.flags.h) {
-      const res = await handleSchemaCommand('introspect', [], parsed.flags);
-      emitSuccess(commandStr || 'flashlearn --help', res.data, undefined, startTime);
+    // Comprehensive Help System (Global, Noun, or Action Level)
+    if (!parsed.noun || parsed.flags.help || parsed.flags.h || parsed.noun === 'help') {
+      const helpNoun = parsed.noun === 'help' ? parsed.action : parsed.noun;
+      const helpAction = parsed.noun === 'help' ? parsed.positionals[0] : parsed.action;
+      const helpData = generateHelp(helpNoun, helpAction);
+      emitSuccess(commandStr || 'flashlearn --help', helpData, undefined, startTime, config);
       return ExitCode.SUCCESS;
     }
 
@@ -110,13 +114,13 @@ export async function runCli(rawArgv: string[]): Promise<number> {
       default:
         throw new CliError({
           code: 'UNKNOWN_NOUN',
-          message: `Unknown resource noun '${parsed.noun}'. Run \`flashlearn schema\` to list available resources.`,
+          message: `Unknown resource noun '${parsed.noun}'. Run \`flashlearn --help\` or \`flashlearn schema\` to list available resources.`,
           exitCode: ExitCode.COMMAND_NOT_FOUND,
-          suggestedFix: 'Run `flashlearn schema` to view valid resource commands.',
+          suggestedFix: 'Run `flashlearn --help` to view valid resource commands.',
         });
     }
 
-    emitSuccess(commandStr, result.data, result.nextActions, startTime, config.fields);
+    emitSuccess(commandStr, result.data, result.nextActions, startTime, config);
     return ExitCode.SUCCESS;
   } catch (err: any) {
     const durationMs = Date.now() - startTime;
@@ -140,7 +144,6 @@ export async function runCli(rawArgv: string[]): Promise<number> {
       },
     };
 
-    // Strict stream separation: emit error envelope to stderr
     process.stderr.write(JSON.stringify(errorEnvelope, null, 2) + '\n');
     return exitCode;
   }
@@ -148,31 +151,38 @@ export async function runCli(rawArgv: string[]): Promise<number> {
 
 function emitSuccess(
   command: string,
-  data: any,
+  rawPayload: any,
   nextActions: any[] | undefined,
   startTime: number,
-  fields?: string[]
+  config: CliConfig
 ): void {
   const durationMs = Date.now() - startTime;
-  const filteredData = filterFields(data, fields);
+  const transformed = transformData(rawPayload, {
+    fields: config.fields,
+    limit: config.limit,
+    tail: config.tail,
+    offset: config.offset,
+    filter: config.filter,
+  });
 
   const envelope: SuccessEnvelope = {
     schemaVersion: SCHEMA_VERSION,
     status: 'success',
     command,
-    data: filteredData,
+    data: transformed.data,
     nextActions,
     meta: {
       durationMs,
       timestamp: new Date().toISOString(),
-      itemCount: Array.isArray(filteredData) ? filteredData.length : undefined,
+      itemCount: transformed.itemCount,
+      totalBeforeSlice: transformed.totalBeforeSlice,
+      appliedTransforms: transformed.appliedTransforms,
     },
   };
 
   process.stdout.write(JSON.stringify(envelope, null, 2) + '\n');
 }
 
-// Direct invocation runner
 if (import.meta.main) {
   const argv = process.argv.slice(2);
   runCli(argv).then((code) => {

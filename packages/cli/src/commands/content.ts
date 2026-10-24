@@ -48,7 +48,7 @@ export async function handleContentCommand(
         });
       }
 
-      let bodyText: string | undefined;
+      let bodyText = flags.body;
       if (flags['body-file']) {
         try {
           bodyText = readFileSync(flags['body-file'], 'utf-8');
@@ -59,8 +59,31 @@ export async function handleContentCommand(
             exitCode: ExitCode.VALIDATION_ERROR,
           });
         }
-      } else if (flags.body) {
-        bodyText = flags.body;
+      }
+
+      let questions: any[] | undefined;
+      if (flags['questions-file']) {
+        try {
+          const parsed = JSON.parse(readFileSync(flags['questions-file'], 'utf-8'));
+          questions = Array.isArray(parsed) ? parsed : parsed.questions;
+        } catch (err: any) {
+          throw new CliError({
+            code: 'INVALID_FILE',
+            message: `Failed to read questions file: ${err.message}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+          });
+        }
+      } else if (flags.questions) {
+        try {
+          const parsed = JSON.parse(flags.questions);
+          questions = Array.isArray(parsed) ? parsed : parsed.questions;
+        } catch (err: any) {
+          throw new CliError({
+            code: 'INVALID_JSON',
+            message: `Failed to parse inline questions JSON: ${err.message}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+          });
+        }
       }
 
       const body = {
@@ -68,11 +91,48 @@ export async function handleContentCommand(
         title,
         type,
         body: bodyText,
+        questions,
         summary: flags.summary,
         readingTimeMinutes: flags['reading-time'] ? Number(flags['reading-time']) : undefined,
       };
 
       const data = await client.request('/api/v1/contents', { method: 'POST', body });
+      return { data };
+    }
+
+    case 'update': {
+      const id = args[0];
+      if (!id) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Content ID is required: `flashlearn content update <id>`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      let bodyText = flags.body;
+      if (flags['body-file']) {
+        bodyText = readFileSync(flags['body-file'], 'utf-8');
+      }
+
+      let questions: any[] | undefined;
+      if (flags['questions-file']) {
+        const parsed = JSON.parse(readFileSync(flags['questions-file'], 'utf-8'));
+        questions = Array.isArray(parsed) ? parsed : parsed.questions;
+      } else if (flags.questions) {
+        const parsed = JSON.parse(flags.questions);
+        questions = Array.isArray(parsed) ? parsed : parsed.questions;
+      }
+
+      const body = {
+        title: flags.title,
+        body: bodyText,
+        questions,
+        summary: flags.summary,
+        isPublished: flags.published !== undefined ? flags.published === 'true' || flags.published === true : undefined,
+      };
+
+      const data = await client.request(`/api/v1/contents/${id}`, { method: 'PUT', body });
       return { data };
     }
 
@@ -116,7 +176,7 @@ export async function handleContentCommand(
     default:
       throw new CliError({
         code: 'UNKNOWN_ACTION',
-        message: `Unknown action '${action}' for noun 'content'. Available: list, get, create, delete, rollback.`,
+        message: `Unknown action '${action}' for noun 'content'. Available: list, get, create, update, delete, rollback.`,
         exitCode: ExitCode.USAGE_ERROR,
       });
   }

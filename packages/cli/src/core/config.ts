@@ -11,6 +11,10 @@ export interface CliConfig {
   dryRun: boolean;
   yes: boolean;
   fields?: string[];
+  limit?: number;
+  tail?: number; // alias: last
+  offset?: number;
+  filter?: string;
   verbose: boolean;
 }
 
@@ -79,6 +83,16 @@ export function resolveConfig(parsedFlags: Record<string, any>): CliConfig {
     fields = rawFields.split(',').map((s) => s.trim()).filter(Boolean);
   }
 
+  const limit = parsedFlags.limit !== undefined ? Number(parsedFlags.limit) : undefined;
+  const tail =
+    parsedFlags.tail !== undefined
+      ? Number(parsedFlags.tail)
+      : parsedFlags.last !== undefined
+      ? Number(parsedFlags.last)
+      : undefined;
+  const offset = parsedFlags.offset !== undefined ? Number(parsedFlags.offset) : undefined;
+  const filter = parsedFlags.filter !== undefined ? String(parsedFlags.filter) : undefined;
+
   return {
     apiUrl: apiUrl.replace(/\/+$/, ''),
     apiKey,
@@ -88,6 +102,10 @@ export function resolveConfig(parsedFlags: Record<string, any>): CliConfig {
     dryRun,
     yes,
     fields,
+    limit,
+    tail,
+    offset,
+    filter,
     verbose,
   };
 }

@@ -49,6 +49,17 @@ export async function handleGateCommand(
             exitCode: ExitCode.VALIDATION_ERROR,
           });
         }
+      } else if (flags.requirements) {
+        try {
+          const content = JSON.parse(flags.requirements);
+          requirements = Array.isArray(content) ? content : content.requirements;
+        } catch (err: any) {
+          throw new CliError({
+            code: 'INVALID_JSON',
+            message: `Failed to parse inline requirements JSON: ${err.message}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+          });
+        }
       }
 
       const body = {

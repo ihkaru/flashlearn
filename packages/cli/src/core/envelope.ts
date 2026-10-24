@@ -25,6 +25,8 @@ export interface SuccessEnvelope<T = any> {
     durationMs: number;
     timestamp: string;
     itemCount?: number;
+    totalBeforeSlice?: number;
+    appliedTransforms?: Record<string, any>;
   };
 }
 

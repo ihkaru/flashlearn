@@ -52,12 +52,14 @@ export async function handleTaskCommand(
       const scenario = flags.scenario;
       const taskType = flags.type || flags['task-type'] || 'calculation';
       const oracleFilePath = flags['oracle-file'];
+      const inlineOracle = flags.oracle;
       const rubricFilePath = flags['rubric-file'];
+      const inlineRubric = flags.rubric;
 
-      if (!competencyId || !title || !scenario || !oracleFilePath || !rubricFilePath) {
+      if (!competencyId || !title || !scenario || (!oracleFilePath && !inlineOracle) || (!rubricFilePath && !inlineRubric)) {
         throw new CliError({
           code: 'MISSING_ARGUMENT',
-          message: 'Required: --competency-id, --title, --scenario, --oracle-file, and --rubric-file.',
+          message: 'Required: --competency-id, --title, --scenario, and oracle/rubric (via --oracle-file or --oracle, and --rubric-file or --rubric).',
           exitCode: ExitCode.VALIDATION_ERROR,
           suggestedFix: 'flashlearn task create --competency-id <id> --title "Task" --scenario "Problem..." --type calculation --oracle-file ./oracle.json --rubric-file ./rubric.json',
         });
@@ -66,24 +68,48 @@ export async function handleTaskCommand(
       let oracleData: any;
       let rubricCriteria: any;
 
-      try {
-        oracleData = JSON.parse(readFileSync(oracleFilePath, 'utf-8'));
-      } catch (err: any) {
-        throw new CliError({
-          code: 'INVALID_FILE',
-          message: `Failed to read oracle file ${oracleFilePath}: ${err.message}`,
-          exitCode: ExitCode.VALIDATION_ERROR,
-        });
+      if (oracleFilePath) {
+        try {
+          oracleData = JSON.parse(readFileSync(oracleFilePath, 'utf-8'));
+        } catch (err: any) {
+          throw new CliError({
+            code: 'INVALID_FILE',
+            message: `Failed to read oracle file ${oracleFilePath}: ${err.message}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+          });
+        }
+      } else {
+        try {
+          oracleData = JSON.parse(inlineOracle);
+        } catch (err: any) {
+          throw new CliError({
+            code: 'INVALID_JSON',
+            message: `Failed to parse inline oracle JSON: ${err.message}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+          });
+        }
       }
 
-      try {
-        rubricCriteria = JSON.parse(readFileSync(rubricFilePath, 'utf-8'));
-      } catch (err: any) {
-        throw new CliError({
-          code: 'INVALID_FILE',
-          message: `Failed to read rubric file ${rubricFilePath}: ${err.message}`,
-          exitCode: ExitCode.VALIDATION_ERROR,
-        });
+      if (rubricFilePath) {
+        try {
+          rubricCriteria = JSON.parse(readFileSync(rubricFilePath, 'utf-8'));
+        } catch (err: any) {
+          throw new CliError({
+            code: 'INVALID_FILE',
+            message: `Failed to read rubric file ${rubricFilePath}: ${err.message}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+          });
+        }
+      } else {
+        try {
+          rubricCriteria = JSON.parse(inlineRubric);
+        } catch (err: any) {
+          throw new CliError({
+            code: 'INVALID_JSON',
+            message: `Failed to parse inline rubric JSON: ${err.message}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+          });
+        }
       }
 
       const body = {

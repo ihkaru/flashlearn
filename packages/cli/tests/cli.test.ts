@@ -143,4 +143,108 @@ describe('FlashLearn Agent-First CLI (October 2026 Standards)', () => {
     const errorParsed = JSON.parse(stderrData);
     expect(errorParsed.error.code).toBe('UNKNOWN_NOUN');
   });
+
+  test('Comprehensive Help System: Global, Noun-level, and Action-level help', async () => {
+    // 1. Global help
+    captureOutput();
+    let code = await runCli(['--help']);
+    expect(code).toBe(ExitCode.SUCCESS);
+    let parsed = JSON.parse(stdoutData);
+    expect(parsed.data.title).toContain('FlashLearn Agent-First CLI');
+    expect(parsed.data.globalFlags['--tail <n>']).toBeDefined();
+    expect(parsed.data.globalFlags['--limit <n>']).toBeDefined();
+    expect(parsed.data.globalFlags['--filter <k=v>']).toBeDefined();
+
+    // 2. Noun-level help
+    captureOutput();
+    code = await runCli(['task', '--help']);
+    expect(code).toBe(ExitCode.SUCCESS);
+    parsed = JSON.parse(stdoutData);
+    expect(parsed.data.title).toBe('FlashLearn CLI: task');
+    expect(parsed.data.target.actions.length).toBeGreaterThanOrEqual(4);
+
+    // 3. Action-level granular help
+    captureOutput();
+    code = await runCli(['task', 'create', '--help']);
+    expect(code).toBe(ExitCode.SUCCESS);
+    parsed = JSON.parse(stdoutData);
+    expect(parsed.data.title).toBe('FlashLearn CLI: task create');
+    expect(parsed.data.target.args).toBeDefined();
+    expect(parsed.data.examples.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test('Token Optimization: Slicing from last line via --tail / --last and filtering via --filter', async () => {
+    const { transformData } = await import('../src/core/transform');
+
+    const sampleList = [
+      { id: '1', role: 'guest', name: 'Alpha' },
+      { id: '2', role: 'creator', name: 'Beta' },
+      { id: '3', role: 'creator', name: 'Gamma' },
+      { id: '4', role: 'guest', name: 'Delta' },
+      { id: '5', role: 'creator', name: 'Epsilon' },
+    ];
+
+    // 1. Tail / Last (take last 2 items)
+    const tailRes = transformData(sampleList, { tail: 2 });
+    expect(tailRes.itemCount).toBe(2);
+    expect(tailRes.data.map((d: any) => d.id)).toEqual(['4', '5']);
+    expect(tailRes.totalBeforeSlice).toBe(5);
+
+    // 2. Filter key=value + tail
+    const filterRes = transformData(sampleList, { filter: 'role=creator', tail: 2 });
+    expect(filterRes.itemCount).toBe(2);
+    expect(filterRes.totalBeforeSlice).toBe(3); // 3 creators total
+    expect(filterRes.data.map((d: any) => d.id)).toEqual(['3', '5']); // last 2 creators
+
+    // 3. Limit (take first 2 items)
+    const limitRes = transformData(sampleList, { limit: 2 });
+    expect(limitRes.itemCount).toBe(2);
+    expect(limitRes.data.map((d: any) => d.id)).toEqual(['1', '2']);
+
+    // 4. Combined: Filter + Tail + Field Masking
+    const combinedRes = transformData(sampleList, {
+      filter: 'role=creator',
+      tail: 1,
+      fields: ['id', 'name'],
+    });
+    expect(combinedRes.itemCount).toBe(1);
+    expect(combinedRes.data[0]).toEqual({ id: '5', name: 'Epsilon' });
+    expect(combinedRes.data[0].role).toBeUndefined(); // Filtered out to save tokens!
+  });
+
+  test('Learning Stage Creation: Material and Quiz content creation with simulated dry-run', async () => {
+    // 1. Materi Creation
+    captureOutput();
+    let code = await runCli([
+      'content',
+      'create',
+      '--workspace-id=ws_test',
+      '--title=Tata Kelola Pengadaan',
+      '--type=materi',
+      '--body=# Bab 1: Dasar Hukum',
+      '--dry-run',
+    ]);
+    expect(code).toBe(ExitCode.SUCCESS);
+    let parsed = JSON.parse(stdoutData);
+    expect(parsed.data.dryRun).toBe(true);
+    expect(parsed.data.target.payload.type).toBe('materi');
+    expect(parsed.data.target.payload.body).toBe('# Bab 1: Dasar Hukum');
+
+    // 2. Quiz / Combined Creation with Questions
+    captureOutput();
+    code = await runCli([
+      'content',
+      'create',
+      '--workspace-id=ws_test',
+      '--title=Kuis Evaluasi Pajak',
+      '--type=quiz',
+      '--questions=[{"id":"q1","question":"Berapa tarif PPN standar?","options":[{"id":"o1","text":"11%","isCorrect":true}],"explanation":"PPN 11%"}]',
+      '--dry-run',
+    ]);
+    expect(code).toBe(ExitCode.SUCCESS);
+    parsed = JSON.parse(stdoutData);
+    expect(parsed.data.dryRun).toBe(true);
+    expect(parsed.data.target.payload.questions.length).toBe(1);
+    expect(parsed.data.target.payload.questions[0].question).toContain('PPN');
+  });
 });
