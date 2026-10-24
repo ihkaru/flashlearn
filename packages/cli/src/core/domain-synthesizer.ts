@@ -1,19 +1,14 @@
-import { readFileSync, existsSync } from 'node:fs';
-import { createHash } from 'node:crypto';
-import { basename } from 'node:path';
+import { verifyAcyclicity, type AcyclicityResult } from './graph-validator';
+import {
+  parseMarkdownDocument,
+  parseMarkdownText,
+  extractDomainRules,
+  type ParsedDoc,
+  type ChunkMeta,
+} from './markdown-parser';
 
-export interface ChunkMeta {
-  locationTag: string;
-  content: string;
-  sha256: string;
-}
-
-export interface ParsedDoc {
-  fileName: string;
-  sourceCode: string;
-  title: string;
-  chunks: ChunkMeta[];
-}
+export { verifyAcyclicity, parseMarkdownDocument, parseMarkdownText, extractDomainRules };
+export type { ParsedDoc, ChunkMeta, AcyclicityResult };
 
 export interface SynthesisOptions {
   workspaceName: string;
@@ -36,153 +31,6 @@ export interface SynthesisResult {
   };
 }
 
-export function verifyAcyclicity(
-  nodes: string[],
-  edges: Array<{ from: string; to: string }>
-): { isAcyclic: boolean; cycles: string[][] } {
-  const adj = new Map<string, string[]>();
-  for (const n of nodes) adj.set(n, []);
-  for (const e of edges) {
-    if (!adj.has(e.from)) adj.set(e.from, []);
-    adj.get(e.from)!.push(e.to);
-  }
-
-  let index = 0;
-  const indices = new Map<string, number>();
-  const lowlinks = new Map<string, number>();
-  const onStack = new Set<string>();
-  const stack: string[] = [];
-  const sccs: string[][] = [];
-
-  function strongConnect(v: string) {
-    indices.set(v, index);
-    lowlinks.set(v, index);
-    index++;
-    stack.push(v);
-    onStack.add(v);
-
-    for (const w of adj.get(v) || []) {
-      if (!indices.has(w)) {
-        strongConnect(w);
-        lowlinks.set(v, Math.min(lowlinks.get(v)!, lowlinks.get(w)!));
-      } else if (onStack.has(w)) {
-        lowlinks.set(v, Math.min(lowlinks.get(v)!, indices.get(w)!));
-      }
-    }
-
-    if (lowlinks.get(v) === indices.get(v)) {
-      const scc: string[] = [];
-      let w: string;
-      do {
-        w = stack.pop()!;
-        onStack.delete(w);
-        scc.push(w);
-      } while (w !== v);
-
-      if (scc.length > 1) {
-        sccs.push(scc);
-      }
-    }
-  }
-
-  for (const n of nodes) {
-    if (!indices.has(n)) strongConnect(n);
-  }
-
-  return { isAcyclic: sccs.length === 0, cycles: sccs };
-}
-
-export function parseMarkdownDocument(filePath: string, index: number): ParsedDoc {
-  if (!existsSync(filePath)) {
-    throw new Error(`Markdown file not found: ${filePath}`);
-  }
-  const raw = readFileSync(filePath, 'utf-8').replace(/\r\n/g, '\n').trim();
-  const fileName = basename(filePath);
-  const baseCode = fileName.replace(/\.[^/.]+$/, '').toUpperCase().replace(/[^A-Z0-9]+/g, '-').slice(0, 10);
-  const sourceCode = `SRC-${baseCode || `DOC${index + 1}`}`;
-
-  const h1Match = raw.match(/^#\s+(.+)$/m);
-  const title = h1Match ? h1Match[1].trim() : fileName.replace(/\.md$/i, '');
-
-  const sectionRegex = /(?:^|\n)(?:#+\s*)?(Pasal\s+\d+[a-z]?|BAB\s+[IVXLCDM]+|Bagian\s+[A-Za-z0-9]+|Lampiran\s+[A-Za-z0-9]+|##+\s+[^#\n]+)/gi;
-  const matches: Array<{ tag: string; index: number }> = [];
-  let m: RegExpExecArray | null;
-
-  while ((m = sectionRegex.exec(raw)) !== null) {
-    matches.push({ tag: m[1].replace(/^#+\s*/, '').trim(), index: m.index });
-  }
-
-  const chunks: ChunkMeta[] = [];
-  if (matches.length === 0) {
-    const paragraphs = raw.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
-    paragraphs.forEach((p, idx) => {
-      const content = p.trim();
-      chunks.push({
-        locationTag: `Bagian ${idx + 1}`,
-        content,
-        sha256: createHash('sha256').update(content).digest('hex'),
-      });
-    });
-  } else {
-    for (let i = 0; i < matches.length; i++) {
-      const cur = matches[i];
-      const next = matches[i + 1];
-      const content = (next ? raw.substring(cur.index, next.index) : raw.substring(cur.index)).trim();
-      chunks.push({
-        locationTag: cur.tag,
-        content,
-        sha256: createHash('sha256').update(content).digest('hex'),
-      });
-    }
-  }
-
-  return { fileName, sourceCode, title, chunks };
-}
-
-export function parseMarkdownText(rawText: string, titleHint: string, index: number): ParsedDoc {
-  const raw = (rawText || '').replace(/\r\n/g, '\n').trim();
-  const fileName = `${titleHint}.md`;
-  const baseCode = titleHint.toUpperCase().replace(/[^A-Z0-9]+/g, '-').slice(0, 10);
-  const sourceCode = `SRC-${baseCode || `DOC${index + 1}`}`;
-
-  const h1Match = raw.match(/^#\s+(.+)$/m);
-  const title = h1Match ? h1Match[1].trim() : titleHint;
-
-  const sectionRegex = /(?:^|\n)(?:#+\s*)?(Pasal\s+\d+[a-z]?|BAB\s+[IVXLCDM]+|Bagian\s+[A-Za-z0-9]+|Lampiran\s+[A-Za-z0-9]+|##+\s+[^#\n]+)/gi;
-  const matches: Array<{ tag: string; index: number }> = [];
-  let m: RegExpExecArray | null;
-
-  while ((m = sectionRegex.exec(raw)) !== null) {
-    matches.push({ tag: m[1].replace(/^#+\s*/, '').trim(), index: m.index });
-  }
-
-  const chunks: ChunkMeta[] = [];
-  if (matches.length === 0) {
-    const paragraphs = raw.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
-    paragraphs.forEach((p, idx) => {
-      const content = p.trim();
-      chunks.push({
-        locationTag: `Bagian ${idx + 1}`,
-        content,
-        sha256: createHash('sha256').update(content).digest('hex'),
-      });
-    });
-  } else {
-    for (let i = 0; i < matches.length; i++) {
-      const cur = matches[i];
-      const next = matches[i + 1];
-      const content = (next ? raw.substring(cur.index, next.index) : raw.substring(cur.index)).trim();
-      chunks.push({
-        locationTag: cur.tag,
-        content,
-        sha256: createHash('sha256').update(content).digest('hex'),
-      });
-    }
-  }
-
-  return { fileName, sourceCode, title, chunks };
-}
-
 export function synthesizeDomainBlueprint(options: SynthesisOptions): SynthesisResult {
   const parsedDocs: ParsedDoc[] = [];
   if (options.sourceFiles) {
@@ -195,8 +43,17 @@ export function synthesizeDomainBlueprint(options: SynthesisOptions): SynthesisR
   }
 
   if (parsedDocs.length === 0) {
-    throw new Error('No valid markdown sources provided for domain synthesis');
+    throw new Error('INSUFFICIENT_DOMAIN_SPECIFICATION: No valid markdown sources provided for domain synthesis');
   }
+
+  const totalChunks = parsedDocs.reduce((acc, d) => acc + d.chunks.length, 0);
+  if (totalChunks < 2) {
+    throw new Error(
+      'INSUFFICIENT_DOMAIN_SPECIFICATION: Ingested document must contain at least 2 structured sections or paragraphs'
+    );
+  }
+
+  const rules = extractDomainRules(parsedDocs);
 
   const wsName = options.workspaceName;
   const slug = options.slug || wsName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -210,34 +67,32 @@ export function synthesizeDomainBlueprint(options: SynthesisOptions): SynthesisR
     chunks: doc.chunks.map((c) => ({ locationTag: c.locationTag, content: c.content })),
   }));
 
-  const prefix = slug.toUpperCase().slice(0, 4);
+  const prefix = (slug.replace(/[^a-z0-9]/gi, '').slice(0, 4) || 'DOMN').toUpperCase();
   const comp1Code = `${prefix}-FOUND-01`;
   const comp2Code = `${prefix}-APPLY-02`;
   const comp3Code = `${prefix}-STRESS-03`;
 
-  const primaryChunk = parsedDocs[0]?.chunks[0]?.content.slice(0, 160) || 'Standar regulasi dan kepatuhan.';
-
   const competencies = [
     {
       code: comp1Code,
-      title: `Dasar Teoretis & Verifikasi Kepatuhan ${wsName}`,
-      description: `Kalkulasi matematis dan verifikasi checklist berdasarkan ${parsedDocs[0]?.sourceCode}.`,
+      title: `Verifikasi Standar & Parameter Teknis (${wsName})`,
+      description: `Kalkulasi parameter operasional dan verifikasi checklist berdasarkan ${parsedDocs[0].sourceCode}.`,
       oracleClass: 'A' as const,
       riskLevel: 'low' as const,
       cognitiveTier: 'remember',
     },
     {
       code: comp2Code,
-      title: `Analisis Studi Kasus & Mitigasi Risiko ${wsName}`,
-      description: `Analisis trade-off dan penghindaran jebakan (negative anchors) dalam skenario operasional.`,
+      title: `Analisis Kasus & Penerapan Prosedur (${wsName})`,
+      description: `Analisis trade-off, evaluasi mitigasi deviasi, dan penghindaran jebakan fatal dalam skenario operasional.`,
       oracleClass: 'B' as const,
       riskLevel: 'medium' as const,
       cognitiveTier: 'analyze',
     },
     {
       code: comp3Code,
-      title: `Pertahanan Integritas & Uji Stres Adversarial ${wsName}`,
-      description: `Pengujian pertahanan batas operasional di bawah tekanan urgensi dan omisi data.`,
+      title: `Uji Integritas Batas & Penegakan Protokol (${wsName})`,
+      description: `Pengujian pertahanan batas operasional di bawah tekanan urgensi, omisi data kritis, dan dilema etika.`,
       oracleClass: 'B' as const,
       riskLevel: 'critical' as const,
       cognitiveTier: 'evaluate',
@@ -260,81 +115,105 @@ export function synthesizeDomainBlueprint(options: SynthesisOptions): SynthesisR
 
   const gates = [
     {
-      title: `Level 1: Izin Observasi & Kalkulasi Dasar (${wsName})`,
-      name: `Level 1: Izin Observasi & Kalkulasi Dasar (${wsName})`,
+      title: `Level 1: Otorisasi Observasi & Kalkulasi Dasar (${wsName})`,
+      name: `Level 1: Otorisasi Observasi & Kalkulasi Dasar (${wsName})`,
       level: 1,
-      description: `Memverifikasi penguasaan formula matematis dan checklist regulasi.`,
+      description: `Memverifikasi penguasaan parameter teknis, formula, dan checklist regulasi.`,
       requiredCompetencyCodes: [comp1Code],
     },
     {
-      title: `Level 2: Praktisi Operasional Mandiri (${wsName})`,
-      name: `Level 2: Praktisi Operasional Mandiri (${wsName})`,
+      title: `Level 2: Praktisi Operasional Terverifikasi (${wsName})`,
+      name: `Level 2: Praktisi Operasional Terverifikasi (${wsName})`,
       level: 2,
-      description: `Memverifikasi kemampuan pengambilan keputusan studi kasus dan mitigasi risiko.`,
+      description: `Memverifikasi kemampuan evaluasi kasus nyata, mitigasi risiko deviasi, dan penerapan SOP.`,
       requiredCompetencyCodes: [comp1Code, comp2Code],
     },
     {
       title: `Level 3: Otoritas Independen & Pertahanan Integritas (${wsName})`,
       name: `Level 3: Otoritas Independen & Pertahanan Integritas (${wsName})`,
       level: 3,
-      description: `Sertifikasi otoritas tinggi tahan jebakan dan pengujian stres adversarial.`,
+      description: `Sertifikasi otoritas tinggi tahan jebakan operasional dan uji stres adversarial.`,
       requiredCompetencyCodes: [comp1Code, comp2Code, comp3Code],
     },
   ];
+
+  // Dynamic Class A Task
+  const primaryFormula = rules.numericalLimits[0];
+  const expectedFormulas: Record<string, any> = {};
+  if (primaryFormula) {
+    expectedFormulas[primaryFormula.key] = { expectedValue: primaryFormula.value, tolerance: 0 };
+  } else {
+    expectedFormulas['skor_kepatuhan_minimum'] = { expectedValue: 100, tolerance: 0 };
+  }
+
+  const task1Checklist = rules.checklistItems.slice(0, 4);
+  const task1Scenario = `Lakukan verifikasi pemenuhan parameter standar operasional berikut berdasarkan ${parsedDocs[0].sourceCode}: ${task1Checklist.slice(0, 2).join('; ')}`;
+
+  // Dynamic Class B Task
+  const ruleToEvaluate = rules.prohibitions[0] || rules.mandates[1] || rules.checklistItems[1] || 'Ketentuan standar operasional';
+  const mandatoryAdherence = rules.mandates[0] || rules.checklistItems[0] || 'Prosedur operasional baku';
+
+  // Dynamic Class C / Adversarial Task
+  const criticalOmission = rules.dilemmaTriggers[0] || rules.mandates[0] || rules.checklistItems[0];
 
   const tasks = [
     {
       competencyCode: comp1Code,
       title: `Verifikasi Formula & Checklist Dokumen ${wsName}`,
-      scenario: `Lakukan verifikasi batas kepatuhan awal berdasarkan ${primaryChunk}`,
+      scenario: task1Scenario,
       taskType: 'calculation',
       oracleData: {
-        expectedFormulas: { nilai_standar: { expectedValue: 100, tolerance: 0 } },
-        checklist: ['Dokumen identitas terverifikasi', 'Pernyataan integritas ditandatangani'],
+        expectedFormulas,
+        checklist: task1Checklist,
       },
       rubricCriteria: [
-        { id: 'crit_c1_calc', title: 'Akurasi Kalkulasi', weight: 50, description: 'Perhitungan tepat tanpa deviasi' },
-        { id: 'crit_c1_chk', title: 'Kelengkapan Checklist', weight: 50, description: 'Semua butir terpenuhi' },
+        { id: 'crit_c1_calc', title: 'Akurasi Parameter', weight: 50, description: 'Kalkulasi nilai tepat tanpa deviasi' },
+        { id: 'crit_c1_chk', title: 'Kelengkapan Checklist', weight: 50, description: 'Semua butir kepatuhan terpenuhi' },
       ],
       passingScore: 85,
     },
     {
       competencyCode: comp2Code,
-      title: `Studi Kasus Penanganan Sengketa & Trade-Off ${wsName}`,
-      scenario: `Tinjau skenario di mana counterparty mengajukan klaim tidak terduga. Pilih strategi mitigasi yang sesuai SOP.`,
+      title: `Analisis Kasus & Mitigasi Risiko: ${wsName}`,
+      scenario: `Tinjau skenario operasional lapangan terkait: '${ruleToEvaluate}'. Evaluasi potensi risiko deviasi dan tentukan tindakan korektif yang wajib diambil sesuai SOP.`,
       taskType: 'case_study',
       oracleData: {
-        goldSolution: 'Terapkan prosedur klarifikasi tertulis resmi dan tolak klaim sepihak tanpa bukti dukung.',
+        goldSolution: `Terapkan verifikasi ketat sesuai ketentuan resmi: '${mandatoryAdherence}', serta tolak toleransi tidak berizin.`,
         negativeAnchors: [
-          { id: 'trap_shortcut', trapDescription: 'Menerima klaim tanpa verifikasi fisik berkas', penaltyPoints: 40, fatal: true },
+          {
+            id: 'trap_rule_bypass',
+            trapDescription: `Memberikan toleransi atau mengabaikan ketentuan: ${ruleToEvaluate.slice(0, 70)}`,
+            penaltyPoints: 40,
+            fatal: true,
+          },
         ],
       },
       rubricCriteria: [
-        { id: 'crit_c2_substance', title: 'Ketepatan Langkah Regulasi', weight: 60, description: 'Langkah sesuai SOP resmi' },
-        { id: 'crit_c2_mitigation', title: 'Mitigasi Risiko', weight: 40, description: 'Mencegah potensi sengketa hukum' },
+        { id: 'crit_c2_substance', title: 'Kesesuaian Prosedur', weight: 60, description: 'Langkah tepat mengacu dokumen rujukan' },
+        { id: 'crit_c2_mitigation', title: 'Mitigasi Risiko', weight: 40, description: 'Mencegah potensi kegagalan operasional' },
       ],
       passingScore: 85,
     },
     {
       competencyCode: comp3Code,
-      title: `Uji Stres Adversarial: Tekanan Batas Waktu & Omisi Dokumen`,
-      scenario: `Counterparty menyerahkan berkas di menit-menit terakhir sebelum tenggat anggaran. Pimpinan mendesak persetujuan cepat, namun dokumen audit kelaikan teknis utama belum terlampir.`,
+      title: `Uji Stres Adversarial: Penegakan Integritas di Bawah Tekanan Desakan`,
+      scenario: `Dalam situasi urgensi tinggi dan desakan penyelesaian segera dari pemangku kepentingan, ditemukan bahwa syarat kritis berikut belum terpenuhi atau diabaikan: '${criticalOmission}'. Tentukan disposisi resmi Anda.`,
       taskType: 'adversarial_dilemma',
       oracleData: {},
       adversarialSpec: {
         trapType: 'OMISSION_DATA',
         correctDisposition: 'REJECT_AND_DEMAND_DATA',
         trapCues: [
-          { cue: 'Dokumen audit kelaikan teknis utama belum terlampir', weight: 0.6 },
-          { cue: 'Desakan persetujuan cepat sebelum tenggat anggaran', weight: 0.4 },
+          { cue: `Omisi atau belum terverifikasinya syarat kritis: ${criticalOmission.slice(0, 90)}`, weight: 0.6 },
+          { cue: 'Tekanan desakan waktu operasional dan permintaan percepatan sepihak', weight: 0.4 },
         ],
-        statutoryPolicy: `${parsedDocs[0]?.sourceCode} Klausul Kepatuhan Mutlak`,
+        statutoryPolicy: `${parsedDocs[0].sourceCode} - Ketentuan Integritas: ${criticalOmission.slice(0, 100)}`,
         vetoThreshold: 0.7,
       },
       rubricCriteria: [
-        { id: 'crit_adv_vigilance', title: 'Kewaspadaan Omisi', weight: 40, description: 'Mendeteksi berkas belum terlampir' },
+        { id: 'crit_adv_vigilance', title: 'Kewaspadaan Omisi', weight: 40, description: 'Mendeteksi syarat kritis belum terpenuhi' },
         { id: 'crit_adv_defense', title: 'Pertahanan Batas Integritas', weight: 40, description: 'Menolak menandatangani berkas cacat' },
-        { id: 'crit_adv_policy', title: 'Justifikasi Regulasi', weight: 20, description: 'Mengacu klausul resmi' },
+        { id: 'crit_adv_policy', title: 'Justifikasi Rujukan Regulasi', weight: 20, description: 'Mengacu klausul standar resmi' },
       ],
       passingScore: 85,
     },
@@ -359,7 +238,7 @@ export function synthesizeDomainBlueprint(options: SynthesisOptions): SynthesisR
     dagIsAcyclic: acyclicCheck.isAcyclic,
     statistics: {
       sourcesCount: sources.length,
-      chunksCount: parsedDocs.reduce((acc, d) => acc + d.chunks.length, 0),
+      chunksCount: totalChunks,
       competenciesCount: competencies.length,
       edgesCount: prerequisiteEdges.length,
       gatesCount: gates.length,

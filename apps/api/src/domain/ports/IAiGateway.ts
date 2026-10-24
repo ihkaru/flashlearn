@@ -3,6 +3,7 @@ export interface AiChatOptions {
   model?: string;
   temperature?: number;
   maxTokens?: number;
+  timeoutMs?: number;
 }
 
 export interface IAiGateway {

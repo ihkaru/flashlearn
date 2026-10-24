@@ -32,7 +32,7 @@ export const DOMAIN_SCHEMAS: Record<string, ResourceSchemaDef> = {
           { name: '--description', type: 'string', required: false, description: 'Purpose description' },
           { name: '--public', type: 'boolean', required: false, description: 'Make publicly accessible' },
         ],
-        example: 'flashlearn workspace create --name "Pengadaan Publik" --slug "pbj-2026"',
+        example: 'flashlearn workspace create --name "Pemeliharaan Avionik FAA" --slug "faa-145"',
         mutating: true,
       },
       {
@@ -115,7 +115,7 @@ export const DOMAIN_SCHEMAS: Record<string, ResourceSchemaDef> = {
           { name: '--version', type: 'string', required: false, description: 'Version string (default 1.0.0)' },
           { name: '--owner', type: 'string', required: false, description: 'Regulatory owner / institution' },
         ],
-        example: 'flashlearn source ingest --workspace-id <ws_id> --code PERPRES-12 --title "Pengadaan" --file ./perpres.md',
+        example: 'flashlearn source ingest --workspace-id <ws_id> --code ATA-104 --title "SOP Avionik" --file ./sop_avionik.md',
         mutating: true,
       },
       {

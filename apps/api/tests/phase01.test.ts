@@ -109,6 +109,7 @@ c. dasar untuk menetapkan besaran nilai Jaminan Pelaksanaan bagi penawaran yang 
         model: 'my9model-fast',
         maxTokens: 30,
         temperature: 0.1,
+        timeoutMs: 1500,
       });
       expect(typeof response).toBe('string');
       expect(response.length).toBeGreaterThan(0);
@@ -116,5 +117,5 @@ c. dasar untuk menetapkan besaran nilai Jaminan Pelaksanaan bagi penawaran yang 
       // In offline / DNS restricted environments, verify error is an expected typed Error
       expect(err).toBeInstanceOf(Error);
     }
-  }, 30000);
+  }, 3000);
 });

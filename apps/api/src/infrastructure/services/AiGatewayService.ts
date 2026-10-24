@@ -22,6 +22,7 @@ export class AiGatewayService implements IAiGateway {
 
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
+      signal: AbortSignal.timeout(options?.timeoutMs || 5000),
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${this.apiKey}`,
