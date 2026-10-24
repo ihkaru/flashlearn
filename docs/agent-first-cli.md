@@ -128,7 +128,21 @@ bun run cli task create --help
 bun run cli schema task
 ```
 
-### 2. Optimasi Token LLM: Filter & Limit from Last Line
+### 2. Diagnosa Kondisi & Kesiapan Domain (Agent Gap Analysis)
+AI Coding Agent dapat memeriksa kesehatan, kelengkapan, dan statistik sebuah domain untuk mengetahui apa yang masih kurang/belum valid:
+```bash
+# Diagnosa kondisi domain, topologi DAG, gap analisis, dan rekomendasi aksi
+bun run cli workspace describe pbj-2026
+
+# Output menyajikan:
+# - statistics (jumlah sumber, chunks, kompetensi, tasks, gates, materi)
+# - dagIntegrity (deteksi siklus, root nodes, terminal nodes)
+# - gaps (kompetensi tanpa task, gerbang otorisasi yang belum dibuat, node belum disahkan pakar)
+# - readiness (skor kesiapan 0-100% dan status PRODUCTION_READY / INCOMPLETE_DRAFT)
+# - recommendations (daftar perintah CLI konkret untuk melengkapi gap yang ditemukan)
+```
+
+### 3. Optimasi Token LLM: Filter & Limit from Last Line
 ```bash
 # Ambil HANYA 5 catatan audit terakhir (memotong ribuan log agar hemat token)
 bun run cli audit list --workspace-id ws_123 --last 5

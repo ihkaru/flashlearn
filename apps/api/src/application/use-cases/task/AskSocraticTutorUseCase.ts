@@ -1,6 +1,7 @@
 import type { ITaskRepository } from '../../../domain/ports/ITaskRepository';
 import type { ICompetencyRepository } from '../../../domain/ports/ICompetencyRepository';
 import type { ISourceRepository } from '../../../domain/ports/ISourceRepository';
+import type { IContentRepository } from '../../../domain/ports/IContentRepository';
 import type { IAiGateway } from '../../../domain/ports/IAiGateway';
 import type {
   SocraticHintRequest,
@@ -12,7 +13,8 @@ export class AskSocraticTutorUseCase {
     private readonly taskRepo: ITaskRepository,
     private readonly competencyRepo: ICompetencyRepository,
     private readonly sourceRepo: ISourceRepository,
-    private readonly aiGateway: IAiGateway
+    private readonly aiGateway: IAiGateway,
+    private readonly contentRepo?: IContentRepository
   ) {}
 
   async execute(taskId: string, req: SocraticHintRequest): Promise<SocraticTutorResponse> {
@@ -60,14 +62,39 @@ export class AskSocraticTutorUseCase {
       .map((c) => `[${c.sourceCode} - ${c.locationTag}]\n${c.content}`)
       .join('\n\n---\n\n');
 
-    // 2. Build Socratic Tutor RCAF Prompt with Oracle Shield
+    // 2. Gather Educational Materials Delivered to the Learner (Curriculum Context)
+    let materialsContext = '';
+    if (this.contentRepo) {
+      try {
+        const contents = await this.contentRepo.listByWorkspace(competency.workspaceId, false, false);
+        if (contents.length > 0) {
+          materialsContext = contents
+            .map((c) => {
+              const bodySnippet = c.body ? c.body.slice(0, 1500) : '';
+              return `[Modul Materi: "${c.title}" (Tipe: ${c.type})]\nRingkasan: ${c.summary || 'Tidak ada ringkasan'}\nKonten Pokok Disajikan:\n${bodySnippet}`;
+            })
+            .join('\n\n---\n\n');
+        }
+      } catch {
+        // Resilient fallback if content repo lookup encounters issue
+      }
+    }
+
+    // 3. Build Socratic Tutor RCAF Prompt with Oracle Shield & Curriculum Awareness
     const tutorSystemPrompt = `You are an expert Socratic Pedagogical Tutor and Academic Mentor.
 You are assisting a student who is working on a consequential real-world evaluation task.
 
 ### Pedagogical Architecture (RCAF Standard):
 - ROLE: Socratic Tutor & Domain Mentor.
-- GOAL: Guide the student to discover and verify the solution independently through inquiry and grounded citations.
-- CONTEXT: Provided Corpus of Record chunks and Task Scenario.
+- GOAL: Guide the student to discover and verify the solution independently through inquiry, curriculum awareness, and grounded citations.
+- CONTEXT: Provided Corpus of Record chunks, Delivered Educational Materials, and Task Scenario.
+
+### 📚 CURRICULUM AWARENESS DIRECTIVE (UNDERSTANDING LEARNER CONFUSION):
+You have access to the exact educational materials, modules, and lessons taught to this learner.
+When the learner asks a question or expresses confusion:
+1. Cross-examine their confusion against what was taught in their delivered materials.
+2. Spot root misconceptions: determine whether they are confusing distinct terms (e.g. overhead vs markup, gross vs net) or misapplying a step from their lessons.
+3. Bridge the theoretical concepts from their curriculum with the practical scenario of the current task.
 
 ### 🛡️ ORACLE SHIELD (ABSOLUTE ANTI-SPOILER GUARDRAIL):
 1. NEVER reveal the exact final numerical values, target figures, or formula answers from Oracle data.
@@ -77,10 +104,11 @@ You are assisting a student who is working on a consequential real-world evaluat
 
 ### CRITICAL DOs:
 1. DO guide the learner using reflective questioning, conceptual deconstruction, and official citations.
-2. DO refer the learner to specific clauses, articles, or location tags from the provided Corpus of Record.
-3. DO cite the exact sourceCode and locationTag in "citationReferences".
-4. DO provide a thoughtful, open-ended question in "reflectiveQuestion" that forces active critical thinking.
-5. DO suggest a clear, immediate cognitive action in "suggestedAction" (e.g. "Review paragraph 2 of Article 28 to check overhead limits").
+2. DO connect their confusion to the specific concepts explained in their delivered educational materials.
+3. DO refer the learner to specific clauses, articles, or location tags from the provided Corpus of Record.
+4. DO cite the exact sourceCode and locationTag in "citationReferences".
+5. DO provide a thoughtful, open-ended question in "reflectiveQuestion" that forces active critical thinking.
+6. DO suggest a clear, immediate cognitive action in "suggestedAction".
 
 ### CRITICAL DON'Ts:
 1. DONT reveal answers, solutions, or shortcuts.
@@ -88,7 +116,7 @@ You are assisting a student who is working on a consequential real-world evaluat
 3. DONT output conversational filler, markdown fences, or text outside the valid JSON object.`;
 
     const schemaPrompt = `{
-  "socraticGuidance": "Reflective guidance explaining the underlying principles without revealing the solution",
+  "socraticGuidance": "Reflective guidance explaining the underlying principles and addressing student misconception without revealing the solution",
   "reflectiveQuestion": "A targeted Socratic question that prompts the student to identify their error or deduce the formula",
   "citationReferences": [
     {
@@ -107,10 +135,13 @@ ${task.scenario}
 Corpus of Record:
 ${corpusContext || 'No specific corpus chunks registered.'}
 
+Delivered Educational Materials & Lessons Presented to the Learner:
+${materialsContext || 'No specific learning modules delivered for this workspace yet.'}
+
 Learner's Question / Point of Confusion:
 "${req.question}"
 
-Task: Provide Socratic guidance to help the learner resolve their question independently without violating the Oracle Shield.`;
+Task: Provide Socratic guidance to help the learner resolve their question independently without violating the Oracle Shield. Analyze their confusion against what was taught in their curriculum.`;
 
     try {
       return await this.aiGateway.chatJson<SocraticTutorResponse>(prompt, schemaPrompt, {
@@ -122,8 +153,8 @@ Task: Provide Socratic guidance to help the learner resolve their question indep
       // Resilient fallback when offline
       const primaryChunk = chunks[0];
       return {
-        socraticGuidance: `Untuk menyelesaikan tugas "${task.title}", perhatikan kembali definisi komponen dan batasan metodologi yang diatur dalam rujukan resmi. Identifikasi variabel apa saja yang menjadi hak atau kewajiban sebelum melakukan kalkulasi atau analisis.`,
-        reflectiveQuestion: 'Apakah Anda telah meninjau dokumen rujukan standar terkait batasan maksimal persentase atau kewenangan penunjukan?',
+        socraticGuidance: `Untuk menyelesaikan tugas "${task.title}", perhatikan kembali materi pembelajaran yang telah dipelajari serta batasan metodologi dalam rujukan resmi. Identifikasi variabel apa saja yang menjadi hak atau kewajiban sebelum melakukan kalkulasi atau analisis.`,
+        reflectiveQuestion: 'Apakah Anda telah meninjau kembali modul materi terkait batasan maksimal persentase atau kewenangan penunjukan?',
         citationReferences: primaryChunk
           ? [
               {
@@ -133,7 +164,7 @@ Task: Provide Socratic guidance to help the learner resolve their question indep
               },
             ]
           : [],
-        suggestedAction: 'Buka kembali naskah rujukan resmi pada bagian ketentuan teknis dan ulangi pemeriksaan langkah demi langkah.',
+        suggestedAction: 'Buka kembali modul materi yang telah dipelajari dan naskah rujukan resmi pada bagian ketentuan teknis.',
       };
     }
   }

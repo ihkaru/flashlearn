@@ -274,4 +274,45 @@ export const workspaceController = new Elysia({ prefix: '/api/v1/workspaces' })
         description: 'Recovers a soft-deleted workspace back to active status.',
       },
     }
+  )
+  .get(
+    '/:id/describe',
+    async ({ params, set }) => {
+      try {
+        return await container.describeDomainReadinessUseCase.execute(params.id);
+      } catch (err: any) {
+        set.status = 404;
+        return { error: err.message };
+      }
+    },
+    {
+      params: t.Object({
+        id: t.String({ description: 'Workspace UUID or unique slug' }),
+      }),
+      detail: {
+        tags: ['Workspaces'],
+        summary: 'Describe Domain Statistics, Gaps & Readiness for AI Agents',
+        description: 'Comprehensive domain health check returning readiness score, statistics, completeness gaps, DAG integrity, and actionable CLI recommendations.',
+      },
+    }
+  )
+  .get(
+    '/:id/diagnose',
+    async ({ params, set }) => {
+      try {
+        return await container.describeDomainReadinessUseCase.execute(params.id);
+      } catch (err: any) {
+        set.status = 404;
+        return { error: err.message };
+      }
+    },
+    {
+      params: t.Object({
+        id: t.String({ description: 'Workspace UUID or unique slug' }),
+      }),
+      detail: {
+        tags: ['Workspaces'],
+        summary: 'Diagnose Domain (Alias for Describe)',
+      },
+    }
   );

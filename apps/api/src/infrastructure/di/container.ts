@@ -33,6 +33,7 @@ import { DeleteWorkspaceUseCase } from '../../application/use-cases/workspace/De
 import { RollbackWorkspaceUseCase } from '../../application/use-cases/workspace/RollbackWorkspaceUseCase';
 import { RestoreWorkspaceUseCase } from '../../application/use-cases/workspace/RestoreWorkspaceUseCase';
 import { ImportDomainBlueprintUseCase } from '../../application/use-cases/workspace/ImportDomainBlueprintUseCase';
+import { DescribeDomainReadinessUseCase } from '../../application/use-cases/workspace/DescribeDomainReadinessUseCase';
 
 import { CreateContentUseCase } from '../../application/use-cases/content/CreateContentUseCase';
 import { ListContentsUseCase } from '../../application/use-cases/content/ListContentsUseCase';
@@ -128,6 +129,15 @@ export class Container {
     this.taskRepository,
     this.competencyGraphEngine,
     this.auditLogRepository
+  );
+  public readonly describeDomainReadinessUseCase = new DescribeDomainReadinessUseCase(
+    this.workspaceRepository,
+    this.sourceRepository,
+    this.competencyRepository,
+    this.taskRepository,
+    this.gateRepository,
+    this.contentRepository,
+    this.competencyGraphEngine
   );
 
   public readonly createContentUseCase = new CreateContentUseCase(
@@ -228,7 +238,8 @@ export class Container {
     this.taskRepository,
     this.competencyRepository,
     this.sourceRepository,
-    this.aiGateway
+    this.aiGateway,
+    this.contentRepository
   );
 
   // Phase 04: Progressive Authorization Gates & Human Expert Use Cases

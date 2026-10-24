@@ -115,10 +115,33 @@ export async function handleWorkspaceCommand(
       return { data };
     }
 
+    case 'describe':
+    case 'diagnose': {
+      const idOrSlug = args[0] || flags['workspace-id'] || flags.workspace;
+      if (!idOrSlug) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Workspace ID or slug is required: `flashlearn workspace describe <id-or-slug>`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+      const data = await client.request(`/api/v1/workspaces/${idOrSlug}/describe`);
+      const nextActions: NextAction[] = [];
+      if (data.recommendations && data.recommendations.length > 0) {
+        for (const rec of data.recommendations.slice(0, 3)) {
+          nextActions.push({
+            command: rec.suggestedCliCommand,
+            description: rec.issue,
+          });
+        }
+      }
+      return { data, nextActions: nextActions.length > 0 ? nextActions : undefined };
+    }
+
     default:
       throw new CliError({
         code: 'UNKNOWN_ACTION',
-        message: `Unknown action '${action}' for noun 'workspace'. Available actions: list, get, create, import-blueprint, delete.`,
+        message: `Unknown action '${action}' for noun 'workspace'. Available actions: list, get, create, describe, diagnose, import-blueprint, delete.`,
         exitCode: ExitCode.USAGE_ERROR,
       });
   }

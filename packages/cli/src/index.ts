@@ -62,6 +62,8 @@ export async function runCli(rawArgv: string[]): Promise<number> {
     switch (noun) {
       case 'workspace':
       case 'workspaces':
+      case 'domain':
+      case 'domains':
         result = await handleWorkspaceCommand(action, args, parsed.flags, client);
         break;
       case 'source':

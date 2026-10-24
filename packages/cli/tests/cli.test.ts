@@ -247,4 +247,26 @@ describe('FlashLearn Agent-First CLI (October 2026 Standards)', () => {
     expect(parsed.data.target.payload.questions.length).toBe(1);
     expect(parsed.data.target.payload.questions[0].question).toContain('PPN');
   });
+
+  test('Domain Diagnostics: workspace/domain describe action and help', async () => {
+    // 1. Action help
+    captureOutput();
+    let code = await runCli(['workspace', 'describe', '--help']);
+    expect(code).toBe(ExitCode.SUCCESS);
+    let parsed = JSON.parse(stdoutData);
+    expect(parsed.data.title).toBe('FlashLearn CLI: workspace describe');
+    expect(parsed.data.description).toContain('readiness');
+
+    // 2. Missing argument guardrail
+    captureOutput();
+    code = await runCli(['workspace', 'describe']);
+    expect(code).toBe(ExitCode.VALIDATION_ERROR);
+    expect(stderrData).toContain('MISSING_ARGUMENT');
+
+    // 3. Domain alias works identically
+    captureOutput();
+    code = await runCli(['domain', 'describe']);
+    expect(code).toBe(ExitCode.VALIDATION_ERROR);
+    expect(stderrData).toContain('MISSING_ARGUMENT');
+  });
 });

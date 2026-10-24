@@ -54,6 +54,15 @@ export const COMPETENCY_SCHEMAS: Record<string, ResourceSchemaDef> = {
         example: 'flashlearn workspace delete ws_123 --yes',
         mutating: true,
       },
+      {
+        action: 'describe',
+        description: 'Describe and diagnose domain readiness, statistics, DAG integrity, gaps, and actionable recommendations',
+        args: [
+          { name: '<id-or-slug>', type: 'string', required: true, description: 'Workspace UUID or slug' },
+        ],
+        example: 'flashlearn workspace describe pbj-2026',
+        mutating: false,
+      },
     ],
   },
   source: {
