@@ -14,6 +14,7 @@ import { DrizzleDiagnosticSessionRepository } from '../repositories/DrizzleDiagn
 import { DrizzleTaskAttemptReviewRepository } from '../repositories/DrizzleTaskAttemptReviewRepository';
 import { DiagnosticPlacementEngine } from '../../application/engines/DiagnosticPlacementEngine';
 import { MultiRaterConsensusEngine } from '../../domain/services/MultiRaterConsensusEngine';
+import { CompetencyDriftEngine } from '../../domain/services/CompetencyDriftEngine';
 import { StartDiagnosticSessionUseCase } from '../../application/use-cases/diagnostic/StartDiagnosticSessionUseCase';
 import { GetNextDiagnosticProbeUseCase } from '../../application/use-cases/diagnostic/GetNextDiagnosticProbeUseCase';
 import { SubmitDiagnosticProbeUseCase } from '../../application/use-cases/diagnostic/SubmitDiagnosticProbeUseCase';
@@ -21,6 +22,9 @@ import { AssignBlindReviewersUseCase } from '../../application/use-cases/consens
 import { GetBlindReviewByTokenUseCase } from '../../application/use-cases/consensus/GetBlindReviewByTokenUseCase';
 import { SubmitBlindReviewUseCase } from '../../application/use-cases/consensus/SubmitBlindReviewUseCase';
 import { ResolveArbitrationUseCase } from '../../application/use-cases/consensus/ResolveArbitrationUseCase';
+import { ProcessCompetencyDecayBatchUseCase } from '../../application/use-cases/drift/ProcessCompetencyDecayBatchUseCase';
+import { AuditCompetencyDriftUseCase } from '../../application/use-cases/drift/AuditCompetencyDriftUseCase';
+import { RevalidateCompetencyChallengeUseCase } from '../../application/use-cases/drift/RevalidateCompetencyChallengeUseCase';
 
 import { JwtTokenService } from '../services/JwtTokenService';
 import { GoogleAuthVerifier } from '../services/GoogleAuthVerifier';
@@ -115,6 +119,7 @@ export class Container {
   public readonly competencyGraphEngine = new CompetencyGraphEngine();
   public readonly diagnosticPlacementEngine = new DiagnosticPlacementEngine(this.taskRepository);
   public readonly multiRaterConsensusEngine = new MultiRaterConsensusEngine();
+  public readonly competencyDriftEngine = new CompetencyDriftEngine();
   public readonly oracleEvaluatorClassA = new OracleEvaluatorClassA();
   public readonly oracleEvaluatorClassB = new OracleEvaluatorClassB(this.aiGateway);
   public readonly oracleEvaluatorAdversarial = new OracleEvaluatorAdversarial(this.aiGateway);
@@ -356,6 +361,23 @@ export class Container {
     this.taskRepository,
     this.masteryRepository,
     this.multiRaterConsensusEngine
+  );
+
+  // Phase 14: Predictive Competency Drift & Micro-Revalidation Use Cases
+  public readonly processCompetencyDecayBatchUseCase = new ProcessCompetencyDecayBatchUseCase(
+    this.masteryRepository,
+    this.gateRepository,
+    this.auditLogRepository,
+    this.competencyDriftEngine
+  );
+  public readonly auditCompetencyDriftUseCase = new AuditCompetencyDriftUseCase(
+    this.competencyRepository,
+    this.masteryRepository,
+    this.competencyDriftEngine
+  );
+  public readonly revalidateCompetencyChallengeUseCase = new RevalidateCompetencyChallengeUseCase(
+    this.masteryRepository,
+    this.competencyDriftEngine
   );
 }
 

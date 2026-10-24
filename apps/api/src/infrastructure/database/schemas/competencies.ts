@@ -4,6 +4,7 @@ import {
   timestamp,
   boolean,
   integer,
+  numeric,
   jsonb,
   uuid,
   index,
@@ -64,6 +65,13 @@ export const masteryRecords = pgTable(
     verifiedAttemptId: uuid('verified_attempt_id'),
     masteredAt: timestamp('mastered_at', { withTimezone: true }),
     retestDueAt: timestamp('retest_due_at', { withTimezone: true }),
+    difficulty: numeric('difficulty', { precision: 4, scale: 2 }).default('5.0').notNull(),
+    stability: numeric('stability', { precision: 6, scale: 2 }).default('30.0').notNull(),
+    lastDemonstratedAt: timestamp('last_demonstrated_at', { withTimezone: true }).defaultNow().notNull(),
+    cachedRetrievability: numeric('cached_retrievability', { precision: 4, scale: 3 }).default('1.0').notNull(),
+    driftStatus: text('drift_status', { enum: ['active', 'drift_warning', 'provisionally_expired'] })
+      .default('active')
+      .notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -71,6 +79,8 @@ export const masteryRecords = pgTable(
     uniqueIndex('idx_mastery_user_comp_unique').on(table.userId, table.competencyId),
     index('idx_mastery_records_user_id').on(table.userId),
     index('idx_mastery_records_comp_id').on(table.competencyId),
+    index('idx_mastery_drift_status').on(table.driftStatus),
+    index('idx_mastery_cached_r').on(table.cachedRetrievability),
   ]
 );
 

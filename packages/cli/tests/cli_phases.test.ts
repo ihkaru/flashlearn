@@ -163,4 +163,39 @@ describe('FlashLearn CLI Advanced Capabilities (Phases 11-13)', () => {
     expect(parsed.data.dryRun).toBe(true);
     expect(parsed.data.message).toContain('att_test_123');
   });
+
+  test('Phase 14 Predictive Competency Drift: drift-audit, revalidate, and decay-cycle CLI actions', async () => {
+    // 1. Action help includes drift-audit
+    captureOutput();
+    let code = await runCli(['competency', 'drift-audit', '--help']);
+    expect(code).toBe(ExitCode.SUCCESS);
+    let parsed = JSON.parse(stdoutData);
+    expect(parsed.data.title).toBe('FlashLearn CLI: competency drift-audit');
+    expect(parsed.data.description).toContain('half-life');
+
+    // 2. Dry-run revalidate
+    captureOutput();
+    code = await runCli([
+      'competency',
+      'revalidate',
+      'comp_emerg_123',
+      '--user=usr_pilot_456',
+      '--passed=true',
+      '--score=95',
+      '--dry-run',
+    ]);
+    expect(code).toBe(ExitCode.SUCCESS);
+    parsed = JSON.parse(stdoutData);
+    expect(parsed.data.dryRun).toBe(true);
+    expect(parsed.data.passed).toBe(true);
+    expect(parsed.data.message).toContain('comp_emerg_123');
+
+    // 3. Dry-run decay-cycle
+    captureOutput();
+    code = await runCli(['competency', 'decay-cycle', '--dry-run']);
+    expect(code).toBe(ExitCode.SUCCESS);
+    parsed = JSON.parse(stdoutData);
+    expect(parsed.data.dryRun).toBe(true);
+    expect(parsed.data.message).toContain('predictive competency drift');
+  });
 });

@@ -15,6 +15,7 @@ import { spacedController } from './infrastructure/http/controllers/spaced.contr
 import { auditController } from './infrastructure/http/controllers/audit.controller';
 import { diagnosticController } from './infrastructure/http/controllers/diagnostic.controller';
 import { consensusController } from './infrastructure/http/controllers/consensus.controller';
+import { driftController } from './infrastructure/http/controllers/drift.controller';
 
 import { join } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
@@ -85,6 +86,7 @@ const app = new Elysia()
   .use(auditController)
   .use(diagnosticController)
   .use(consensusController)
+  .use(driftController)
   .get('/c/:id', ({ params, redirect }: any) => redirect(`/#/content/${params.id}`, 302))
   .get('/content/:id', ({ params, redirect }: any) => redirect(`/#/content/${params.id}`, 302))
   .get('/workspace/:id', ({ params, redirect }: any) => redirect(`/#/workspace/${params.id}`, 302))

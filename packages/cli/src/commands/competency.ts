@@ -127,10 +127,83 @@ export async function handleCompetencyCommand(
       return { data };
     }
 
+    case 'drift-audit': {
+      const workspaceId = args[0] || flags['workspace-id'] || flags.workspace;
+      if (!workspaceId) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Workspace ID is required: `flashlearn competency drift-audit <workspace-id> [--threshold <0.85>]`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      const threshold = flags.threshold !== undefined ? String(flags.threshold) : undefined;
+      const data = await client.request(`/api/v1/drift/audit/${workspaceId}`, {
+        query: threshold ? { threshold } : undefined,
+      });
+
+      return {
+        data,
+        nextActions: [
+          { command: `flashlearn competency revalidate <COMPETENCY_ID> --user <USER_ID> --passed true --score 90`, description: 'Revalidate drifting skill' },
+        ],
+      };
+    }
+
+    case 'revalidate': {
+      const competencyId = args[0] || flags['competency-id'];
+      const userId = flags.user || flags['user-id'];
+      const passed = flags.passed === 'true' || flags.passed === true;
+      const score = flags.score !== undefined ? Number(flags.score) : 90;
+
+      if (!competencyId || !userId) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Required: competency ID and --user <user-id>.',
+          exitCode: ExitCode.VALIDATION_ERROR,
+          suggestedFix: 'flashlearn competency revalidate <competency-id> --user <user-id> --passed true --score 90',
+        });
+      }
+
+      if (flags['dry-run']) {
+        return {
+          data: {
+            dryRun: true,
+            message: `Would revalidate competency '${competencyId}' for user '${userId}' with score ${score}`,
+            passed,
+          },
+        };
+      }
+
+      const data = await client.request('/api/v1/drift/revalidate', {
+        method: 'POST',
+        body: { competencyId, userId, passed, score },
+      });
+
+      return { data };
+    }
+
+    case 'decay-cycle': {
+      if (flags['dry-run']) {
+        return {
+          data: {
+            dryRun: true,
+            message: 'Would trigger predictive competency drift decay cycle',
+          },
+        };
+      }
+
+      const data = await client.request('/api/v1/drift/process-batch', {
+        method: 'POST',
+      });
+
+      return { data };
+    }
+
     default:
       throw new CliError({
         code: 'UNKNOWN_ACTION',
-        message: `Unknown action '${action}' for noun 'competency'. Available: graph, get, create, link-prerequisite, approve, mastery.`,
+        message: `Unknown action '${action}' for noun 'competency'. Available: graph, get, create, link-prerequisite, approve, mastery, drift-audit, revalidate, decay-cycle.`,
         exitCode: ExitCode.USAGE_ERROR,
       });
   }

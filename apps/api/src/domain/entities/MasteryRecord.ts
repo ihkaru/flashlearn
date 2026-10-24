@@ -1,4 +1,4 @@
-import type { MasteryStatus } from '@flashlearn/shared';
+import type { MasteryStatus, CompetencyDriftStatus } from '@flashlearn/shared';
 
 export interface MasteryRecordProps {
   id: string;
@@ -8,6 +8,11 @@ export interface MasteryRecordProps {
   verifiedAttemptId?: string | null;
   masteredAt?: Date | null;
   retestDueAt?: Date | null;
+  difficulty?: number;
+  stability?: number;
+  lastDemonstratedAt?: Date;
+  cachedRetrievability?: number;
+  driftStatus?: CompetencyDriftStatus;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +48,26 @@ export class MasteryRecordEntity {
     return this.props.retestDueAt ?? null;
   }
 
+  get difficulty(): number {
+    return this.props.difficulty ?? 5.0;
+  }
+
+  get stability(): number {
+    return this.props.stability ?? 30.0;
+  }
+
+  get lastDemonstratedAt(): Date {
+    return this.props.lastDemonstratedAt ?? this.props.masteredAt ?? this.props.createdAt;
+  }
+
+  get cachedRetrievability(): number {
+    return this.props.cachedRetrievability ?? 1.0;
+  }
+
+  get driftStatus(): CompetencyDriftStatus {
+    return this.props.driftStatus ?? 'active';
+  }
+
   isMastered(): boolean {
     return this.props.status === 'mastered';
   }
@@ -55,3 +80,4 @@ export class MasteryRecordEntity {
     return this.props.status === 'ready' || this.props.status === 'in_progress' || this.props.status === 'stale';
   }
 }
+
