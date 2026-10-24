@@ -3,7 +3,7 @@ import { db } from '../database/db';
 import { tasks } from '../database/schema';
 import { TaskEntity } from '../../domain/entities/Task';
 import type { ITaskRepository, CreateTaskData } from '../../domain/ports/ITaskRepository';
-import type { TaskType, OracleData, RubricCriterion } from '@flashlearn/shared';
+import type { TaskType, OracleData, RubricCriterion, AdversarialDilemmaSpec } from '@flashlearn/shared';
 
 export class DrizzleTaskRepository implements ITaskRepository {
   private mapToEntity(row: typeof tasks.$inferSelect): TaskEntity {
@@ -14,6 +14,7 @@ export class DrizzleTaskRepository implements ITaskRepository {
       scenario: row.scenario,
       taskType: row.taskType as TaskType,
       oracleData: row.oracleData as OracleData,
+      adversarialSpec: (row.adversarialSpec as AdversarialDilemmaSpec) || null,
       rubricCriteria: row.rubricCriteria as RubricCriterion[],
       passingScore: row.passingScore,
       createdAt: row.createdAt,
@@ -45,6 +46,7 @@ export class DrizzleTaskRepository implements ITaskRepository {
         scenario: data.scenario,
         taskType: data.taskType,
         oracleData: data.oracleData,
+        adversarialSpec: data.adversarialSpec || null,
         rubricCriteria: data.rubricCriteria,
         passingScore: data.passingScore || 85,
       })
@@ -59,6 +61,7 @@ export class DrizzleTaskRepository implements ITaskRepository {
     if (data.scenario !== undefined) updatePayload.scenario = data.scenario;
     if (data.taskType !== undefined) updatePayload.taskType = data.taskType;
     if (data.oracleData !== undefined) updatePayload.oracleData = data.oracleData;
+    if (data.adversarialSpec !== undefined) updatePayload.adversarialSpec = data.adversarialSpec;
     if (data.rubricCriteria !== undefined) updatePayload.rubricCriteria = data.rubricCriteria;
     if (data.passingScore !== undefined) updatePayload.passingScore = data.passingScore;
 

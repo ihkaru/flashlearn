@@ -269,4 +269,34 @@ describe('FlashLearn Agent-First CLI (October 2026 Standards)', () => {
     expect(code).toBe(ExitCode.VALIDATION_ERROR);
     expect(stderrData).toContain('MISSING_ARGUMENT');
   });
+
+  test('Phase 11 Adversarial Stress Test: task create with adversarial dilemma spec and dry-run', async () => {
+    // 1. Action help includes adversarial spec
+    captureOutput();
+    let code = await runCli(['task', 'create', '--help']);
+    expect(code).toBe(ExitCode.SUCCESS);
+    let parsed = JSON.parse(stdoutData);
+    expect(parsed.data.title).toBe('FlashLearn CLI: task create');
+    expect(parsed.data.description).toContain('adversarial');
+    const advArg = parsed.data.target.args.find((a: any) => a.name === '--adversarial-spec');
+    expect(advArg).toBeDefined();
+
+    // 2. Dry-run creation with inline adversarial spec
+    captureOutput();
+    code = await runCli([
+      'task',
+      'create',
+      '--competency-id=comp_adv_123',
+      '--title=Audit Cepat Fasilitas Kritis',
+      '--scenario=Vendor menyerahkan dokumen data center dengan omisi sertifikat.',
+      '--type=adversarial_dilemma',
+      '--adversarial-spec={"trapType":"OMISSION_DATA","correctDisposition":"REJECT_AND_DEMAND_DATA","trapCues":[{"cue":"Sertifikat belum terlampir","weight":1}]}',
+      '--dry-run',
+    ]);
+    expect(code).toBe(ExitCode.SUCCESS);
+    parsed = JSON.parse(stdoutData);
+    expect(parsed.data.dryRun).toBe(true);
+    expect(parsed.data.target.payload.taskType).toBe('adversarial_dilemma');
+    expect(parsed.data.target.payload.adversarialSpec.trapType).toBe('OMISSION_DATA');
+  });
 });

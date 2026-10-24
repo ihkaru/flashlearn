@@ -25,6 +25,7 @@ export class CreateTaskUseCase {
       scenario: dto.scenario,
       taskType: dto.taskType || 'case_study',
       oracleData: dto.oracleData || {},
+      adversarialSpec: dto.adversarialSpec || null,
       rubricCriteria: dto.rubricCriteria || [],
       passingScore: dto.passingScore || 85,
     });

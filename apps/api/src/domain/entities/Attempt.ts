@@ -1,4 +1,4 @@
-import type { OracleClass, AttemptDetail } from '@flashlearn/shared';
+import type { OracleClass, AttemptDetail, AdversarialEvaluationResult } from '@flashlearn/shared';
 
 export interface AttemptProps {
   id: string;
@@ -14,6 +14,7 @@ export interface AttemptProps {
     breakdown?: AttemptDetail[];
     detectedTraps?: string[];
     calculationDiscrepancies?: Array<{ field: string; expected: number; received: number }>;
+    adversarialResult?: AdversarialEvaluationResult;
   };
   createdAt: Date;
 }

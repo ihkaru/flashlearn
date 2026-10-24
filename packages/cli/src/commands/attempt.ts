@@ -34,7 +34,7 @@ export async function handleAttemptCommand(
           });
         }
       } else if (rawText) {
-        submission = { studentAnswerText: rawText };
+        submission = { text: rawText, studentAnswerText: rawText };
       } else {
         throw new CliError({
           code: 'MISSING_ARGUMENT',

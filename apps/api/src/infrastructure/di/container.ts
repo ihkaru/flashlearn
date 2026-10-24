@@ -18,6 +18,7 @@ import { CitationValidatorService } from '../services/CitationValidatorService';
 import { CompetencyGraphEngine } from '../../domain/services/CompetencyGraphEngine';
 import { OracleEvaluatorClassA } from '../../domain/services/OracleEvaluatorClassA';
 import { OracleEvaluatorClassB } from '../../domain/services/OracleEvaluatorClassB';
+import { OracleEvaluatorAdversarial } from '../../domain/services/OracleEvaluatorAdversarial';
 import { FlashcardGeneratorService } from '../../domain/services/FlashcardGeneratorService';
 import { GateAuthorizationEngine } from '../../domain/services/GateAuthorizationEngine';
 import { SpacedRepetitionScheduler } from '../../domain/services/SpacedRepetitionScheduler';
@@ -101,6 +102,7 @@ export class Container {
   public readonly competencyGraphEngine = new CompetencyGraphEngine();
   public readonly oracleEvaluatorClassA = new OracleEvaluatorClassA();
   public readonly oracleEvaluatorClassB = new OracleEvaluatorClassB(this.aiGateway);
+  public readonly oracleEvaluatorAdversarial = new OracleEvaluatorAdversarial(this.aiGateway);
   public readonly flashcardGenerator = new FlashcardGeneratorService();
   public readonly gateAuthorizationEngine = new GateAuthorizationEngine();
   public readonly spacedScheduler = new SpacedRepetitionScheduler();
@@ -232,7 +234,8 @@ export class Container {
     this.oracleEvaluatorClassB,
     this.flashcardGenerator,
     this.competencyGraphEngine,
-    this.auditLogRepository
+    this.auditLogRepository,
+    this.oracleEvaluatorAdversarial
   );
   public readonly askSocraticTutorUseCase = new AskSocraticTutorUseCase(
     this.taskRepository,

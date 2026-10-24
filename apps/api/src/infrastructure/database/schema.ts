@@ -1,5 +1,5 @@
 import { pgTable, text, timestamp, boolean, integer, jsonb, uuid, index, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
-import type { QuizQuestion } from '@flashlearn/shared';
+import type { QuizQuestion, AdversarialDilemmaSpec } from '@flashlearn/shared';
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -234,8 +234,9 @@ export const tasks = pgTable(
     competencyId: uuid('competency_id').references(() => competencies.id, { onDelete: 'cascade' }).notNull(),
     title: text('title').notNull(),
     scenario: text('scenario').notNull(),
-    taskType: text('task_type', { enum: ['calculation', 'case_study', 'document_draft', 'checklist'] }).notNull(),
+    taskType: text('task_type', { enum: ['calculation', 'case_study', 'document_draft', 'checklist', 'adversarial_dilemma'] }).notNull(),
     oracleData: jsonb('oracle_data').$type<Record<string, any>>().notNull(),
+    adversarialSpec: jsonb('adversarial_spec').$type<AdversarialDilemmaSpec>(),
     rubricCriteria: jsonb('rubric_criteria').$type<any[]>().notNull(),
     passingScore: integer('passing_score').default(85).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

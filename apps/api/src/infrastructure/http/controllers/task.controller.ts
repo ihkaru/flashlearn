@@ -71,8 +71,10 @@ export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
           t.Literal('case_study'),
           t.Literal('document_draft'),
           t.Literal('checklist'),
+          t.Literal('adversarial_dilemma'),
         ]),
         oracleData: t.Any(),
+        adversarialSpec: t.Optional(t.Any()),
         rubricCriteria: t.Array(
           t.Object({
             id: t.String(),

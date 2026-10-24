@@ -4,6 +4,7 @@ import type { ICompetencyRepository } from '../../../domain/ports/ICompetencyRep
 import type { IMasteryRepository } from '../../../domain/ports/IMasteryRepository';
 import type { OracleEvaluatorClassA } from '../../../domain/services/OracleEvaluatorClassA';
 import type { OracleEvaluatorClassB } from '../../../domain/services/OracleEvaluatorClassB';
+import type { OracleEvaluatorAdversarial } from '../../../domain/services/OracleEvaluatorAdversarial';
 import type { FlashcardGeneratorService } from '../../../domain/services/FlashcardGeneratorService';
 import type { CompetencyGraphEngine } from '../../../domain/services/CompetencyGraphEngine';
 import type { IAuditLogRepository } from '../../../domain/ports/IAuditLogRepository';
@@ -23,7 +24,8 @@ export class EvaluateAttemptUseCase {
     private readonly evaluatorB: OracleEvaluatorClassB,
     private readonly flashcardGen: FlashcardGeneratorService,
     private readonly graphEngine: CompetencyGraphEngine,
-    private readonly auditLogRepo?: IAuditLogRepository
+    private readonly auditLogRepo?: IAuditLogRepository,
+    private readonly evaluatorAdv?: OracleEvaluatorAdversarial
   ) {}
 
   async execute(userId: string, req: EvaluateAttemptRequest): Promise<EvaluateAttemptResponse> {
@@ -60,7 +62,21 @@ export class EvaluateAttemptUseCase {
     let details: any = {};
     let flashcards: PostTaskFlashcard[] = [];
 
-    if (competency.oracleClass === 'A') {
+    if (task.taskType === 'adversarial_dilemma' && this.evaluatorAdv) {
+      const resAdv = await this.evaluatorAdv.evaluate(task, req.submission);
+      score = resAdv.score;
+      passed = resAdv.passed;
+      feedback = resAdv.feedback;
+      assessedBy = resAdv.assessedBy;
+      details = resAdv.details;
+
+      flashcards = this.flashcardGen.generateFromAttempt(
+        task,
+        resAdv.details.breakdown,
+        undefined,
+        resAdv.details.detectedTraps
+      );
+    } else if (competency.oracleClass === 'A') {
       const resA = this.evaluatorA.evaluate(task, req.submission);
       score = resA.score;
       passed = resA.passed;

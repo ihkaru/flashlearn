@@ -1,5 +1,5 @@
 import type { TaskEntity } from '../entities/Task';
-import type { TaskType, OracleData, RubricCriterion } from '@flashlearn/shared';
+import type { TaskType, OracleData, RubricCriterion, AdversarialDilemmaSpec } from '@flashlearn/shared';
 
 export interface CreateTaskData {
   competencyId: string;
@@ -7,6 +7,7 @@ export interface CreateTaskData {
   scenario: string;
   taskType: TaskType;
   oracleData: OracleData;
+  adversarialSpec?: AdversarialDilemmaSpec | null;
   rubricCriteria: RubricCriterion[];
   passingScore?: number;
 }

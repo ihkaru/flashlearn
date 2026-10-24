@@ -1,6 +1,42 @@
 import type { OracleClass } from './competency';
 
-export type TaskType = 'calculation' | 'case_study' | 'document_draft' | 'checklist';
+export type TaskType = 'calculation' | 'case_study' | 'document_draft' | 'checklist' | 'adversarial_dilemma';
+
+export type AdversarialTrapType =
+  | 'OMISSION_DATA'
+  | 'CONFIDENCE_DECEPTION'
+  | 'AUTHORITY_PRESSURE'
+  | 'ETHICAL_CONFLICT';
+
+export type AdversarialCorrectDisposition =
+  | 'REJECT_AND_DEMAND_DATA'
+  | 'FLAG_IRREGULARITY'
+  | 'ENFORCE_BOUNDARY'
+  | 'ESCALATE_AUDIT';
+
+export interface TrapCue {
+  cue: string;
+  weight: number;
+}
+
+export interface AdversarialDilemmaSpec {
+  trapType: AdversarialTrapType;
+  correctDisposition: AdversarialCorrectDisposition;
+  trapCues: TrapCue[];
+  statutoryPolicy: string;
+  vetoThreshold?: number; // default: 0.70
+}
+
+export interface AdversarialEvaluationResult {
+  tsi: number; // Trap Sensitivity Index [0, 1]
+  bds: number; // Boundary Defense Score [0, 1]
+  rss: number; // Rationale Soundness Score [0, 1]
+  compositeScore: number; // [0, 100]
+  disqualifiedByTrap: boolean;
+  triggeredTraps: string[];
+  missedTraps: string[];
+  feedback: string;
+}
 
 export interface RubricCriterion {
   id: string;
@@ -52,6 +88,7 @@ export interface Task {
   scenario: string;
   taskType: TaskType;
   oracleData: OracleData;
+  adversarialSpec?: AdversarialDilemmaSpec;
   rubricCriteria: RubricCriterion[];
   passingScore: number;
   createdAt: string;
@@ -77,10 +114,12 @@ export interface Attempt {
   assessedBy: string;
   oracleClassUsed: OracleClass;
   passed: boolean;
+  adversarialResult?: AdversarialEvaluationResult;
   details?: {
     breakdown?: AttemptDetail[];
     detectedTraps?: string[];
     calculationDiscrepancies?: Array<{ field: string; expected: number; received: number }>;
+    adversarialResult?: AdversarialEvaluationResult;
   };
   createdAt: string;
 }
@@ -91,6 +130,7 @@ export interface CreateTaskDto {
   scenario: string;
   taskType: TaskType;
   oracleData: OracleData;
+  adversarialSpec?: AdversarialDilemmaSpec;
   rubricCriteria: RubricCriterion[];
   passingScore?: number;
 }

@@ -55,18 +55,47 @@ export async function handleTaskCommand(
       const inlineOracle = flags.oracle;
       const rubricFilePath = flags['rubric-file'];
       const inlineRubric = flags.rubric;
+      const adversarialFilePath = flags['adversarial-file'];
+      const inlineAdversarial = flags['adversarial-spec'];
 
-      if (!competencyId || !title || !scenario || (!oracleFilePath && !inlineOracle) || (!rubricFilePath && !inlineRubric)) {
+      const isAdv = taskType === 'adversarial_dilemma';
+      const hasOracle = !!(oracleFilePath || inlineOracle || isAdv);
+      const hasRubric = !!(rubricFilePath || inlineRubric || isAdv);
+
+      if (!competencyId || !title || !scenario || !hasOracle || !hasRubric) {
         throw new CliError({
           code: 'MISSING_ARGUMENT',
-          message: 'Required: --competency-id, --title, --scenario, and oracle/rubric (via --oracle-file or --oracle, and --rubric-file or --rubric).',
+          message: 'Required: --competency-id, --title, --scenario, and oracle/rubric (or --adversarial-spec for adversarial tasks).',
           exitCode: ExitCode.VALIDATION_ERROR,
-          suggestedFix: 'flashlearn task create --competency-id <id> --title "Task" --scenario "Problem..." --type calculation --oracle-file ./oracle.json --rubric-file ./rubric.json',
+          suggestedFix: 'flashlearn task create --competency-id <id> --title "Task" --scenario "Problem..." --type adversarial_dilemma --adversarial-spec \'<json>\'',
         });
       }
 
-      let oracleData: any;
-      let rubricCriteria: any;
+      let oracleData: any = {};
+      let rubricCriteria: any = [];
+      let adversarialSpec: any = undefined;
+
+      if (adversarialFilePath) {
+        try {
+          adversarialSpec = JSON.parse(readFileSync(adversarialFilePath, 'utf-8'));
+        } catch (err: any) {
+          throw new CliError({
+            code: 'INVALID_FILE',
+            message: `Failed to read adversarial spec file: ${err.message}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+          });
+        }
+      } else if (inlineAdversarial) {
+        try {
+          adversarialSpec = JSON.parse(inlineAdversarial);
+        } catch (err: any) {
+          throw new CliError({
+            code: 'INVALID_JSON',
+            message: `Failed to parse inline adversarial spec: ${err.message}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+          });
+        }
+      }
 
       if (oracleFilePath) {
         try {
@@ -78,7 +107,7 @@ export async function handleTaskCommand(
             exitCode: ExitCode.VALIDATION_ERROR,
           });
         }
-      } else {
+      } else if (inlineOracle) {
         try {
           oracleData = JSON.parse(inlineOracle);
         } catch (err: any) {
@@ -100,7 +129,7 @@ export async function handleTaskCommand(
             exitCode: ExitCode.VALIDATION_ERROR,
           });
         }
-      } else {
+      } else if (inlineRubric) {
         try {
           rubricCriteria = JSON.parse(inlineRubric);
         } catch (err: any) {
@@ -118,7 +147,8 @@ export async function handleTaskCommand(
         scenario,
         taskType,
         oracleData,
-        rubricCriteria: Array.isArray(rubricCriteria) ? rubricCriteria : rubricCriteria.rubricCriteria,
+        adversarialSpec,
+        rubricCriteria: Array.isArray(rubricCriteria) ? rubricCriteria : (rubricCriteria?.rubricCriteria || []),
         passingScore: flags['passing-score'] ? Number(flags['passing-score']) : 80,
       };
 

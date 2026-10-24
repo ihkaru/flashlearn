@@ -1,4 +1,4 @@
-import type { TaskType, OracleData, RubricCriterion } from '@flashlearn/shared';
+import type { TaskType, OracleData, RubricCriterion, AdversarialDilemmaSpec } from '@flashlearn/shared';
 
 export interface TaskProps {
   id: string;
@@ -7,6 +7,7 @@ export interface TaskProps {
   scenario: string;
   taskType: TaskType;
   oracleData: OracleData;
+  adversarialSpec?: AdversarialDilemmaSpec | null;
   rubricCriteria: RubricCriterion[];
   passingScore: number;
   createdAt: Date;
@@ -40,6 +41,10 @@ export class TaskEntity {
     return this.props.oracleData;
   }
 
+  get adversarialSpec(): AdversarialDilemmaSpec | null | undefined {
+    return this.props.adversarialSpec;
+  }
+
   get rubricCriteria(): RubricCriterion[] {
     return this.props.rubricCriteria;
   }
@@ -54,5 +59,9 @@ export class TaskEntity {
 
   isCaseStudy(): boolean {
     return this.props.taskType === 'case_study';
+  }
+
+  isAdversarialDilemma(): boolean {
+    return this.props.taskType === 'adversarial_dilemma';
   }
 }
