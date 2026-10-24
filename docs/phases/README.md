@@ -16,7 +16,8 @@ This directory contains the independent research foundation, psychometric and ma
 | **Phase 15** | [**`phase-15-autonomous-domain-synthesizer.md`**](./phase-15-autonomous-domain-synthesizer.md) | Dual-Stage Grounded Curriculum Synthesis from SOPs | LLM Structure Generator + Adversarial Citation Verifier + Tarjan SCC Acyclicity |
 | **Phase 16** | [**`phase-16-cryptographic-verifiable-credentials.md`**](./phase-16-cryptographic-verifiable-credentials.md) | Portable, Offline-Verifiable Digital Passports | W3C Verifiable Credentials Data Model 2.0 + OpenBadges 3.0 + Ed25519 Data Integrity |
 | **Phase 17** | [**`phase-17-lumis-agentic-chat-bridge.md`**](./phase-17-lumis-agentic-chat-bridge.md) | Bi-directional Agentic Socratic Bridge & Two-Way RPC | RFC 6454 PostMessage RPC v2, Socratic Anti-Spoiler Guardrail, Direct Argument Adoption |
-| **Roadmap** | [**`roadmap-future-enhancements.md`**](./roadmap-future-enhancements.md) | Master Horizons Roadmap (Phases 17–20) | Conversational Audit Trail (P18), KST Chat Planner (P19), Decentralized Mesh (P20) |
+| **Phase 18** | [**`roadmap-future-enhancements.md`**](./roadmap-future-enhancements.md#phase-18) | Tamper-Evident Conversational Audit Trail & Merkle Hashing | SHA-256 Merkle Transcript Chaining ($H_k$), Adversarial Extraction Guardrail, Reviewer Inspector |
+| **Roadmap** | [**`roadmap-future-enhancements.md`**](./roadmap-future-enhancements.md) | Master Horizons Roadmap (Phases 18–20) | Conversational Audit Trail (P18 ✅), KST Chat Planner (P19), Decentralized Mesh (P20) |
 
 ---
 

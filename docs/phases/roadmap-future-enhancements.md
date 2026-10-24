@@ -17,7 +17,7 @@ With the successful integration of the **Lumis In-App AI Chat Engine (`ihkaru/lu
 | Phase | Designation | Primary Focus & Domain Need | Key Technologies / Algorithms |
 | :--- | :--- | :--- | :--- |
 | **Phase 17** | **Bi-directional Lumis Agentic Socratic Bridge** *(Active & Enhanced ✅)* | Seamless, two-way RPC integration between Lumis Chat and learning task forms with anti-spoiler shielding. | Scoped Iframe, RFC 6454 PostMessage v2, `flashlearn:draft_adopted`, Fallback Heartbeat. |
-| **Phase 18** | **Tamper-Evident Conversational Audit Trail & D8 Multi-Turn Hashing** *(Planned 🔮)* | Binding every Lumis conversational exchange to the task submission audit bundle for regulatory scrutiny. | SHA-256 Merkle Chaining, D8 `audit_logs` schema extension, Jailbreak/Extraction Detector. |
+| **Phase 18** | **Tamper-Evident Conversational Audit Trail & D8 Multi-Turn Hashing** *(Completed ✅)* | Binding every Lumis conversational exchange to the task submission audit bundle for regulatory scrutiny. | SHA-256 Merkle Chaining, D8 `audit_logs` schema extension, Jailbreak/Extraction Detector. |
 | **Phase 19** | **Topological Knowledge Space (KST) Chat-Guided Planning** *(Planned 🔮)* | Real-time conversational curriculum guidance based on the learner's dynamic prerequisite DAG fringe. | Knowledge Space Theory (KST), Minimal-Entropy Fringe Search, Conversational Path Planner. |
 | **Phase 20** | **Decentralized Credential Mesh & Autonomous Agent Peer Evaluation** *(Planned 🔮)* | Cross-organization credential verification and autonomous multi-agent simulation for stress-testing. | W3C DID:PKH, Polygon ID Trust Registry, Dual-Agent Adversarial Debate, Tarjan Invariant Auditing. |
 

@@ -1,4 +1,5 @@
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { verifyTranscriptMerkle } from '@flashlearn/shared';
 import type { ApiClient } from '../core/client';
 import { CliError, ExitCode, type NextAction } from '../core/envelope';
 
@@ -54,6 +55,29 @@ export async function handleAuditCommand(
       }
 
       return { data };
+    }
+
+    case 'verify-transcript': {
+      const filePath = flags.file || args[0];
+      if (!filePath) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: '--file is required: `flashlearn audit verify-transcript --file <path>`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+      try {
+        const raw = readFileSync(filePath, 'utf-8');
+        const bundle = JSON.parse(raw);
+        const result = verifyTranscriptMerkle(bundle);
+        return { data: result };
+      } catch (err: any) {
+        throw new CliError({
+          code: 'VERIFICATION_ERROR',
+          message: `Failed to verify transcript bundle: ${err.message}`,
+          exitCode: ExitCode.GENERAL_ERROR,
+        });
+      }
     }
 
     default:

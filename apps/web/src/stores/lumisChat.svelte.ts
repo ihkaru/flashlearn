@@ -1,3 +1,9 @@
+import {
+  createTranscriptBundle,
+  type LumisChatMessage,
+  type LumisTranscriptBundle,
+} from '@flashlearn/shared';
+
 export interface LearningChatContext {
   phase?: 'socratic_tutor' | 'adversarial_debrief' | 'diagnostic_guide' | 'drift_revalidation' | 'general';
   workspaceId?: string;
@@ -24,11 +30,23 @@ class LumisChatState {
   sessionId = $state<string>('');
   lastAdoptedDraft = $state<string>('');
   connectionStatus = $state<'idle' | 'connecting' | 'connected' | 'fallback'>('idle');
+  messages = $state<LumisChatMessage[]>([]);
+
+  appendMessage(role: 'user' | 'assistant', content: string) {
+    if (!content.trim()) return;
+    this.messages.push({
+      role,
+      content: content.trim(),
+      timestamp: Date.now(),
+    });
+  }
 
   openWithContext(ctx: LearningChatContext, initialPrompt?: string) {
     this.context = { ...ctx };
+    this.messages = [];
     if (initialPrompt) {
       this.pendingPrompt = initialPrompt;
+      this.appendMessage('user', initialPrompt);
     }
     this.connectionStatus = 'connecting';
     this.isOpen = true;
@@ -36,13 +54,21 @@ class LumisChatState {
 
   adoptDraft(draft: string) {
     this.lastAdoptedDraft = draft.trim();
+    if (this.lastAdoptedDraft) {
+      this.appendMessage('assistant', this.lastAdoptedDraft);
+    }
     if (typeof window !== 'undefined' && this.lastAdoptedDraft) {
+      const auditBundle = createTranscriptBundle(
+        this.sessionId || `session-${Date.now()}`,
+        this.messages
+      );
       window.dispatchEvent(
         new CustomEvent('flashlearn:draft_adopted', {
           detail: {
             draft: this.lastAdoptedDraft,
             taskId: this.context.taskId,
             phase: this.context.phase,
+            conversationAudit: auditBundle,
           },
         })
       );

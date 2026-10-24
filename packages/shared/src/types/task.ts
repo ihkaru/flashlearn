@@ -1,4 +1,5 @@
 import type { OracleClass } from './competency';
+import type { LumisTranscriptBundle } from './lumis-audit';
 
 export type TaskType = 'calculation' | 'case_study' | 'document_draft' | 'checklist' | 'adversarial_dilemma';
 
@@ -115,6 +116,8 @@ export interface Attempt {
   oracleClassUsed: OracleClass;
   passed: boolean;
   adversarialResult?: AdversarialEvaluationResult;
+  conversationAudit?: LumisTranscriptBundle;
+  conversationHash?: string;
   details?: {
     breakdown?: AttemptDetail[];
     detectedTraps?: string[];
@@ -138,6 +141,7 @@ export interface CreateTaskDto {
 export interface EvaluateAttemptRequest {
   taskId: string;
   submission: Record<string, any>;
+  conversationAudit?: LumisTranscriptBundle;
 }
 
 export interface PostTaskFlashcard {

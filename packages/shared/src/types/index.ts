@@ -10,3 +10,4 @@ export * from './spaced';
 export * from './consensus';
 export * from './drift';
 export * from './vc';
+export * from './lumis-audit';

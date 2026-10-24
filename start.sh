@@ -16,6 +16,9 @@ if [ -n "$DATABASE_URL" ]; then
     echo "❌ FlashLearn: Database migration failed! Halting container to prevent data pipeline inconsistency."
     exit 1
   }
+
+  echo "🌱 FlashLearn: Ensuring baseline verified domains and seeds exist..."
+  bun run --cwd "$API_DIR" db:seed || echo "⚠️ FlashLearn: Baseline seed completed with advisory warning."
 fi
 
 echo "🚀 Launching FlashLearn Engine on port ${PORT:-3000}..."

@@ -77,6 +77,7 @@
 
   function sendPromptToIframe(promptText: string) {
     if (!iframeElement?.contentWindow) return;
+    lumisChat.appendMessage('user', promptText);
     const serverOrigin = new URL(lumisChat.serverUrl).origin;
     iframeElement.contentWindow.postMessage(
       {

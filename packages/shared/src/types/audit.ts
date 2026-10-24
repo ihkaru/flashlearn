@@ -5,7 +5,9 @@ export type AuditAction =
   | 'SOURCE_SUPERSEDED'
   | 'STALENESS_TRIGGERED'
   | 'ORACLE_EVALUATED'
-  | 'CONTENT_GENERATED';
+  | 'CONTENT_GENERATED'
+  | 'LUMIS_CONVERSATION_RECORDED'
+  | 'ADVERSARIAL_EXTRACTION_FLAGGED';
 
 export interface AuditLogEntry {
   id: string;

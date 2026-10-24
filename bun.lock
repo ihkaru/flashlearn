@@ -41,9 +41,25 @@
       },
       "devDependencies": {
         "@sveltejs/vite-plugin-svelte": "^5.0.3",
+        "@types/debug": "^4.1.13",
+        "debug": "^4.4.3",
         "svelte": "^5.22.4",
         "typescript": "^5.8.0",
         "vite": "^6.2.0",
+      },
+    },
+    "packages/cli": {
+      "name": "@flashlearn/cli",
+      "version": "1.0.0",
+      "bin": {
+        "flashlearn": "./bin/flashlearn.ts",
+      },
+      "dependencies": {
+        "@flashlearn/shared": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.4.4",
+        "typescript": "^5.8.0",
       },
     },
     "packages/shared": {
@@ -122,6 +138,8 @@
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.19.12", "", { "os": "win32", "cpu": "x64" }, "sha512-T1QyPSDCyMXaO3pzBkF96E8xMkiRYbUEZADd29SyPGabqxMViNoii+NcK7eWJAEoU6RZyEm5lVSIjTmcdoB9HA=="],
 
     "@flashlearn/api": ["@flashlearn/api@workspace:apps/api"],
+
+    "@flashlearn/cli": ["@flashlearn/cli@workspace:packages/cli"],
 
     "@flashlearn/shared": ["@flashlearn/shared@workspace:packages/shared"],
 
@@ -210,6 +228,8 @@
     "@tokenizer/token": ["@tokenizer/token@0.3.0", "", {}, "sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A=="],
 
     "@types/bun": ["@types/bun@1.4.4", "", { "dependencies": { "bun-types": "1.4.4" } }, "sha512-9wkRDXUXK124pEnAutE6n/l18j+i9GC5IAHK8TmX/2nlySETmky0OU6yL5U8pW1AoKh++AN9auDCr647BfurjQ=="],
+
+    "@types/debug": ["@types/debug@4.1.13", "", { "dependencies": { "@types/ms": "*" } }, "sha512-KSVgmQmzMwPlmtljOomayoR89W4FynCAi3E8PPs7vmDVPe84hT+vGPKkJfThkmXs0x0jAaa9U8uW8bbfyS2fWw=="],
 
     "@types/estree": ["@types/estree@1.0.9", "", {}, "sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg=="],
 

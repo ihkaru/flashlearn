@@ -209,6 +209,15 @@ export const SUPPORT_SCHEMAS: Record<string, ResourceSchemaDef> = {
         example: 'flashlearn audit bundle --workspace-id <ws_id>',
         mutating: false,
       },
+      {
+        action: 'verify-transcript',
+        description: 'Verify Merkle root integrity and audit extraction flags for a Lumis conversation transcript',
+        args: [
+          { name: '--file', type: 'string', required: true, description: 'Path to JSON transcript bundle file' },
+        ],
+        example: 'flashlearn audit verify-transcript --file transcript-bundle.json',
+        mutating: false,
+      },
     ],
   },
   apikey: {

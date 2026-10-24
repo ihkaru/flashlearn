@@ -20,6 +20,7 @@
   let checkedItems = $state<Record<string, boolean>>({});
   let selectedDisposition = $state<'REJECT_AND_DEMAND_DATA' | 'ACCEPT_AND_SIGN' | 'DELEGATE' | ''>('');
   let lastAttempt = $state<Attempt | null>(null);
+  let conversationAudit = $state<any>(null);
 
   function handleDraftAdopted(e: any) {
     const draft = e.detail?.draft;
@@ -29,6 +30,9 @@
       } else {
         studentAnswerText = `${studentAnswerText}\n\n${draft}`;
       }
+    }
+    if (e.detail?.conversationAudit) {
+      conversationAudit = e.detail.conversationAudit;
     }
   }
 
@@ -95,6 +99,8 @@
       const res = await api.tasks.submitAttempt(task.id, {
         submissionData,
         studentAnswerText: studentAnswerText || undefined,
+        conversationAudit: conversationAudit || undefined,
+        conversationHash: conversationAudit?.merkleRootHash || undefined,
       });
 
       lastAttempt = res?.attempt || res;

@@ -13,6 +13,7 @@ import type {
   EvaluateAttemptResponse,
   PostTaskFlashcard,
 } from '@flashlearn/shared';
+import { verifyTranscriptMerkle } from '@flashlearn/shared';
 
 export class EvaluateAttemptUseCase {
   constructor(
@@ -111,6 +112,16 @@ export class EvaluateAttemptUseCase {
       assessedBy = 'pending_expert_review';
     }
 
+    // 2b. Phase 18: Audit Lumis Conversation Transcript if present
+    if (req.conversationAudit) {
+      const verif = verifyTranscriptMerkle(req.conversationAudit);
+      details.conversationAudit = {
+        ...req.conversationAudit,
+        isMerkleValid: verif.isValid,
+      };
+      details.conversationHash = req.conversationAudit.merkleRootHash;
+    }
+
     // 3. Persist Attempt
     const attempt = await this.attemptRepo.create({
       taskId: task.id,
@@ -142,8 +153,40 @@ export class EvaluateAttemptUseCase {
           oracleClassUsed: competency.oracleClass,
           assessedBy,
           detectedTraps: details?.detectedTraps || [],
+          conversationHash: details?.conversationHash,
         },
       });
+
+      if (req.conversationAudit) {
+        await this.auditLogRepo.append({
+          workspaceId: competency.workspaceId,
+          actorId: userId,
+          action: 'LUMIS_CONVERSATION_RECORDED',
+          targetType: 'attempt',
+          targetId: attempt.id,
+          payload: {
+            sessionId: req.conversationAudit.sessionId,
+            merkleRootHash: req.conversationAudit.merkleRootHash,
+            messageCount: req.conversationAudit.messages?.length || 0,
+            isFlaggedForExtraction: req.conversationAudit.isFlaggedForExtraction,
+            extractionFlags: req.conversationAudit.extractionFlags,
+          },
+        });
+
+        if (req.conversationAudit.isFlaggedForExtraction) {
+          await this.auditLogRepo.append({
+            workspaceId: competency.workspaceId,
+            actorId: userId,
+            action: 'ADVERSARIAL_EXTRACTION_FLAGGED',
+            targetType: 'attempt',
+            targetId: attempt.id,
+            payload: {
+              attemptId: attempt.id,
+              flags: req.conversationAudit.extractionFlags,
+            },
+          });
+        }
+      }
     }
 
     // 4. Update Mastery Ledger if Passed
