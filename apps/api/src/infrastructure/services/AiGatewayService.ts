@@ -58,7 +58,18 @@ export class AiGatewayService implements IAiGateway {
   }
 
   async chatJson<T = any>(prompt: string, schemaPrompt: string, options?: AiChatOptions): Promise<T> {
-    const systemPrompt = `${options?.systemPrompt ? options.systemPrompt + '\n\n' : ''}You must respond ONLY with a valid, parseable JSON object according to this schema:\n${schemaPrompt}\nDo NOT wrap with markdown fences or explanations outside JSON.`;
+    const jsonContract = `### STRICT JSON OUTPUT CONTRACT (Deterministic Machine API):
+- DO output ONLY a single, valid, RFC 8259 parseable JSON object matching the requested schema.
+- DO properly escape all quotes, newlines, and special characters inside JSON strings.
+- DONT include markdown code blocks (e.g. \`\`\`json or \`\`\`), HTML/XML tags, or preamble/epilogue commentary.
+- DONT include javascript comments (no // or /* */) or trailing commas.
+
+TARGET JSON SCHEMA:
+${schemaPrompt}`;
+
+    const systemPrompt = options?.systemPrompt
+      ? `${options.systemPrompt.trim()}\n\n${jsonContract}`
+      : jsonContract;
 
     const raw = await this.chat(prompt, {
       ...options,
@@ -66,12 +77,17 @@ export class AiGatewayService implements IAiGateway {
       temperature: options?.temperature ?? 0.1,
     });
 
-    // Clean potential markdown code blocks
+    // Multi-stage resilient JSON extraction
     let cleaned = raw.trim();
-    if (cleaned.startsWith('```json')) {
-      cleaned = cleaned.replace(/^```json\s*/, '').replace(/```$/, '').trim();
-    } else if (cleaned.startsWith('```')) {
-      cleaned = cleaned.replace(/^```\s*/, '').replace(/```$/, '').trim();
+
+    // 1. Strip markdown fences if present
+    cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+
+    // 2. Extract outermost balanced JSON object if any conversational wrapper remains
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      cleaned = cleaned.substring(firstBrace, lastBrace + 1);
     }
 
     try {

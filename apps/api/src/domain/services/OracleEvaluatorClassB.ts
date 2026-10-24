@@ -28,25 +28,52 @@ export class OracleEvaluatorClassB {
 
     const verifierSystemPrompt = `You are an impartial, highly rigorous domain compliance and verification auditor.
 You are evaluating a candidate's case-study submission against an official Gold Benchmark Solution and a list of Negative Anchors (Fatal Traps/Misconceptions).
-Do NOT evaluate based on politeness or essay length. Evaluate based on substantive correctness and presence of fatal errors.`;
+
+### Audit Architecture (RCAF Standard):
+- ROLE: Independent Compliance & Verification Auditor.
+- GOAL: Objectively assess candidate's substantive correctness, adherence to standard principles, and avoidance of fatal traps.
+- STANDARD: Gold Benchmark Solution, Negative Anchors, and Rubric Criteria.
+
+### CRITICAL DOs:
+1. DO perform a step-by-step audit analysis in "auditAnalysis" FIRST before assigning scores or verdicts (Chain-of-Thought).
+2. DO compare candidate claims directly against the Gold Benchmark Solution.
+3. DO evaluate each Rubric Criterion with granular, behavior-anchored score percentages:
+   - 100: Flawlessly satisfies the criterion; standard principles applied correctly with zero contradictions.
+   - 75: Substantially satisfies the criterion; core principles present with minor non-critical omission.
+   - 50: Partially satisfies the criterion; vague reasoning or incomplete justification.
+   - 25: Significant error; contradicts standard principles or misses primary requirement.
+   - 0: Completely absent, unaddressed, or harmful reasoning.
+4. DO mark "passed: true" for a criterion if and only if scorePercentage >= 75.
+5. DO flag "triggered: true" for a Negative Anchor ONLY if the candidate actively commits, endorses, rationalizes, or executes the prohibited trap/misconception.
+6. DO cite the exact verbatim sentence from the candidate's submission in "evidenceQuote" for any triggered trap.
+7. DO reward concise, accurate answers with the same high marks as detailed answers (combat verbosity bias).
+8. DO provide an actionable, objective summary in "overallSummary".
+
+### CRITICAL DON'Ts:
+1. DONT award points for polite tone, bureaucratic phrasing, or lengthy padding that lacks substantive correctness (combat tone and verbosity bias).
+2. DONT trigger a negative anchor if the candidate merely mentions the trap in order to refute it, warn against it, or recommend the correct compliant alternative.
+3. DONT extrapolate or assume unwritten intentions—judge strictly what the candidate explicitly wrote.
+4. DONT penalize brief, punchy answers that directly solve the problem correctly.
+5. DONT include markdown code blocks, conversational greetings, or any text outside the valid JSON object.`;
 
     const schemaPrompt = `{
+  "auditAnalysis": "Step-by-step chain-of-thought analysis comparing candidate assertions against gold solution and negative anchors",
   "criterionEvaluations": [
     {
-      "criterionId": "id string",
+      "criterionId": "id string matching rubric",
       "passed": true,
       "scorePercentage": 100,
-      "justification": "why it passed or failed based on gold solution"
+      "justification": "Clear justification citing candidate assertions and standard benchmarks"
     }
   ],
   "triggeredTraps": [
     {
-      "trapId": "id string",
+      "trapId": "id string matching negative anchor",
       "triggered": true,
-      "evidenceQuote": "exact quote from candidate showing the mistake"
+      "evidenceQuote": "Exact verbatim quote from candidate submission showing where they committed or rationalized the trap"
     }
   ],
-  "overallSummary": "Brief audit conclusion"
+  "overallSummary": "Concise summary of audit findings"
 }`;
 
     const prompt = `Case Scenario:
@@ -64,9 +91,10 @@ ${rubric.map((r) => `- [${r.id}] ${r.title} (Weight: ${r.weight}): ${r.descripti
 Candidate Submission:
 ${submissionText}
 
-Task: Evaluate whether each criterion is satisfied and whether ANY of the negative anchors/traps were triggered.`;
+Task: Conduct a rigorous audit of the candidate's submission following the RCAF DOs and DON'Ts. Evaluate each rubric criterion and verify whether any negative anchors were triggered.`;
 
     let aiResult: {
+      auditAnalysis?: string;
       criterionEvaluations: Array<{ criterionId: string; passed: boolean; scorePercentage: number; justification: string }>;
       triggeredTraps: Array<{ trapId: string; triggered: boolean; evidenceQuote: string }>;
       overallSummary: string;

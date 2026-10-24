@@ -31,28 +31,54 @@ export class GenerateVerifiedLessonUseCase {
       .map((c) => `[${source.code} - ${c.locationTag}]\n${c.content}`)
       .join('\n\n---\n\n');
 
-    // 2. STAGE 1: Generator LLM Call
-    const generatorSystemPrompt = `You are an expert educational curriculum author.
-You are generating a structured training unit for beginners on the topic: "${request.topic}".
-MANDATORY INVARIANT: Every substantive factual claim must be backed by a direct quote from the provided Corpus of Record.
-If a concept is not explicitly mentioned in the corpus, you MUST report it under "unknowns" instead of hallucinating.`;
+    // 2. STAGE 1: Generator LLM Call (RCAF Architecture with Granular DOs & DON'Ts)
+    const generatorSystemPrompt = `You are a Master Curriculum Designer and Verifiable Knowledge Author.
+Your mission is to generate a comprehensive, highly practical, and engaging training lesson on the topic: "${request.topic}".
+Every substantive factual statement MUST be deterministically verifiable against the provided Corpus of Record.
+
+### Pedagogical & Grounding Architecture (RCAF Standard):
+- ROLE: Curriculum Designer & Subject-Matter Specialist.
+- AUDIENCE: Developing professional learners seeking verified competence.
+- CONTEXT: Provided addressable Corpus of Record chunks.
+
+### CRITICAL DOs:
+1. DO plan the educational narrative in "curriculumOutline" first, ensuring a logical learning progression.
+2. DO ensure every factual statement in "claims" has an exact verbatim match in "directQuote" from the corpus.
+3. DO copy characters, words, casing, and punctuation character-for-character from the source chunk into "directQuote".
+4. DO extract the exact locationTag matching the chunk header (e.g. from "[${source.code} - Pasal 28]", set locationTag to "Pasal 28").
+5. DO compose a rich, well-structured Markdown lesson in "body" with clear subheadings, real-world context, and key takeaways.
+6. DO catalog under "unknowns" any adjacent sub-topics, exceptions, or practical questions relevant to "${request.topic}" that are NOT explicitly addressed by the provided Corpus of Record.
+7. DO summarize the primary competency takeaways in "summary".
+
+### CRITICAL DON'Ts:
+1. DONT paraphrase, summarize, or alter even a single character in "directQuote" (it will fail deterministic substring and SHA-256 verification).
+2. DONT extrapolate, hallucinate, or import external knowledge, regulations, or figures not explicitly present in the provided chunks.
+3. DONT combine disparate sentences into one merged quote; keep each cited claim atomic and individually testable.
+4. DONT leave "directQuote" empty or vague when making a factual claim in "claimText".
+5. DONT guess answers to ungrounded aspects of "${request.topic}"—instead, place them transparently in "unknowns".
+6. DONT output conversational filler, markdown formatting blocks (like \`\`\`json), or text outside the valid JSON object.`;
 
     const generatorSchemaPrompt = `{
-  "title": "Clear educational title",
-  "summary": "Executive summary of key learning objectives",
-  "body": "Markdown structured reading lesson incorporating the verified points",
+  "curriculumOutline": "Structured outline of topics and verified learning objectives",
+  "title": "Clear, professional educational title",
+  "summary": "Executive summary of key learning objectives and competency outcomes",
+  "body": "Markdown structured reading lesson incorporating the verified points with clear headings",
   "claims": [
     {
       "claimText": "Concise factual statement",
       "sourceCode": "${source.code}",
-      "locationTag": "Exact location tag from corpus e.g. Pasal 28",
+      "locationTag": "Exact location tag from chunk header e.g. Pasal 28",
       "directQuote": "Exact verbatim substring from the source chunk"
     }
   ],
-  "unknowns": ["List of things relevant to the topic but NOT covered in this source"]
+  "unknowns": ["List of relevant questions or edge cases NOT covered in this source corpus"]
 }`;
 
-    const userPrompt = `Corpus of Record:\n${corpusContext}\n\nTask: Generate a lesson on "${request.topic}". Ensure every claim has an exact verbatim quote and accurate locationTag.`;
+    const userPrompt = `Corpus of Record:
+${corpusContext}
+
+Task: Generate an educational lesson on "${request.topic}".
+Ensure every claim has an exact verbatim directQuote and accurate locationTag matching the Corpus of Record.`;
 
     const generatorOutput = await this.aiGateway.chatJson<{
       title: string;
