@@ -17,7 +17,8 @@ export interface ParsedDoc {
 
 export interface SynthesisOptions {
   workspaceName: string;
-  sourceFiles: string[];
+  sourceFiles?: string[];
+  markdownTexts?: Array<{ fileName?: string; title?: string; text: string }>;
   slug?: string;
   outputFile?: string;
 }
@@ -138,8 +139,65 @@ export function parseMarkdownDocument(filePath: string, index: number): ParsedDo
   return { fileName, sourceCode, title, chunks };
 }
 
+export function parseMarkdownText(rawText: string, titleHint: string, index: number): ParsedDoc {
+  const raw = (rawText || '').replace(/\r\n/g, '\n').trim();
+  const fileName = `${titleHint}.md`;
+  const baseCode = titleHint.toUpperCase().replace(/[^A-Z0-9]+/g, '-').slice(0, 10);
+  const sourceCode = `SRC-${baseCode || `DOC${index + 1}`}`;
+
+  const h1Match = raw.match(/^#\s+(.+)$/m);
+  const title = h1Match ? h1Match[1].trim() : titleHint;
+
+  const sectionRegex = /(?:^|\n)(?:#+\s*)?(Pasal\s+\d+[a-z]?|BAB\s+[IVXLCDM]+|Bagian\s+[A-Za-z0-9]+|Lampiran\s+[A-Za-z0-9]+|##+\s+[^#\n]+)/gi;
+  const matches: Array<{ tag: string; index: number }> = [];
+  let m: RegExpExecArray | null;
+
+  while ((m = sectionRegex.exec(raw)) !== null) {
+    matches.push({ tag: m[1].replace(/^#+\s*/, '').trim(), index: m.index });
+  }
+
+  const chunks: ChunkMeta[] = [];
+  if (matches.length === 0) {
+    const paragraphs = raw.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
+    paragraphs.forEach((p, idx) => {
+      const content = p.trim();
+      chunks.push({
+        locationTag: `Bagian ${idx + 1}`,
+        content,
+        sha256: createHash('sha256').update(content).digest('hex'),
+      });
+    });
+  } else {
+    for (let i = 0; i < matches.length; i++) {
+      const cur = matches[i];
+      const next = matches[i + 1];
+      const content = (next ? raw.substring(cur.index, next.index) : raw.substring(cur.index)).trim();
+      chunks.push({
+        locationTag: cur.tag,
+        content,
+        sha256: createHash('sha256').update(content).digest('hex'),
+      });
+    }
+  }
+
+  return { fileName, sourceCode, title, chunks };
+}
+
 export function synthesizeDomainBlueprint(options: SynthesisOptions): SynthesisResult {
-  const parsedDocs = options.sourceFiles.map((f, idx) => parseMarkdownDocument(f, idx));
+  const parsedDocs: ParsedDoc[] = [];
+  if (options.sourceFiles) {
+    options.sourceFiles.forEach((f, idx) => parsedDocs.push(parseMarkdownDocument(f, idx)));
+  }
+  if (options.markdownTexts) {
+    options.markdownTexts.forEach((t, idx) =>
+      parsedDocs.push(parseMarkdownText(t.text, t.title || t.fileName || `Doc-${idx + 1}`, parsedDocs.length))
+    );
+  }
+
+  if (parsedDocs.length === 0) {
+    throw new Error('No valid markdown sources provided for domain synthesis');
+  }
+
   const wsName = options.workspaceName;
   const slug = options.slug || wsName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 

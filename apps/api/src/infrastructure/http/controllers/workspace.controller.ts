@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import { synthesizeDomainBlueprint } from '../../../../../packages/cli/src/core/domain-synthesizer';
 
 export const workspaceController = new Elysia({ prefix: '/api/v1/workspaces' })
   .get(
@@ -102,6 +103,55 @@ export const workspaceController = new Elysia({ prefix: '/api/v1/workspaces' })
         tags: ['Workspaces'],
         summary: 'Import Universal Domain Blueprint',
         description: 'Declaratively imports full domain specification with sources, competency DAG, gates, and tasks.',
+      },
+    }
+  )
+  .post(
+    '/synthesize-markdown',
+    async ({ headers, body, set }) => {
+      const auth = await resolveAuth(headers);
+      if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
+        set.status = 403;
+        return { error: 'Forbidden: Only creators and superadmins can synthesize domains' };
+      }
+
+      if (!body.workspaceName || !body.markdownContent) {
+        set.status = 400;
+        return { error: 'workspaceName and markdownContent are required' };
+      }
+
+      try {
+        const synthesis = synthesizeDomainBlueprint({
+          workspaceName: body.workspaceName,
+          markdownTexts: [{ text: body.markdownContent, title: body.workspaceName }],
+          slug: body.slug,
+        });
+
+        const imported = await container.importDomainBlueprintUseCase.execute(
+          auth.user.id,
+          synthesis.blueprint
+        );
+
+        set.status = 201;
+        return {
+          success: true,
+          workspaceId: imported.workspaceId,
+          statistics: synthesis.statistics,
+        };
+      } catch (err: any) {
+        set.status = 400;
+        return { error: err.message };
+      }
+    },
+    {
+      body: t.Object({
+        workspaceName: t.String(),
+        markdownContent: t.String(),
+        slug: t.Optional(t.String()),
+      }),
+      detail: {
+        tags: ['Workspaces'],
+        summary: 'Synthesize and import domain from raw Markdown SOP regulation',
       },
     }
   )

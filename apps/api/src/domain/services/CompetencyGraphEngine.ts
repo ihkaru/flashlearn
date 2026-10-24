@@ -133,6 +133,10 @@ export class CompetencyGraphEngine {
         userStatus,
         canAttempt,
         blockingPrerequisites: unmasteredPrereqs,
+        driftStatus: record?.driftStatus || null,
+        cachedRetrievability: record?.cachedRetrievability !== undefined ? Number(record.cachedRetrievability) : null,
+        stability: record?.stability !== undefined ? Number(record.stability) : null,
+        lastDemonstratedAt: record?.lastDemonstratedAt ? record.lastDemonstratedAt.toISOString() : null,
         createdAt: node.props.createdAt.toISOString(),
         updatedAt: node.props.updatedAt.toISOString(),
       });

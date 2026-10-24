@@ -6,6 +6,7 @@ import SuperadminPage from './pages/superadmin.svelte';
 import ReviewerQueuePage from './pages/reviewer-queue.svelte';
 import SpacedPracticePage from './pages/spaced-practice.svelte';
 import VerifyPassportPage from './pages/verify-passport.svelte';
+import BlindReviewPage from './pages/blind-review.svelte';
 
 export const routes = [
   {
@@ -43,5 +44,9 @@ export const routes = [
   {
     path: '/verify/:id',
     component: VerifyPassportPage,
+  },
+  {
+    path: '/blind-review/:token',
+    component: BlindReviewPage,
   },
 ];

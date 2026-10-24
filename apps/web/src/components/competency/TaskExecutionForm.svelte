@@ -16,7 +16,10 @@
   let calculatedValue = $state<number | string>('');
   let studentAnswerText = $state('');
   let checkedItems = $state<Record<string, boolean>>({});
+  let selectedDisposition = $state<'REJECT_AND_DEMAND_DATA' | 'ACCEPT_AND_SIGN' | 'DELEGATE' | ''>('');
   let lastAttempt = $state<Attempt | null>(null);
+
+  let isAdversarial = $derived(task.taskType === 'adversarial_dilemma');
 
   let calcLabel = $derived(
     task.oracleData?.inputLabel || task.oracleData?.targetField || 'Nilai Hasil Perhitungan / Ukuran Target'
@@ -30,11 +33,25 @@
   );
 
   async function handleSubmit() {
+    if (isAdversarial && !selectedDisposition) {
+      alert('Pilihlah salah satu Disposisi Keputusan terlebih dahulu sebelum mengirimkan evaluasi.');
+      return;
+    }
+    if (isAdversarial && studentAnswerText.trim().length < 5) {
+      alert('Tuliskan justifikasi analisis regulasi secara rinci.');
+      return;
+    }
+
     isSubmitting = true;
     try {
       const submissionData: Record<string, any> = {};
 
-      if (oracleClass === 'A') {
+      if (isAdversarial) {
+        submissionData.studentDisposition = selectedDisposition;
+        submissionData.studentAnswerText = studentAnswerText;
+        submissionData.justification = studentAnswerText;
+        submissionData.text = studentAnswerText;
+      } else if (oracleClass === 'A') {
         const numVal = Number(calculatedValue);
         submissionData.calculatedValue = numVal;
         const targetKey = task.oracleData?.targetField;
@@ -80,7 +97,46 @@
   <SocraticTutorDrawer taskId={task.id} />
 
   <!-- Form Inputs Based on Oracle Class -->
-  {#if oracleClass === 'A'}
+  {#if isAdversarial}
+    <div style="display: flex; flex-direction: column; gap: 12px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; padding: 14px;">
+      <div style="font-size: 0.8rem; font-weight: 800; color: #b45309; display: flex; align-items: center; gap: 6px;">
+        <Icon name="alert-triangle" size={14} />
+        <span>Uji Stres Tekanan & Integritas Batas Wewenang</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-size: 0.82rem; font-weight: 700; color: #334155;">Pilih Disposisi Anda:</span>
+        
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #1e293b; cursor: pointer; padding: 8px; border-radius: 8px; background: #ffffff; border: 1px solid {selectedDisposition === 'REJECT_AND_DEMAND_DATA' ? '#0f766e' : '#e2e8f0'};">
+          <input type="radio" name="disposition" value="REJECT_AND_DEMAND_DATA" bind:group={selectedDisposition} style="accent-color: #0f766e;" />
+          <span style="font-weight: 600;">Tolak & Tuntut Kelengkapan Data / Dokumen (Tahan Batas)</span>
+        </label>
+
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #1e293b; cursor: pointer; padding: 8px; border-radius: 8px; background: #ffffff; border: 1px solid {selectedDisposition === 'ACCEPT_AND_SIGN' ? '#dc2626' : '#e2e8f0'};">
+          <input type="radio" name="disposition" value="ACCEPT_AND_SIGN" bind:group={selectedDisposition} style="accent-color: #dc2626;" />
+          <span style="font-weight: 600;">Setujui & Tanda Tangani Berkas (Akomodasi Desakan Waktu)</span>
+        </label>
+
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #1e293b; cursor: pointer; padding: 8px; border-radius: 8px; background: #ffffff; border: 1px solid {selectedDisposition === 'DELEGATE' ? '#0284c7' : '#e2e8f0'};">
+          <input type="radio" name="disposition" value="DELEGATE" bind:group={selectedDisposition} style="accent-color: #0284c7;" />
+          <span style="font-weight: 600;">Eskalasi ke Komite Etik / Pimpinan Tertinggi Tanpa Tanda Tangan</span>
+        </label>
+      </div>
+
+      <div>
+        <label for="adv-justification" style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
+          Dasar Regulasi & Analisis Justifikasi:
+        </label>
+        <textarea
+          id="adv-justification"
+          rows="4"
+          placeholder="Tuliskan klausul regulasi atau SOP rujukan serta alasan detail di balik disposisi Anda..."
+          bind:value={studentAnswerText}
+          style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.88rem; line-height: 1.45;"
+        ></textarea>
+      </div>
+    </div>
+  {:else if oracleClass === 'A'}
     <div style="display: flex; flex-direction: column; gap: 10px;">
       {#if task.oracleData?.checklist}
         <div style="font-size: 0.8rem; font-weight: 700; color: #334155;">{checklistLabel}</div>

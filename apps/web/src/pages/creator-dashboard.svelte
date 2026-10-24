@@ -3,6 +3,7 @@
   import { api } from '../stores/api';
   import { auth } from '../stores/auth.svelte';
   import type { Workspace } from '@flashlearn/shared';
+  import DomainSynthesizerModal from '../components/workspace/DomainSynthesizerModal.svelte';
 
   interface Props {
     f7router?: any;
@@ -14,6 +15,7 @@
   let isLoading = $state(true);
 
   let showCreateModal = $state(false);
+  let showSynthesizerModal = $state(false);
   let name = $state('');
   let description = $state('');
   let icon = $state('📚');
@@ -81,6 +83,12 @@
 
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
       <button
+        onclick={() => (showSynthesizerModal = true)}
+        style="background: #0f766e; color: #ffffff; border: none; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);"
+      >
+        🤖 Sintesis Domain SOP
+      </button>
+      <button
         onclick={() => auth.openApiKeyModal()}
         style="background: #ffffff; color: #0f766e; border: 1.5px solid #0f766e; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.03);"
       >
@@ -88,9 +96,9 @@
       </button>
       <button
         onclick={() => (showCreateModal = true)}
-        style="background: #0f766e; color: #ffffff; border: none; padding: 11px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
+        style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 11px 18px; border-radius: 12px; font-weight: 700; cursor: pointer;"
       >
-        + Buat Workspace
+        + Workspace Manual
       </button>
     </div>
   </div>
@@ -245,4 +253,17 @@
     </div>
   </div>
 {/if}
+
+<DomainSynthesizerModal
+  isOpen={showSynthesizerModal}
+  onClose={() => (showSynthesizerModal = false)}
+  onSynthesized={async (newWsId) => {
+    await loadMyWorkspaces();
+    if (f7router) {
+      f7router.navigate(`/workspace/${newWsId}`);
+    } else {
+      window.location.hash = `/workspace/${newWsId}`;
+    }
+  }}
+/>
 </Page>

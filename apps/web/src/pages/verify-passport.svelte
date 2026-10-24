@@ -20,6 +20,11 @@
   let isLoading = $state(true);
   let errorMessage = $state<string | null>(null);
 
+  // W3C VC 2.0 Offline Verification State
+  let vcInputJson = $state('');
+  let isVerifyingVc = $state(false);
+  let vcVerifyResult = $state<any>(null);
+
   onMount(async () => {
     try {
       passport = await api.gates.verifyPassport(grantId);
@@ -39,6 +44,43 @@
       hour: '2-digit',
       minute: '2-digit',
     });
+  }
+
+  async function handleVerifyVc() {
+    if (!vcInputJson.trim()) {
+      alert('Masukkan dokumen JSON kredensial W3C yang ingin diverifikasi.');
+      return;
+    }
+
+    let parsed: any;
+    try {
+      parsed = JSON.parse(vcInputJson);
+    } catch (err: any) {
+      alert(`Format JSON tidak valid: ${err.message}`);
+      return;
+    }
+
+    isVerifyingVc = true;
+    vcVerifyResult = null;
+    try {
+      const res = await api.credentials.verify(parsed);
+      vcVerifyResult = res;
+    } catch (err: any) {
+      vcVerifyResult = { valid: false, error: err.message };
+    } finally {
+      isVerifyingVc = false;
+    }
+  }
+
+  function handleFileUpload(e: Event) {
+    const input = e.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      vcInputJson = event.target?.result as string || '';
+    };
+    reader.readAsText(file);
   }
 </script>
 
@@ -171,5 +213,57 @@
         </div>
       </div>
     {/if}
+
+    <!-- W3C VC 2.0 / Ed25519 Standalone Verifier Card -->
+    <div style="margin-top: 28px; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; padding: 22px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div>
+          <span style="font-size: 0.72rem; font-weight: 800; color: #0f766e; text-transform: uppercase;">
+            Standar W3C Verifiable Credentials 2.0 & Ed25519
+          </span>
+          <h3 style="margin: 2px 0 0; font-size: 1.05rem; font-weight: 800; color: #0f172a;">
+            Verifikasi Kredensial Mandiri (Offline Proof)
+          </h3>
+        </div>
+        <label style="background: #f1f5f9; color: #334155; font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+          <Icon name="upload" size={13} />
+          <span>Unggah Berkas .json</span>
+          <input type="file" accept=".json,application/json" onchange={handleFileUpload} style="display: none;" />
+        </label>
+      </div>
+
+      <textarea
+        rows="4"
+        placeholder="Tempel dokumen JSON W3C Verifiable Credential di sini untuk diverifikasi secara kriptografis..."
+        bind:value={vcInputJson}
+        style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: monospace; font-size: 0.75rem; line-height: 1.4; margin-bottom: 12px;"
+      ></textarea>
+
+      <div style="display: flex; justify-content: flex-end;">
+        <button
+          disabled={isVerifyingVc}
+          onclick={handleVerifyVc}
+          style="background: #0f766e; color: #ffffff; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+        >
+          <Icon name="shield-check" size={14} />
+          <span>{isVerifyingVc ? 'Memverifikasi...' : 'Verifikasi Tanda Tangan Ed25519'}</span>
+        </button>
+      </div>
+
+      {#if vcVerifyResult}
+        <div style="margin-top: 14px; padding: 12px 16px; border-radius: 10px; font-size: 0.85rem; background: {vcVerifyResult.valid ? '#f0fdf4' : '#fef2f2'}; border: 1px solid {vcVerifyResult.valid ? '#bbf7d0' : '#fecaca'};">
+          <div style="display: flex; align-items: center; gap: 6px; font-weight: 800; color: {vcVerifyResult.valid ? '#166534' : '#991b1b'}; margin-bottom: 4px;">
+            <Icon name={vcVerifyResult.valid ? 'check-circle' : 'alert-triangle'} size={16} />
+            <span>{vcVerifyResult.valid ? 'TANDA TANGAN ED25519 VALID: Kredensial Asli Tanpa Modifikasi' : `GAGAL VERIFIKASI: ${vcVerifyResult.error}`}</span>
+          </div>
+          {#if vcVerifyResult.valid}
+            <div style="font-size: 0.8rem; color: #334155; line-height: 1.4;">
+              <strong>Pencapaian:</strong> {vcVerifyResult.achievementTitle || '-'}<br />
+              <strong>Penerbit DID:</strong> <span style="font-family: monospace;">{vcVerifyResult.issuerId || '-'}</span>
+            </div>
+          {/if}
+        </div>
+      {/if}
+    </div>
   </div>
 </Page>

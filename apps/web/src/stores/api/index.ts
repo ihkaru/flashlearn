@@ -8,6 +8,10 @@ import { reviewerApi } from './reviewer';
 import { spacedApi } from './spaced';
 import { apiKeyApi } from './apiKeys';
 import { auditApi } from './audit';
+import { credentialApi } from './credentials';
+import { diagnosticApi } from './diagnostic';
+import { driftApi } from './drift';
+import { consensusApi } from './consensus';
 
 export { clearApiCache, API_URL, fetchWithAuth };
 
@@ -21,4 +25,8 @@ export const api = {
   spaced: spacedApi,
   apiKeys: apiKeyApi,
   audit: auditApi,
+  credentials: credentialApi,
+  diagnostic: diagnosticApi,
+  drift: driftApi,
+  consensus: consensusApi,
 };

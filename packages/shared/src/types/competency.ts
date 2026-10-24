@@ -39,6 +39,10 @@ export interface LearnerCompetencyStatus extends CompetencyNode {
   userStatus: MasteryStatus;
   canAttempt: boolean;
   blockingPrerequisites: Array<{ id: string; code: string; title: string }>;
+  driftStatus?: string | null;
+  cachedRetrievability?: number | null;
+  stability?: number | null;
+  lastDemonstratedAt?: string | null;
 }
 
 export interface CompetencyGraphResponse {
