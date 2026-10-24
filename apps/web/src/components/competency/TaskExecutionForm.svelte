@@ -49,6 +49,12 @@
   });
 
   let isAdversarial = $derived(task.taskType === 'adversarial_dilemma');
+  let hasCalculation = $derived(
+    task.taskType === 'calculation' || !!task.oracleData?.expectedFormulas || !!task.oracleData?.targetField
+  );
+  let hasChecklist = $derived(
+    task.taskType === 'checklist' || (Array.isArray(task.oracleData?.checklist) && task.oracleData.checklist.length > 0)
+  );
 
   let calcLabel = $derived(
     task.oracleData?.inputLabel || task.oracleData?.targetField || 'Nilai Hasil Perhitungan / Ukuran Target'
@@ -80,20 +86,25 @@
         submissionData.studentAnswerText = studentAnswerText;
         submissionData.justification = studentAnswerText;
         submissionData.text = studentAnswerText;
-      } else if (oracleClass === 'A') {
-        const numVal = Number(calculatedValue);
-        submissionData.calculatedValue = numVal;
-        const targetKey = task.oracleData?.targetField;
-        if (targetKey) {
-          submissionData[targetKey] = numVal;
-        }
-        submissionData.completedChecklist = Object.keys(checkedItems).filter((k) => checkedItems[k]);
-        for (const item of Object.keys(checkedItems).filter((k) => checkedItems[k])) {
-          submissionData[item] = true;
-        }
       } else {
-        submissionData.studentAnswerText = studentAnswerText;
-        submissionData.text = studentAnswerText;
+        if (hasCalculation) {
+          const numVal = Number(calculatedValue);
+          submissionData.calculatedValue = numVal;
+          const targetKey = task.oracleData?.targetField;
+          if (targetKey) {
+            submissionData[targetKey] = numVal;
+          }
+        }
+        if (hasChecklist) {
+          submissionData.completedChecklist = Object.keys(checkedItems).filter((k) => checkedItems[k]);
+          for (const item of Object.keys(checkedItems).filter((k) => checkedItems[k])) {
+            submissionData[item] = true;
+          }
+        }
+        if (studentAnswerText.trim()) {
+          submissionData.studentAnswerText = studentAnswerText;
+          submissionData.text = studentAnswerText;
+        }
       }
 
       const res = await api.tasks.submitAttempt(task.id, {
@@ -167,43 +178,49 @@
         ></textarea>
       </div>
     </div>
-  {:else if oracleClass === 'A'}
-    <div style="display: flex; flex-direction: column; gap: 10px;">
-      {#if task.oracleData?.checklist}
-        <div style="font-size: 0.8rem; font-weight: 700; color: #334155;">{checklistLabel}</div>
-        {#each task.oracleData.checklist as itemKey}
-          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #1e293b; cursor: pointer;">
-            <input type="checkbox" bind:checked={checkedItems[itemKey]} style="accent-color: #0f766e;" />
-            <span style="font-family: monospace; font-size: 0.82rem;">{itemKey}</span>
-          </label>
-        {/each}
+  {:else}
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      {#if hasChecklist && task.oracleData?.checklist}
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: #334155;">{checklistLabel}</div>
+          {#each task.oracleData.checklist as itemKey}
+            <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.85rem; color: #1e293b; cursor: pointer; background: #f8fafc; padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <input type="checkbox" bind:checked={checkedItems[itemKey]} style="accent-color: #0f766e; margin-top: 2px;" />
+              <span style="font-size: 0.82rem; line-height: 1.4;">{itemKey}</span>
+            </label>
+          {/each}
+        </div>
       {/if}
 
-      <div>
-        <label for="calc-input" style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
-          {calcLabel}{calcUnit}:
-        </label>
-        <input
-          id="calc-input"
-          type="number"
-          placeholder={calcPlaceholder}
-          bind:value={calculatedValue}
-          style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.95rem; font-family: monospace;"
-        />
-      </div>
-    </div>
-  {:else}
-    <div>
-      <label for="analysis-input" style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
-        {analysisLabel}
-      </label>
-      <textarea
-        id="analysis-input"
-        rows="5"
-        placeholder={analysisPlaceholder}
-        bind:value={studentAnswerText}
-        style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.88rem; line-height: 1.45;"
-      ></textarea>
+      {#if hasCalculation}
+        <div>
+          <label for="calc-input" style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
+            {calcLabel}{calcUnit}:
+          </label>
+          <input
+            id="calc-input"
+            type="number"
+            placeholder={calcPlaceholder}
+            bind:value={calculatedValue}
+            style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.95rem; font-family: monospace;"
+          />
+        </div>
+      {/if}
+
+      {#if !hasCalculation || task.taskType === 'case_study' || task.taskType === 'document_draft'}
+        <div>
+          <label for="analysis-input" style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
+            {analysisLabel}
+          </label>
+          <textarea
+            id="analysis-input"
+            rows="5"
+            placeholder={analysisPlaceholder}
+            bind:value={studentAnswerText}
+            style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.88rem; line-height: 1.45;"
+          ></textarea>
+        </div>
+      {/if}
     </div>
   {/if}
 
