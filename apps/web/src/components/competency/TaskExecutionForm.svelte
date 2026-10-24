@@ -5,6 +5,8 @@
   import { lumisChat } from '../../stores/lumisChat.svelte';
   import Icon from '../ui/Icon.svelte';
   import SocraticTutorDrawer from './SocraticTutorDrawer.svelte';
+  import CorpusReferenceCard from './CorpusReferenceCard.svelte';
+  import { auth } from '../../stores/auth.svelte';
 
   interface Props {
     task: Task;
@@ -68,6 +70,14 @@
   );
 
   async function handleSubmit() {
+    if (!auth.isLoggedIn) {
+      if (confirm('Anda belum masuk. Masuk instan sebagai Demo Pembelajar sekarang untuk mengirimkan tugas ini?')) {
+        await auth.loginAsDemo();
+      } else {
+        return;
+      }
+    }
+
     if (isAdversarial && !selectedDisposition) {
       alert('Pilihlah salah satu Disposisi Keputusan terlebih dahulu sebelum mengirimkan evaluasi.');
       return;
@@ -137,6 +147,9 @@
 
   <!-- Socratic Pedagogical Tutor -->
   <SocraticTutorDrawer taskId={task.id} scenario={task.scenario} taskTitle={task.title} />
+
+  <!-- Corpus of Record (Official Statutory & SOP Acuan Resmi) -->
+  <CorpusReferenceCard taskTitle={task.title} scenario={task.scenario} {oracleClass} />
 
   <!-- Form Inputs Based on Oracle Class -->
   {#if isAdversarial}
@@ -221,6 +234,26 @@
           ></textarea>
         </div>
       {/if}
+    </div>
+  {/if}
+
+  <!-- Guest Callout Banner -->
+  {#if !auth.isLoggedIn}
+    <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+      <div style="display: flex; align-items: center; gap: 10px; font-size: 0.84rem; color: #1e40af; line-height: 1.45;">
+        <span style="color: #2563eb; display: flex; flex-shrink: 0;">
+          <Icon name="sparkles" size={18} />
+        </span>
+        <span>Anda sedang membuka tugas ini sebagai <strong>Tamu</strong>. Anda bebas mempelajari skenario & rujukan resmi. Untuk mengirimkan solusi ke Oracle dan memperoleh bukti kredensial kelulusan:</span>
+      </div>
+      <button
+        type="button"
+        onclick={() => auth.loginAsDemo()}
+        style="background: #1d4ed8; color: #ffffff; border: none; padding: 7px 14px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(29, 78, 216, 0.25);"
+      >
+        <Icon name="bolt" size={13} />
+        <span>Masuk Demo Pembelajar (1-Klik)</span>
+      </button>
     </div>
   {/if}
 

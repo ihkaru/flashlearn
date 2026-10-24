@@ -11,7 +11,8 @@ export const sourceController = new Elysia({ prefix: '/api/v1/sources' })
         set.status = 400;
         return { error: 'workspaceId query parameter is required' };
       }
-      return await container.sourceRepository.listByWorkspace(workspaceId);
+      const list = await container.sourceRepository.listByWorkspace(workspaceId);
+      return list.map((s: any) => (typeof s.toJSON === 'function' ? s.toJSON() : s.props || s));
     },
     {
       query: t.Object({
@@ -32,7 +33,7 @@ export const sourceController = new Elysia({ prefix: '/api/v1/sources' })
         set.status = 404;
         return { error: 'Source not found' };
       }
-      return source;
+      return typeof (source as any).toJSON === 'function' ? (source as any).toJSON() : (source as any).props || source;
     },
     {
       params: t.Object({
@@ -47,7 +48,8 @@ export const sourceController = new Elysia({ prefix: '/api/v1/sources' })
   .get(
     '/:id/chunks',
     async ({ params }) => {
-      return await container.sourceRepository.listChunksBySourceId(params.id);
+      const chunks = await container.sourceRepository.listChunksBySourceId(params.id);
+      return chunks.map((c: any) => (typeof c.toJSON === 'function' ? c.toJSON() : c.props || c));
     },
     {
       params: t.Object({

@@ -18,6 +18,7 @@ import {
   ENTERPRISE_EDGES,
   ENTERPRISE_GATES,
 } from './enterprise_procurement.data';
+import { seedEnterpriseContents } from './enterprise_procurement_contents.data';
 
 export async function seedEnterpriseProcurement(creatorId: string) {
   console.log('🏛️ Seeding Enterprise Level Procurement Domain Blueprint...');
@@ -143,6 +144,9 @@ export async function seedEnterpriseProcurement(creatorId: string) {
 
   // 5. Tasks for Competencies
   await seedTasks(compMap);
+
+  // 6. Educational Reading Modules & Active Recall Quizzes
+  await seedEnterpriseContents(activeWs.id, compMap);
 
   console.log('✓ Enterprise Level Procurement Blueprint Seeded Successfully!');
 }
