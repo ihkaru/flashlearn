@@ -10,6 +10,11 @@ import { DrizzleAttemptRepository } from '../repositories/DrizzleAttemptReposito
 import { DrizzleGateRepository } from '../repositories/DrizzleGateRepository';
 import { DrizzleAuditLogRepository } from '../repositories/DrizzleAuditLogRepository';
 import { DrizzleSpacedFlashcardRepository } from '../repositories/DrizzleSpacedFlashcardRepository';
+import { DrizzleDiagnosticSessionRepository } from '../repositories/DrizzleDiagnosticSessionRepository';
+import { DiagnosticPlacementEngine } from '../../application/engines/DiagnosticPlacementEngine';
+import { StartDiagnosticSessionUseCase } from '../../application/use-cases/diagnostic/StartDiagnosticSessionUseCase';
+import { GetNextDiagnosticProbeUseCase } from '../../application/use-cases/diagnostic/GetNextDiagnosticProbeUseCase';
+import { SubmitDiagnosticProbeUseCase } from '../../application/use-cases/diagnostic/SubmitDiagnosticProbeUseCase';
 
 import { JwtTokenService } from '../services/JwtTokenService';
 import { GoogleAuthVerifier } from '../services/GoogleAuthVerifier';
@@ -93,6 +98,7 @@ export class Container {
   public readonly gateRepository = new DrizzleGateRepository();
   public readonly auditLogRepository = new DrizzleAuditLogRepository();
   public readonly spacedFlashcardRepository = new DrizzleSpacedFlashcardRepository();
+  public readonly diagnosticRepository = new DrizzleDiagnosticSessionRepository();
 
   // Services
   public readonly tokenService = new JwtTokenService();
@@ -100,6 +106,7 @@ export class Container {
   public readonly aiGateway = new AiGatewayService();
   public readonly citationValidator = new CitationValidatorService(this.sourceRepository);
   public readonly competencyGraphEngine = new CompetencyGraphEngine();
+  public readonly diagnosticPlacementEngine = new DiagnosticPlacementEngine(this.taskRepository);
   public readonly oracleEvaluatorClassA = new OracleEvaluatorClassA();
   public readonly oracleEvaluatorClassB = new OracleEvaluatorClassB(this.aiGateway);
   public readonly oracleEvaluatorAdversarial = new OracleEvaluatorAdversarial(this.aiGateway);
@@ -296,6 +303,26 @@ export class Container {
     this.auditLogRepository,
     this.sourceRepository,
     this.gateRepository
+  );
+
+  // Phase 12: Adaptive Topological Diagnostic Placement Use Cases
+  public readonly startDiagnosticSessionUseCase = new StartDiagnosticSessionUseCase(
+    this.diagnosticRepository,
+    this.competencyRepository,
+    this.workspaceRepository,
+    this.diagnosticPlacementEngine
+  );
+  public readonly getNextDiagnosticProbeUseCase = new GetNextDiagnosticProbeUseCase(
+    this.diagnosticRepository,
+    this.competencyRepository,
+    this.diagnosticPlacementEngine
+  );
+  public readonly submitDiagnosticProbeUseCase = new SubmitDiagnosticProbeUseCase(
+    this.diagnosticRepository,
+    this.competencyRepository,
+    this.masteryRepository,
+    this.diagnosticPlacementEngine,
+    this.evaluateAttemptUseCase
   );
 }
 

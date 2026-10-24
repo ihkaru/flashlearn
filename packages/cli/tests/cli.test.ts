@@ -328,4 +328,36 @@ describe('FlashLearn Agent-First CLI (October 2026 Standards)', () => {
     expect(parsed.data.gatesCount).toBe(3);
     expect(parsed.data.tasksCount).toBe(3);
   });
+
+  test('Phase 12 Adaptive Diagnostic Placement: diagnostic start, next, and submit CLI actions', async () => {
+    // 1. Diagnostic help
+    captureOutput();
+    let code = await runCli(['diagnostic', '--help']);
+    expect(code).toBe(ExitCode.SUCCESS);
+    let parsed = JSON.parse(stdoutData);
+    expect(parsed.data.title).toBe('FlashLearn CLI: diagnostic');
+    expect(parsed.data.description).toContain('Knowledge Space Theory');
+
+    // 2. Dry-run start diagnostic
+    captureOutput();
+    code = await runCli(['diagnostic', 'start', 'ws_kst_test_123', '--dry-run']);
+    expect(code).toBe(ExitCode.SUCCESS);
+    parsed = JSON.parse(stdoutData);
+    expect(parsed.data.dryRun).toBe(true);
+    expect(parsed.data.message).toContain('ws_kst_test_123');
+
+    // 3. Dry-run submit probe solution
+    captureOutput();
+    code = await runCli([
+      'diagnostic',
+      'submit',
+      'diag_sess_456',
+      '--submission={"nilai_dasar":100}',
+      '--dry-run',
+    ]);
+    expect(code).toBe(ExitCode.SUCCESS);
+    parsed = JSON.parse(stdoutData);
+    expect(parsed.data.dryRun).toBe(true);
+    expect(parsed.data.submission.nilai_dasar).toBe(100);
+  });
 });

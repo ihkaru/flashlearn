@@ -13,6 +13,7 @@ import { gateController } from './infrastructure/http/controllers/gate.controlle
 import { reviewerController } from './infrastructure/http/controllers/reviewer.controller';
 import { spacedController } from './infrastructure/http/controllers/spaced.controller';
 import { auditController } from './infrastructure/http/controllers/audit.controller';
+import { diagnosticController } from './infrastructure/http/controllers/diagnostic.controller';
 
 import { join } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
@@ -81,6 +82,7 @@ const app = new Elysia()
   .use(reviewerController)
   .use(spacedController)
   .use(auditController)
+  .use(diagnosticController)
   .get('/c/:id', ({ params, redirect }: any) => redirect(`/#/content/${params.id}`, 302))
   .get('/content/:id', ({ params, redirect }: any) => redirect(`/#/content/${params.id}`, 302))
   .get('/workspace/:id', ({ params, redirect }: any) => redirect(`/#/workspace/${params.id}`, 302))

@@ -25,6 +25,7 @@ import { handleAuditCommand } from './commands/audit';
 import { handleApiKeyCommand } from './commands/apikey';
 import { handleAuthCommand } from './commands/auth';
 import { handleSchemaCommand } from './commands/schema';
+import { handleDiagnosticCommand } from './commands/diagnostic';
 
 export async function runCli(rawArgv: string[]): Promise<number> {
   const startTime = Date.now();
@@ -108,6 +109,10 @@ export async function runCli(rawArgv: string[]): Promise<number> {
       case 'apikeys':
       case 'keys':
         result = await handleApiKeyCommand(action, args, parsed.flags, client);
+        break;
+      case 'diagnostic':
+      case 'placement':
+        result = await handleDiagnosticCommand(action, args, parsed.flags, client);
         break;
       case 'auth':
       case 'session':

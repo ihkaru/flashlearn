@@ -294,4 +294,40 @@ export const COMPETENCY_SCHEMAS: Record<string, ResourceSchemaDef> = {
       },
     ],
   },
+  diagnostic: {
+    noun: 'diagnostic',
+    description: 'Adaptive topological diagnostic placement engine (Knowledge Space Theory on DAG)',
+    actions: [
+      {
+        action: 'start',
+        description: 'Start an adaptive diagnostic placement session for a domain/workspace',
+        args: [
+          { name: '<workspace-id>', type: 'string', required: true, description: 'Workspace UUID' },
+        ],
+        example: 'flashlearn diagnostic start <workspace-id>',
+        mutating: true,
+      },
+      {
+        action: 'next',
+        description: 'Get the next optimal minimal-entropy diagnostic probe recommendation',
+        args: [
+          { name: '<session-id>', type: 'string', required: true, description: 'Diagnostic session UUID' },
+        ],
+        example: 'flashlearn diagnostic next <session-id>',
+        mutating: false,
+      },
+      {
+        action: 'submit',
+        description: 'Submit solution for current diagnostic probe and propagate Bayesian ancestral mastery',
+        args: [
+          { name: '<session-id>', type: 'string', required: true, description: 'Diagnostic session UUID' },
+          { name: '--submission', type: 'string', required: false, description: 'JSON string submission data' },
+          { name: '--submission-file', type: 'string', required: false, description: 'Path to JSON file containing submission' },
+          { name: '--text', type: 'string', required: false, description: 'Raw textual answer' },
+        ],
+        example: 'flashlearn diagnostic submit <session-id> --submission \'{"nilai_dasar": 100}\'',
+        mutating: true,
+      },
+    ],
+  },
 };
