@@ -1,5 +1,6 @@
 import type { ApiClient } from '../core/client';
 import { CliError, ExitCode, type NextAction } from '../core/envelope';
+import { handleDiagnosticCommand } from './diagnostic';
 
 export async function handleCompetencyCommand(
   action: string,
@@ -199,6 +200,13 @@ export async function handleCompetencyCommand(
 
       return { data };
     }
+
+    case 'diagnose-start':
+      return handleDiagnosticCommand('start', args, flags, client);
+    case 'diagnose-next':
+      return handleDiagnosticCommand('next', args, flags, client);
+    case 'diagnose-submit':
+      return handleDiagnosticCommand('submit', args, flags, client);
 
     default:
       throw new CliError({

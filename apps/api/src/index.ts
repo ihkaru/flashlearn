@@ -16,6 +16,7 @@ import { auditController } from './infrastructure/http/controllers/audit.control
 import { diagnosticController } from './infrastructure/http/controllers/diagnostic.controller';
 import { consensusController } from './infrastructure/http/controllers/consensus.controller';
 import { driftController } from './infrastructure/http/controllers/drift.controller';
+import { credentialController } from './infrastructure/http/controllers/credential.controller';
 
 import { join } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
@@ -87,6 +88,7 @@ const app = new Elysia()
   .use(diagnosticController)
   .use(consensusController)
   .use(driftController)
+  .use(credentialController)
   .get('/c/:id', ({ params, redirect }: any) => redirect(`/#/content/${params.id}`, 302))
   .get('/content/:id', ({ params, redirect }: any) => redirect(`/#/content/${params.id}`, 302))
   .get('/workspace/:id', ({ params, redirect }: any) => redirect(`/#/workspace/${params.id}`, 302))

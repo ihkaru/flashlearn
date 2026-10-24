@@ -11,6 +11,8 @@ Welcome to **FlashLearn**, an active-recall learning application built with Bun,
 - **API Documentation**: `http://localhost:3000/docs` (Scalar UI) or `http://localhost:3000/swagger`
 - **Agent-First CLI**: `bun run cli <noun> <action>` (See [docs/agent-first-cli.md](docs/agent-first-cli.md))
 - **Run SRP & File Length Linter**: `bun run lint:srp`
+- **User Story Gap Auditor**: `bun run audit:stories` (See [AGENT.md](AGENT.md))
+- **Coding Agent Manual**: See [AGENT.md](AGENT.md)
 - **Run automated test suite**: `cd apps/api && bun test`
 - **Competency Engine Roadmap**: See [docs/roadmap-competency-engine.md](docs/roadmap-competency-engine.md)
 - **Run Impeccable detector**: `npx impeccable detect`

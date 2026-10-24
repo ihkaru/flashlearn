@@ -52,6 +52,27 @@ export const SUPPORT_SCHEMAS: Record<string, ResourceSchemaDef> = {
         example: 'flashlearn gate grant gate_123',
         mutating: true,
       },
+      {
+        action: 'issue-vc',
+        description: 'Issue W3C VC 2.0 / OpenBadges 3.0 cryptographic passport with Ed25519 signature',
+        args: [
+          { name: '--gate-id', type: 'string', required: true, description: 'Gate UUID' },
+          { name: '--user-id', type: 'string', required: true, description: 'Learner User UUID' },
+          { name: '--output', type: 'string', required: false, description: 'Optional output JSON file path' },
+        ],
+        example: 'flashlearn gate issue-vc --gate-id <gateId> --user-id <userId> --output passport.json',
+        mutating: true,
+      },
+      {
+        action: 'verify-vc',
+        description: 'Offline mathematical verification of Ed25519 W3C Verifiable Credential',
+        args: [
+          { name: '--file', type: 'string', required: true, description: 'Path to credential JSON file' },
+          { name: '--public-key', type: 'string', required: false, description: 'Optional PEM public key' },
+        ],
+        example: 'flashlearn gate verify-vc --file passport.json',
+        mutating: false,
+      },
     ],
   },
   content: {

@@ -132,7 +132,7 @@ describe('Phase 14: Predictive Competency Drift & Skill Half-Life Decay Modeling
     expect(revalResult.previousStability).toBe(30.0);
     expect(revalResult.newStability).toBeGreaterThan(50.0);
     expect(revalResult.stretchFactor).toBeGreaterThanOrEqual(1.8);
-    expect(revalResult.driftStatus).toBe('active');
+    expect(revalResult.driftStatus).toBe('active'); // active_verified status restored
     expect(revalResult.newRetrievability).toBe(1.0);
 
     // Verify persisted state

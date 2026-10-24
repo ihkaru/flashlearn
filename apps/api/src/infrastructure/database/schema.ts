@@ -3,3 +3,4 @@ export * from './schemas/sources';
 export * from './schemas/competencies';
 export * from './schemas/contents';
 export * from './schemas/consensus';
+export * from './schemas/credentials';

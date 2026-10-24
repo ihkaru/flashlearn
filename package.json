@@ -13,7 +13,8 @@
     "build": "bun --filter \"*\" build",
     "test": "bun test",
     "cli": "bun run ./packages/cli/src/index.ts",
-    "lint:srp": "bun run scripts/check_srp_limits.ts"
+    "lint:srp": "bun run scripts/check_srp_limits.ts",
+    "audit:stories": "python3 scripts/audit_story_gap.py"
   },
   "devDependencies": {
     "typescript": "^5.8.0"

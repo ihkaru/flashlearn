@@ -125,7 +125,7 @@ export class ImportDomainBlueprintUseCase {
         const createdGate = await this.gateRepo.createGate({
           workspaceId,
           level: g.level,
-          title: g.title,
+          title: g.title || g.name,
           description: g.description,
         });
         gatesCreated++;

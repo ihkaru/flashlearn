@@ -198,4 +198,45 @@ describe('FlashLearn CLI Advanced Capabilities (Phases 11-13)', () => {
     expect(parsed.data.dryRun).toBe(true);
     expect(parsed.data.message).toContain('predictive competency drift');
   });
+
+  test('Phase 16 Cryptographic Verifiable Credentials: gate issue-vc and verify-vc CLI actions', async () => {
+    // 1. Action help includes issue-vc
+    captureOutput();
+    let code = await runCli(['gate', 'issue-vc', '--help']);
+    expect(code).toBe(ExitCode.SUCCESS);
+    let parsed = JSON.parse(stdoutData);
+    expect(parsed.data.title).toBe('FlashLearn CLI: gate issue-vc');
+    expect(parsed.data.description).toContain('W3C VC 2.0');
+
+    // 2. Dry-run issue-vc
+    captureOutput();
+    code = await runCli([
+      'gate',
+      'issue-vc',
+      '--gate-id=gate_capstone_123',
+      '--user-id=usr_candidate_789',
+      '--dry-run',
+    ]);
+    expect(code).toBe(ExitCode.SUCCESS);
+    parsed = JSON.parse(stdoutData);
+    expect(parsed.data.dryRun).toBe(true);
+    expect(parsed.data.gateId).toBe('gate_capstone_123');
+    expect(parsed.data.userId).toBe('usr_candidate_789');
+
+    // 3. Action help includes verify-vc
+    captureOutput();
+    code = await runCli(['gate', 'verify-vc', '--help']);
+    expect(code).toBe(ExitCode.SUCCESS);
+    parsed = JSON.parse(stdoutData);
+    expect(parsed.data.title).toBe('FlashLearn CLI: gate verify-vc');
+    expect(parsed.data.description.toLowerCase()).toContain('offline');
+
+    // 4. Dry-run verify-vc
+    captureOutput();
+    code = await runCli(['gate', 'verify-vc', '--file=sample_vc.json', '--dry-run']);
+    expect(code).toBe(ExitCode.SUCCESS);
+    parsed = JSON.parse(stdoutData);
+    expect(parsed.data.dryRun).toBe(true);
+    expect(parsed.data.filePath).toBe('sample_vc.json');
+  });
 });

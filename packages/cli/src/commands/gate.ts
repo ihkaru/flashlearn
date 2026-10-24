@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import type { ApiClient } from '../core/client';
 import { CliError, ExitCode, type NextAction } from '../core/envelope';
 
@@ -115,10 +115,104 @@ export async function handleGateCommand(
       };
     }
 
+    case 'issue-vc': {
+      const gateId = args[0] || flags['gate-id'];
+      const userId = flags['user-id'] || flags.user;
+      if (!gateId || !userId) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Required flags: --gate-id <gateId> and --user-id <userId>',
+          exitCode: ExitCode.VALIDATION_ERROR,
+          suggestedFix: 'flashlearn gate issue-vc --gate-id <id> --user-id <userId> [--output <file.json>]',
+        });
+      }
+
+      if (flags['dry-run']) {
+        return {
+          data: {
+            dryRun: true,
+            gateId,
+            userId,
+            message: `Would issue cryptographic W3C VC 2.0 for gate '${gateId}' and user '${userId}'`,
+          },
+        };
+      }
+
+      const res = await client.request('/api/v1/credentials/issue', {
+        method: 'POST',
+        body: { gateId, userId },
+      });
+
+      const credential = res.credential || res;
+      if (flags.output) {
+        try {
+          writeFileSync(flags.output, JSON.stringify(credential, null, 2), 'utf-8');
+        } catch (err: any) {
+          throw new CliError({
+            code: 'FILE_WRITE_ERROR',
+            message: `Failed to write credential to file: ${err.message}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+          });
+        }
+      }
+
+      return {
+        data: credential,
+        nextActions: [
+          {
+            command: flags.output
+              ? `flashlearn gate verify-vc --file ${flags.output}`
+              : 'flashlearn gate verify-vc --file <path>',
+            description: 'Mathematically verify Ed25519 signature of issued credential',
+          },
+        ],
+      };
+    }
+
+    case 'verify-vc': {
+      const filePath = flags.file || args[0];
+      if (!filePath) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Path to credential file is required: `flashlearn gate verify-vc --file <path>`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      if (flags['dry-run']) {
+        return {
+          data: {
+            dryRun: true,
+            filePath,
+            message: `Would verify cryptographic Ed25519 signature for '${filePath}'`,
+          },
+        };
+      }
+
+      let credential: any;
+      try {
+        credential = JSON.parse(readFileSync(filePath, 'utf-8'));
+      } catch (err: any) {
+        throw new CliError({
+          code: 'INVALID_FILE',
+          message: `Failed to read or parse credential JSON: ${err.message}`,
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      const publicKeyPem = flags['public-key'];
+      const result = await client.request('/api/v1/credentials/verify', {
+        method: 'POST',
+        body: { credential, publicKeyPem },
+      });
+
+      return { data: result };
+    }
+
     default:
       throw new CliError({
         code: 'UNKNOWN_ACTION',
-        message: `Unknown action '${action}' for noun 'gate'. Available: list, create, passports, verify, grant.`,
+        message: `Unknown action '${action}' for noun 'gate'. Available: list, create, passports, verify, grant, issue-vc, verify-vc.`,
         exitCode: ExitCode.USAGE_ERROR,
       });
   }

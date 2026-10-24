@@ -202,18 +202,21 @@ export function synthesizeDomainBlueprint(options: SynthesisOptions): SynthesisR
 
   const gates = [
     {
+      title: `Level 1: Izin Observasi & Kalkulasi Dasar (${wsName})`,
       name: `Level 1: Izin Observasi & Kalkulasi Dasar (${wsName})`,
       level: 1,
       description: `Memverifikasi penguasaan formula matematis dan checklist regulasi.`,
       requiredCompetencyCodes: [comp1Code],
     },
     {
+      title: `Level 2: Praktisi Operasional Mandiri (${wsName})`,
       name: `Level 2: Praktisi Operasional Mandiri (${wsName})`,
       level: 2,
       description: `Memverifikasi kemampuan pengambilan keputusan studi kasus dan mitigasi risiko.`,
       requiredCompetencyCodes: [comp1Code, comp2Code],
     },
     {
+      title: `Level 3: Otoritas Independen & Pertahanan Integritas (${wsName})`,
       name: `Level 3: Otoritas Independen & Pertahanan Integritas (${wsName})`,
       level: 3,
       description: `Sertifikasi otoritas tinggi tahan jebakan dan pengujian stres adversarial.`,
