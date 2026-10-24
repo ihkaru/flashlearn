@@ -9,6 +9,7 @@ Welcome to **FlashLearn**, an active-recall learning application built with Bun,
 - **Run frontend Web only**: `cd apps/web && bun run dev` (Runs on `http://localhost:5173`)
 - **Database migrations**: `cd apps/api && bun run db:generate` (generate SQL) & `bun run db:migrate` (safe migration runner)
 - **API Documentation**: `http://localhost:3000/docs` (Scalar UI) or `http://localhost:3000/swagger`
+- **Agent-First CLI**: `bun run cli <noun> <action>` (See [docs/agent-first-cli.md](docs/agent-first-cli.md))
 - **Run SRP & File Length Linter**: `bun run lint:srp`
 - **Run automated test suite**: `cd apps/api && bun test`
 - **Competency Engine Roadmap**: See [docs/roadmap-competency-engine.md](docs/roadmap-competency-engine.md)

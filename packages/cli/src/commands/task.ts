@@ -1,0 +1,132 @@
+import { readFileSync } from 'node:fs';
+import type { ApiClient } from '../core/client';
+import { CliError, ExitCode, type NextAction } from '../core/envelope';
+
+export async function handleTaskCommand(
+  action: string,
+  args: string[],
+  flags: Record<string, any>,
+  client: ApiClient
+): Promise<{ data: any; nextActions?: NextAction[] }> {
+  switch (action) {
+    case 'list': {
+      const competencyId = flags['competency-id'] || args[0];
+      if (!competencyId) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: '--competency-id is required: `flashlearn task list --competency-id <id>`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+      const data = await client.request('/api/v1/tasks', { query: { competencyId } });
+      return {
+        data,
+        nextActions: [
+          { command: 'flashlearn task get <task-id>', description: 'View full scenario and rubric' },
+        ],
+      };
+    }
+
+    case 'get': {
+      const id = args[0];
+      if (!id) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Task ID is required: `flashlearn task get <id>`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+      const data = await client.request(`/api/v1/tasks/${id}`);
+      return {
+        data,
+        nextActions: [
+          { command: `flashlearn attempt submit ${id} --submission-file <answer.json>`, description: 'Submit attempt to Oracle evaluator' },
+          { command: `flashlearn task socratic-hint ${id} --question "<QUESTION>"`, description: 'Consult Socratic AI Tutor' },
+        ],
+      };
+    }
+
+    case 'create': {
+      const competencyId = flags['competency-id'];
+      const title = flags.title;
+      const scenario = flags.scenario;
+      const taskType = flags.type || flags['task-type'] || 'calculation';
+      const oracleFilePath = flags['oracle-file'];
+      const rubricFilePath = flags['rubric-file'];
+
+      if (!competencyId || !title || !scenario || !oracleFilePath || !rubricFilePath) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Required: --competency-id, --title, --scenario, --oracle-file, and --rubric-file.',
+          exitCode: ExitCode.VALIDATION_ERROR,
+          suggestedFix: 'flashlearn task create --competency-id <id> --title "Task" --scenario "Problem..." --type calculation --oracle-file ./oracle.json --rubric-file ./rubric.json',
+        });
+      }
+
+      let oracleData: any;
+      let rubricCriteria: any;
+
+      try {
+        oracleData = JSON.parse(readFileSync(oracleFilePath, 'utf-8'));
+      } catch (err: any) {
+        throw new CliError({
+          code: 'INVALID_FILE',
+          message: `Failed to read oracle file ${oracleFilePath}: ${err.message}`,
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      try {
+        rubricCriteria = JSON.parse(readFileSync(rubricFilePath, 'utf-8'));
+      } catch (err: any) {
+        throw new CliError({
+          code: 'INVALID_FILE',
+          message: `Failed to read rubric file ${rubricFilePath}: ${err.message}`,
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      const body = {
+        competencyId,
+        title,
+        scenario,
+        taskType,
+        oracleData,
+        rubricCriteria: Array.isArray(rubricCriteria) ? rubricCriteria : rubricCriteria.rubricCriteria,
+        passingScore: flags['passing-score'] ? Number(flags['passing-score']) : 80,
+      };
+
+      const data = await client.request('/api/v1/tasks', { method: 'POST', body });
+      return {
+        data,
+        nextActions: [
+          { command: `flashlearn attempt submit ${data.id} --submission-file <answer.json>`, description: 'Test Oracle evaluation' },
+        ],
+      };
+    }
+
+    case 'socratic-hint': {
+      const id = args[0];
+      const question = flags.question || args.slice(1).join(' ');
+      if (!id || !question) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Task ID and --question are required: `flashlearn task socratic-hint <id> --question "<QUESTION>"`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+      const data = await client.request(`/api/v1/tasks/${id}/socratic-hint`, {
+        method: 'POST',
+        body: { question },
+      });
+      return { data };
+    }
+
+    default:
+      throw new CliError({
+        code: 'UNKNOWN_ACTION',
+        message: `Unknown action '${action}' for noun 'task'. Available: list, get, create, socratic-hint.`,
+        exitCode: ExitCode.USAGE_ERROR,
+      });
+  }
+}
