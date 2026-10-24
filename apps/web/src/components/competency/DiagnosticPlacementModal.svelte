@@ -1,5 +1,6 @@
 <script lang="ts">
   import { api } from '../../stores/api';
+  import { lumisChat } from '../../stores/lumisChat.svelte';
   import Icon from '../ui/Icon.svelte';
 
   interface Props {
@@ -163,7 +164,20 @@
                 Total Kompetensi Terinferensi: {completionData.session.inferredMasteryCount}
               </div>
             {/if}
-            <div>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+              <button
+                onclick={() => {
+                  lumisChat.askDiagnosticGuide({
+                    workspaceName: 'Workspace Aktif',
+                    inferredCount: completionData?.session?.inferredMasteryCount || 0,
+                  });
+                  handleReset();
+                }}
+                style="background: #ffffff; border: 1.5px solid #0f766e; color: #0f766e; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
+              >
+                <Icon name="chat" size={15} />
+                <span>Konsultasi Peta Belajar (AI)</span>
+              </button>
               <button
                 onclick={handleReset}
                 style="background: #0f766e; color: #ffffff; border: none; padding: 10px 24px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer;"

@@ -4,6 +4,7 @@
   import type { CompetencyNode } from '@flashlearn/shared';
   import TaskRunnerModal from './TaskRunnerModal.svelte';
   import DiagnosticPlacementModal from './DiagnosticPlacementModal.svelte';
+  import { lumisChat } from '../../stores/lumisChat.svelte';
   import Icon from '../ui/Icon.svelte';
 
   interface Props {
@@ -168,6 +169,21 @@
             </span>
             <div style="display: flex; align-items: center; gap: 6px;">
               {#if node.driftStatus === 'drift_warning' || node.driftStatus === 'provisionally_expired'}
+                <button
+                  onclick={(e) => {
+                    e.stopPropagation();
+                    lumisChat.askDriftRevalidation({
+                      competencyCode: node.code,
+                      competencyTitle: node.title,
+                      retrievability: node.retrievability ?? 0.75,
+                    });
+                  }}
+                  title="Coaching Kuis Kilat AI sebelum Revalidasi"
+                  style="border: none; background: #e0e7ff; color: #4338ca; padding: 3px 6px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 3px;"
+                >
+                  <Icon name="chat" size={11} />
+                  <span>Kuis AI</span>
+                </button>
                 <button
                   onclick={(e) => {
                     e.stopPropagation();

@@ -1,13 +1,16 @@
 <script lang="ts">
   import type { SocraticTutorResponse } from '@flashlearn/shared';
   import { api } from '../../stores/api';
+  import { lumisChat } from '../../stores/lumisChat.svelte';
   import Icon from '../ui/Icon.svelte';
 
   interface Props {
     taskId: string;
+    scenario?: string;
+    taskTitle?: string;
   }
 
-  let { taskId }: Props = $props();
+  let { taskId, scenario = '', taskTitle = 'Tugas Operasional' }: Props = $props();
 
   let isOpen = $state(false);
   let question = $state('');
@@ -43,12 +46,21 @@
         <div style="font-size: 0.72rem; color: #6366f1;">Panduan reflektif berbasis pasal resmi tanpa spoiler kunci jawaban</div>
       </div>
     </div>
-    <button
-      onclick={() => (isOpen = !isOpen)}
-      style="border: none; background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;"
-    >
-      {isOpen ? 'Tutup' : 'Buka Tutor'}
-    </button>
+    <div style="display: flex; gap: 6px; align-items: center;">
+      <button
+        onclick={() => lumisChat.askSocraticTutor({ taskId, taskTitle, scenario })}
+        style="border: none; background: #4f46e5; color: #ffffff; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;"
+      >
+        <Icon name="chat" size={12} />
+        <span>Chat Interaktif (Lumis)</span>
+      </button>
+      <button
+        onclick={() => (isOpen = !isOpen)}
+        style="border: none; background: #e0e7ff; color: #3730a3; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;"
+      >
+        {isOpen ? 'Tutup' : 'Hint Cepat'}
+      </button>
+    </div>
   </div>
 
   {#if isOpen}

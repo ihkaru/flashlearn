@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Task, Attempt } from '@flashlearn/shared';
   import { api } from '../../stores/api';
+  import { lumisChat } from '../../stores/lumisChat.svelte';
   import Icon from '../ui/Icon.svelte';
   import SocraticTutorDrawer from './SocraticTutorDrawer.svelte';
 
@@ -94,7 +95,7 @@
   </div>
 
   <!-- Socratic Pedagogical Tutor -->
-  <SocraticTutorDrawer taskId={task.id} />
+  <SocraticTutorDrawer taskId={task.id} scenario={task.scenario} taskTitle={task.title} />
 
   <!-- Form Inputs Based on Oracle Class -->
   {#if isAdversarial}
@@ -202,6 +203,23 @@
       <p style="margin: 0; font-size: 0.85rem; color: #334155; line-height: 1.45;">
         {lastAttempt.feedback}
       </p>
+
+      <div style="margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 8px; display: flex; justify-content: flex-end;">
+        <button
+          type="button"
+          onclick={() =>
+            lumisChat.askAdversarialDebrief({
+              taskTitle: task.title,
+              scenario: task.scenario,
+              statutoryPolicy: task.adversarialSpec?.statutoryPolicy,
+              learnerChoice: selectedDisposition,
+            })}
+          style="background: #ffffff; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; color: #0f766e; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+        >
+          <Icon name="chat" size={13} />
+          <span>Debrief & Refleksi Integritas dengan AI Tutor</span>
+        </button>
+      </div>
     </div>
   {/if}
 </div>

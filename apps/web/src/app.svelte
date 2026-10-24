@@ -4,6 +4,7 @@
   import { auth } from './stores/auth.svelte';
   import NavbarAuth from './components/NavbarAuth.svelte';
   import ApiKeyModal from './components/ApiKeyModal.svelte';
+  import LumisChatAssistant from './components/chat/LumisChatAssistant.svelte';
   import Icon from './components/ui/Icon.svelte';
 
   const f7params = {
@@ -284,6 +285,9 @@
 
   <!-- Global API Key Modal -->
   <ApiKeyModal isOpen={auth.showApiKeyModal} onClose={() => auth.closeApiKeyModal()} />
+
+  <!-- Global Lumis AI Learning Assistant Widget -->
+  <LumisChatAssistant />
 
   <View main class="safe-areas" />
 </App>
