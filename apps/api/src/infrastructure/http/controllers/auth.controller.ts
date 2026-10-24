@@ -83,7 +83,11 @@ export const authController = new Elysia({ prefix: '/api/v1/auth' })
             role,
           });
         }
-        const token = container.tokenService.generateToken(user.id);
+        const token = container.tokenService.signToken({
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+        });
         return {
           token,
           user,
