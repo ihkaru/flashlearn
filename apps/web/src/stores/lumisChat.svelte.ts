@@ -21,13 +21,43 @@ class LumisChatState {
   );
   context = $state<LearningChatContext>({ phase: 'general' });
   pendingPrompt = $state<string>('');
+  sessionId = $state<string>('');
+  lastAdoptedDraft = $state<string>('');
+  connectionStatus = $state<'idle' | 'connecting' | 'connected' | 'fallback'>('idle');
 
   openWithContext(ctx: LearningChatContext, initialPrompt?: string) {
     this.context = { ...ctx };
     if (initialPrompt) {
       this.pendingPrompt = initialPrompt;
     }
+    this.connectionStatus = 'connecting';
     this.isOpen = true;
+  }
+
+  adoptDraft(draft: string) {
+    this.lastAdoptedDraft = draft.trim();
+    if (typeof window !== 'undefined' && this.lastAdoptedDraft) {
+      window.dispatchEvent(
+        new CustomEvent('flashlearn:draft_adopted', {
+          detail: {
+            draft: this.lastAdoptedDraft,
+            taskId: this.context.taskId,
+            phase: this.context.phase,
+          },
+        })
+      );
+    }
+  }
+
+  setConnected(sessionId?: string) {
+    this.connectionStatus = 'connected';
+    if (sessionId) {
+      this.sessionId = sessionId;
+    }
+  }
+
+  triggerFallback() {
+    this.connectionStatus = 'fallback';
   }
 
   askSocraticTutor(params: {

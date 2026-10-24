@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
   import type { Task, Attempt } from '@flashlearn/shared';
   import { api } from '../../stores/api';
   import { lumisChat } from '../../stores/lumisChat.svelte';
@@ -19,6 +20,29 @@
   let checkedItems = $state<Record<string, boolean>>({});
   let selectedDisposition = $state<'REJECT_AND_DEMAND_DATA' | 'ACCEPT_AND_SIGN' | 'DELEGATE' | ''>('');
   let lastAttempt = $state<Attempt | null>(null);
+
+  function handleDraftAdopted(e: any) {
+    const draft = e.detail?.draft;
+    if (draft && typeof draft === 'string') {
+      if (!studentAnswerText) {
+        studentAnswerText = draft;
+      } else {
+        studentAnswerText = `${studentAnswerText}\n\n${draft}`;
+      }
+    }
+  }
+
+  onMount(() => {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('flashlearn:draft_adopted', handleDraftAdopted);
+    }
+  });
+
+  onDestroy(() => {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('flashlearn:draft_adopted', handleDraftAdopted);
+    }
+  });
 
   let isAdversarial = $derived(task.taskType === 'adversarial_dilemma');
 

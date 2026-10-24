@@ -5,6 +5,7 @@
 
   let iframeElement = $state<HTMLIFrameElement | null>(null);
   let isIframeReady = $state(false);
+  let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
 
   const phaseBadge = $derived.by(() => {
     switch (lumisChat.context.phase) {
@@ -42,7 +43,14 @@
 
     if (data.event === 'lumis:ready') {
       isIframeReady = true;
+      lumisChat.setConnected(data.payload?.sessionId);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
       syncContextToIframe();
+    } else if (data.event === 'lumis:adopt_draft' || data.event === 'lumis:draft_response') {
+      const draft = data.payload?.draft || data.payload?.text || '';
+      if (draft) {
+        lumisChat.adoptDraft(draft);
+      }
     }
   }
 
@@ -84,6 +92,19 @@
     if (lumisChat.isOpen && isIframeReady && lumisChat.pendingPrompt) {
       sendPromptToIframe(lumisChat.pendingPrompt);
       lumisChat.pendingPrompt = '';
+    }
+  });
+
+  $effect(() => {
+    if (lumisChat.isOpen && !isIframeReady) {
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      fallbackTimer = setTimeout(() => {
+        if (!isIframeReady && lumisChat.isOpen) {
+          lumisChat.triggerFallback();
+        }
+      }, 7000);
+    } else if (!lumisChat.isOpen) {
+      if (fallbackTimer) clearTimeout(fallbackTimer);
     }
   });
 
@@ -154,8 +175,31 @@
           {/if}
         </div>
 
+        {#if lumisChat.connectionStatus === 'fallback'}
+          <div style="padding: 4px 8px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; color: #92400e;">
+            <span>⚠️ Koneksi Lumis cloud lambat.</span>
+            <button
+              onclick={() => lumisChat.openWithContext(lumisChat.context)}
+              style="background: #f59e0b; color: #ffffff; border: none; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.68rem; cursor: pointer;"
+            >
+              Coba Lagi
+            </button>
+          </div>
+        {/if}
+
         <!-- Quick Action Prompt Pills -->
         <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px;">
+          {#if lumisChat.context.scenario}
+            <button
+              onclick={() => {
+                const draft = `[Refleksi Pembelajaran Berdasarkan Skenario]:\n${lumisChat.context.scenario}\n\nAnalisis: Berdasarkan rujukan standar resmi dan kaidah integritas, seluruh parameter verifikasi wajib dipenuhi tanpa toleransi deviasi non-prosedural.`;
+                lumisChat.adoptDraft(draft);
+              }}
+              style="white-space: nowrap; font-size: 0.72rem; font-weight: 700; background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1; padding: 4px 8px; border-radius: 6px; cursor: pointer;"
+            >
+              📥 Terapkan ke Form Tugas
+            </button>
+          {/if}
           <button
             onclick={() => sendPromptToIframe('Berikan pertanyaan pemantik sokratik tanpa membocorkan kunci jawaban.')}
             style="white-space: nowrap; font-size: 0.72rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 4px 8px; border-radius: 6px; cursor: pointer;"
