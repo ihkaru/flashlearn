@@ -75,6 +75,54 @@ async function runSafeMigration() {
       }
     }
 
+    // 3b. Backfill missing 0000 tables if legacy database was already baselined without them
+    if (existingTables.length > 0) {
+      const sourceCheck = await sql`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'sources';
+      `;
+
+      if (sourceCheck.length === 0) {
+        console.log('ℹ️ [DB Migration] Backfilling missing sources & source_chunks from 0000 baseline...');
+        await sql`
+          CREATE TABLE IF NOT EXISTS "sources" (
+            "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+            "workspace_id" uuid NOT NULL,
+            "title" text NOT NULL,
+            "code" text NOT NULL,
+            "version" text NOT NULL,
+            "status" text DEFAULT 'active' NOT NULL,
+            "owner" text NOT NULL,
+            "effective_date" timestamp with time zone NOT NULL,
+            "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+            "updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+            CONSTRAINT "sources_workspace_id_workspaces_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspaces"("id") ON DELETE cascade ON UPDATE no action
+          );
+        `;
+        await sql`
+          CREATE TABLE IF NOT EXISTS "source_chunks" (
+            "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+            "source_id" uuid NOT NULL,
+            "location_tag" text NOT NULL,
+            "content" text NOT NULL,
+            "token_count" integer DEFAULT 0 NOT NULL,
+            "sha256_hash" text NOT NULL,
+            "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+            CONSTRAINT "source_chunks_source_id_sources_id_fk" FOREIGN KEY ("source_id") REFERENCES "public"."sources"("id") ON DELETE cascade ON UPDATE no action
+          );
+        `;
+        await sql`CREATE INDEX IF NOT EXISTS "idx_source_chunks_source_id" ON "source_chunks" USING btree ("source_id");`;
+        await sql`CREATE INDEX IF NOT EXISTS "idx_source_chunks_location_tag" ON "source_chunks" USING btree ("location_tag");`;
+        await sql`CREATE INDEX IF NOT EXISTS "idx_source_chunks_source_loc" ON "source_chunks" USING btree ("source_id","location_tag");`;
+        await sql`CREATE INDEX IF NOT EXISTS "idx_sources_workspace_id" ON "sources" USING btree ("workspace_id");`;
+        await sql`CREATE INDEX IF NOT EXISTS "idx_sources_code" ON "sources" USING btree ("code");`;
+        await sql`CREATE INDEX IF NOT EXISTS "idx_sources_status" ON "sources" USING btree ("status");`;
+        console.log('✓ [DB Migration] sources & source_chunks backfilled successfully.');
+      }
+    }
+
     // 4. Run Drizzle Migrator
     const migrationsFolder = join(import.meta.dir, '../../../drizzle');
     console.log(`🚀 [DB Migration] Applying pending migrations from ${migrationsFolder}...`);
