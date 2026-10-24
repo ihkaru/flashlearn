@@ -64,4 +64,8 @@ export class TaskEntity {
   isAdversarialDilemma(): boolean {
     return this.props.taskType === 'adversarial_dilemma';
   }
+
+  toJSON(): TaskProps {
+    return { ...this.props };
+  }
 }

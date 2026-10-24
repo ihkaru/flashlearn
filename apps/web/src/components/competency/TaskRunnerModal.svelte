@@ -28,7 +28,8 @@
     if (!competency) return;
     isLoading = true;
     try {
-      const list = await api.tasks.listByCompetency(competency.id);
+      const rawList = await api.tasks.listByCompetency(competency.id);
+      const list = (rawList || []).map((t: any) => (t && t.props ? { ...t.props, ...t } : t));
       tasks = list;
       if (list.length > 0) {
         selectedTaskId = list[0].id;

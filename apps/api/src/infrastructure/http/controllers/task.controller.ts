@@ -11,7 +11,8 @@ export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
         set.status = 400;
         return { error: 'competencyId query parameter is required' };
       }
-      return await container.taskRepository.listByCompetency(competencyId);
+      const tasks = await container.taskRepository.listByCompetency(competencyId);
+      return tasks.map((t: any) => (typeof t.toJSON === 'function' ? t.toJSON() : t.props || t));
     },
     {
       query: t.Object({
@@ -31,7 +32,7 @@ export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
         set.status = 404;
         return { error: 'Task not found' };
       }
-      return task;
+      return typeof (task as any).toJSON === 'function' ? (task as any).toJSON() : (task as any).props || task;
     },
     {
       params: t.Object({
@@ -55,7 +56,7 @@ export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
       try {
         const task = await container.createTaskUseCase.execute(body);
         set.status = 201;
-        return task;
+        return typeof (task as any).toJSON === 'function' ? (task as any).toJSON() : (task as any).props || task;
       } catch (err: any) {
         set.status = 400;
         return { error: err.message };
