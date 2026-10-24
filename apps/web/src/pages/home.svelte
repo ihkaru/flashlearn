@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Page } from 'framework7-svelte';
   import { api } from '../stores/api';
+  import { auth } from '../stores/auth.svelte';
   import type { Workspace } from '@flashlearn/shared';
   import Icon from '../components/ui/Icon.svelte';
   import ChipBadge from '../components/ui/ChipBadge.svelte';
@@ -18,6 +19,8 @@
   let searchInputEl = $state<HTMLInputElement | null>(null);
 
   $effect(() => {
+    // Re-fetch workspaces when auth token changes
+    const _t = auth.token;
     loadWorkspaces();
   });
 

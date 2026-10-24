@@ -16,9 +16,12 @@ export class ListWorkspacesUseCase {
       return all.map((w) => w.toJSON());
     }
 
-    if (input.userId && (input.scope === 'mine' || input.role === 'creator')) {
-      const myWorkspaces = await this.workspaceRepository.listByCreator(input.userId);
-      return myWorkspaces.map((w) => w.toJSON());
+    if (input.scope === 'mine') {
+      if (input.userId) {
+        const myWorkspaces = await this.workspaceRepository.listByCreator(input.userId);
+        return myWorkspaces.map((w) => w.toJSON());
+      }
+      return [];
     }
 
     // Default to public workspaces for guests or public queries
