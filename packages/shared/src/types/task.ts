@@ -19,15 +19,31 @@ export interface NegativeAnchor {
 export interface OracleDataClassA {
   expectedFormulas?: Record<string, { expectedValue: number; tolerance?: number }>;
   requiredChecklistItems?: string[];
+  targetFields?: Record<string, { label: string; unit?: string; expectedValue: number; tolerance?: number }>;
+  inputLabel?: string;
+  unit?: string;
+  placeholder?: string;
+  checklist?: string[];
+  checklistLabel?: string;
 }
 
 export interface OracleDataClassB {
   goldSolution: string;
   negativeAnchors: NegativeAnchor[];
   keyTakeaways: string[];
+  submissionLabel?: string;
+  submissionPlaceholder?: string;
 }
 
-export type OracleData = OracleDataClassA & Partial<OracleDataClassB> & Record<string, any>;
+export interface OracleDataClassC {
+  rubric?: Array<{ id: string; name: string; maxScore: number; description?: string }>;
+  expertGuidance?: string;
+  checklist?: string[];
+  submissionLabel?: string;
+  submissionPlaceholder?: string;
+}
+
+export type OracleData = OracleDataClassA & Partial<OracleDataClassB> & Partial<OracleDataClassC> & Record<string, any>;
 
 export interface Task {
   id: string;

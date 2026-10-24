@@ -3,6 +3,7 @@ import type { OracleClass, RiskLevel } from '@flashlearn/shared';
 export interface CompetencyProps {
   id: string;
   workspaceId: string;
+  sourceId?: string | null;
   code: string;
   title: string;
   description: string;
@@ -24,6 +25,10 @@ export class CompetencyEntity {
 
   get workspaceId(): string {
     return this.props.workspaceId;
+  }
+
+  get sourceId(): string | null {
+    return this.props.sourceId ?? null;
   }
 
   get code(): string {

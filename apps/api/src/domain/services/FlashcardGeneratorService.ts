@@ -26,10 +26,10 @@ export class FlashcardGeneratorService {
     if (traps && traps.length > 0) {
       for (const trap of traps) {
         cards.push({
-          front: `Mengapa tindakan berikut merupakan jebakan fatal dalam pengadaan?\n"${trap}"`,
-          back: `Tindakan tersebut melanggar ketentuan regulasi dan dapat memicu temuan audit BPK/sanggahan vendor. Pastikan selalu menyertakan justifikasi resmi sebelum mengambil diskresi.`,
+          front: `Mengapa tindakan berikut merupakan jebakan fatal dalam konteks "${task.title}"?\n"${trap}"`,
+          back: `Tindakan tersebut melanggar prosedur standar atau kriteria kepatuhan dan dapat memicu kegagalan operasional/audit. Pastikan selalu mematuhi pedoman rujukan resmi sebelum mengambil tindakan.`,
           category: 'Mitigasi Risiko & Jebakan',
-          remedyHint: 'Hindari asumsi sepihak tanpa dokumen rujukan resmi.',
+          remedyHint: 'Hindari asumsi sepihak tanpa dokumen rujukan atau justifikasi resmi.',
         });
       }
     }

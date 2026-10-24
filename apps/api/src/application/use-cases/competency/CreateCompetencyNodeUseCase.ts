@@ -21,6 +21,7 @@ export class CreateCompetencyNodeUseCase {
 
     const node = await this.competencyRepo.create({
       workspaceId: dto.workspaceId,
+      sourceId: dto.sourceId,
       code: dto.code,
       title: dto.title,
       description: dto.description || '',

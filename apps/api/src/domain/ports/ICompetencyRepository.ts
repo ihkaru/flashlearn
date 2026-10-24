@@ -3,6 +3,7 @@ import type { OracleClass, RiskLevel, CompetencyEdge } from '@flashlearn/shared'
 
 export interface CreateCompetencyData {
   workspaceId: string;
+  sourceId?: string | null;
   code: string;
   title: string;
   description: string;

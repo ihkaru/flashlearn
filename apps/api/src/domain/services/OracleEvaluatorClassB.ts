@@ -26,7 +26,7 @@ export class OracleEvaluatorClassB {
       ? submission.text
       : JSON.stringify(submission, null, 2);
 
-    const verifierSystemPrompt = `You are an impartial, highly rigorous compliance and procurement auditor.
+    const verifierSystemPrompt = `You are an impartial, highly rigorous domain compliance and verification auditor.
 You are evaluating a candidate's case-study submission against an official Gold Benchmark Solution and a list of Negative Anchors (Fatal Traps/Misconceptions).
 Do NOT evaluate based on politeness or essay length. Evaluate based on substantive correctness and presence of fatal errors.`;
 
@@ -86,13 +86,17 @@ Task: Evaluate whether each criterion is satisfied and whether ANY of the negati
       const triggeredTraps = negativeAnchors
         .filter((anchor) => {
           const lower = submissionText.toLowerCase();
-          const words = anchor.trapDescription.toLowerCase().split(' ').filter((w) => w.length > 4);
-          return words.some((w) => lower.includes(w)) || lower.includes('keluarga') || lower.includes('sah secara hukum');
+          const words = anchor.trapDescription
+            .toLowerCase()
+            .replace(/[^\w\s]/g, '')
+            .split(/\s+/)
+            .filter((w) => w.length > 3);
+          return words.some((w) => lower.includes(w));
         })
         .map((a) => ({
           trapId: a.id,
           triggered: true,
-          evidenceQuote: 'Ditemukan indikasi benturan kepentingan atau pembenaran pelanggaran dalam penyerahan.',
+          evidenceQuote: `Ditemukan ketidakpatuhan atau kesamaan pola jebakan: "${a.trapDescription}".`,
         }));
 
       aiResult = {
@@ -100,10 +104,10 @@ Task: Evaluate whether each criterion is satisfied and whether ANY of the negati
           criterionId: r.id,
           passed: triggeredTraps.length === 0,
           scorePercentage: triggeredTraps.length === 0 ? 100 : 25,
-          justification: triggeredTraps.length === 0 ? 'Kriteria terpenuhi' : 'Terindikasi pelanggaran regulasi benturan kepentingan',
+          justification: triggeredTraps.length === 0 ? 'Kriteria evaluasi terpenuhi' : 'Terindikasi ketidaksesuaian kriteria atau terpicu jebakan',
         })),
         triggeredTraps,
-        overallSummary: triggeredTraps.length > 0 ? 'Terdeteksi jebakan kepatuhan regulasi' : 'Memenuhi standar regulasi',
+        overallSummary: triggeredTraps.length > 0 ? 'Terdeteksi jebakan atau ketidakpatuhan kriteria' : 'Memenuhi standar verifikasi',
       };
     }
 

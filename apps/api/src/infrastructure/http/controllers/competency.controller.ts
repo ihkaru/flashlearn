@@ -74,6 +74,7 @@ export const competencyController = new Elysia({ prefix: '/api/v1/competencies' 
     {
       body: t.Object({
         workspaceId: t.String(),
+        sourceId: t.Optional(t.String()),
         code: t.String({ minLength: 2, description: 'Unique code e.g. HPS-001' }),
         title: t.String({ minLength: 3 }),
         description: t.String(),

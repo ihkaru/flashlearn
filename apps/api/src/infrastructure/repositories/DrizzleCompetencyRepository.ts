@@ -16,6 +16,7 @@ export class DrizzleCompetencyRepository implements ICompetencyRepository {
     return new CompetencyEntity({
       id: row.id,
       workspaceId: row.workspaceId,
+      sourceId: row.sourceId,
       code: row.code,
       title: row.title,
       description: row.description,
@@ -78,6 +79,7 @@ export class DrizzleCompetencyRepository implements ICompetencyRepository {
       .insert(competencies)
       .values({
         workspaceId: data.workspaceId,
+        sourceId: data.sourceId ?? null,
         code: data.code.trim().toUpperCase(),
         title: data.title,
         description: data.description,
@@ -92,6 +94,7 @@ export class DrizzleCompetencyRepository implements ICompetencyRepository {
 
   async update(id: string, data: Partial<CreateCompetencyData>): Promise<CompetencyEntity | null> {
     const updatePayload: Record<string, any> = { updatedAt: new Date() };
+    if (data.sourceId !== undefined) updatePayload.sourceId = data.sourceId;
     if (data.title !== undefined) updatePayload.title = data.title;
     if (data.description !== undefined) updatePayload.description = data.description;
     if (data.code !== undefined) updatePayload.code = data.code.trim().toUpperCase();

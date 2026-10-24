@@ -99,9 +99,10 @@ export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
       }
 
       try {
+        const submission = body.submission || body.submissionData || body;
         return await container.evaluateAttemptUseCase.execute(auth.user.id, {
           taskId: params.id,
-          submission: body.submission,
+          submission,
         });
       } catch (err: any) {
         set.status = 400;
@@ -113,7 +114,9 @@ export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
         id: t.String(),
       }),
       body: t.Object({
-        submission: t.Record(t.String(), t.Any()),
+        submission: t.Optional(t.Record(t.String(), t.Any())),
+        submissionData: t.Optional(t.Record(t.String(), t.Any())),
+        studentAnswerText: t.Optional(t.String()),
       }),
       detail: {
         tags: ['Task Bank & Oracle'],

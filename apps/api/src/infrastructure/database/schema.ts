@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, integer, jsonb, uuid, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, integer, jsonb, uuid, index, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
 import type { QuizQuestion } from '@flashlearn/shared';
 
 export const users = pgTable('users', {
@@ -53,6 +53,7 @@ export const contents = pgTable(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     workspaceId: uuid('workspace_id').references(() => workspaces.id, { onDelete: 'cascade' }).notNull(),
+    competencyId: uuid('competency_id').references(() => competencies.id, { onDelete: 'set null' }),
     title: text('title').notNull(),
     slug: text('slug').notNull(),
     type: text('type', { enum: ['materi', 'quiz', 'combined'] }).notNull(),
@@ -67,6 +68,7 @@ export const contents = pgTable(
   },
   (table) => [
     index('idx_contents_workspace_id').on(table.workspaceId),
+    index('idx_contents_competency_id').on(table.competencyId),
     index('idx_contents_is_published').on(table.isPublished),
     index('idx_contents_deleted_at').on(table.deletedAt),
   ]
@@ -166,6 +168,7 @@ export const competencies = pgTable(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     workspaceId: uuid('workspace_id').references(() => workspaces.id, { onDelete: 'cascade' }).notNull(),
+    sourceId: uuid('source_id').references(() => sources.id, { onDelete: 'set null' }),
     code: text('code').notNull(),
     title: text('title').notNull(),
     description: text('description').notNull(),
@@ -178,6 +181,7 @@ export const competencies = pgTable(
   },
   (table) => [
     index('idx_competencies_workspace_id').on(table.workspaceId),
+    index('idx_competencies_source_id').on(table.sourceId),
     index('idx_competencies_code').on(table.code),
     index('idx_competencies_oracle_class').on(table.oracleClass),
   ]
@@ -191,6 +195,7 @@ export const competencyEdges = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
+    primaryKey({ columns: [table.competencyId, table.prerequisiteId] }),
     index('idx_competency_edges_comp').on(table.competencyId),
     index('idx_competency_edges_prereq').on(table.prerequisiteId),
   ]
@@ -212,9 +217,9 @@ export const masteryRecords = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
+    uniqueIndex('idx_mastery_user_comp_unique').on(table.userId, table.competencyId),
     index('idx_mastery_records_user_id').on(table.userId),
     index('idx_mastery_records_comp_id').on(table.competencyId),
-    index('idx_mastery_user_comp').on(table.userId, table.competencyId),
   ]
 );
 
@@ -296,6 +301,7 @@ export const gateRequirements = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
+    uniqueIndex('idx_gate_req_unique').on(table.gateId, table.competencyId),
     index('idx_gate_req_gate').on(table.gateId),
     index('idx_gate_req_comp').on(table.competencyId),
   ]

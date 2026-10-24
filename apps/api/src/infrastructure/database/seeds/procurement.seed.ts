@@ -71,6 +71,7 @@ export async function seedProcurement(creatorId: string) {
     // 3. Competencies DAG
     const comp1 = await db.insert(competencies).values({
       workspaceId: activeWs.id,
+      sourceId: activeSource.id,
       code: 'PBJ-01',
       title: 'Landasan Regulasi & Etika Pengadaan',
       description: 'Penguasaan prinsip dasar efisien, efektif, transparan, terbuka, bersaing, adil, dan akuntabel sesuai Perpres.',
@@ -81,6 +82,7 @@ export async function seedProcurement(creatorId: string) {
 
     const comp2 = await db.insert(competencies).values({
       workspaceId: activeWs.id,
+      sourceId: activeSource.id,
       code: 'PBJ-02',
       title: 'Penyusunan HPS & Analisis Kewajaran Harga',
       description: 'Kemampuan menyusun HPS deterministik sesuai batasan laba 15% dan PPN 11% dengan bukti survei pasar.',
@@ -91,6 +93,7 @@ export async function seedProcurement(creatorId: string) {
 
     const comp3 = await db.insert(competencies).values({
       workspaceId: activeWs.id,
+      sourceId: activeSource.id,
       code: 'PBJ-03',
       title: 'Evaluasi Dokumen Teknis & Deteksi Anomali',
       description: 'Pemeriksaan kepatuhan spesifikasi teknis, sertifikasi standar (ISO/TKDN), dan deteksi jebakan dokumen cacat hukum.',
@@ -101,6 +104,7 @@ export async function seedProcurement(creatorId: string) {
 
     const comp4 = await db.insert(competencies).values({
       workspaceId: activeWs.id,
+      sourceId: activeSource.id,
       code: 'PBJ-04',
       title: 'Penanganan Sanggahan & Putusan Sengketa Tender',
       description: 'Penyusunan nota dinas jawaban sanggah dan mitigasi risiko gugatan hukum PTUN dengan justifikasi pakar.',

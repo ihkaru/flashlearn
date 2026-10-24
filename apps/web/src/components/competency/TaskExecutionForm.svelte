@@ -17,16 +17,36 @@
   let checkedItems = $state<Record<string, boolean>>({});
   let lastAttempt = $state<Attempt | null>(null);
 
+  let calcLabel = $derived(
+    task.oracleData?.inputLabel || task.oracleData?.targetField || 'Nilai Hasil Perhitungan / Ukuran Target'
+  );
+  let calcUnit = $derived(task.oracleData?.unit ? ` (${task.oracleData.unit})` : '');
+  let calcPlaceholder = $derived(task.oracleData?.placeholder || 'Masukkan nilai angka hasil kalkulasi...');
+  let checklistLabel = $derived(task.oracleData?.checklistLabel || 'Checklist Kelengkapan / Validasi:');
+  let analysisLabel = $derived(task.oracleData?.submissionLabel || 'Dokumen Analisis / Solusi Terstruktur:');
+  let analysisPlaceholder = $derived(
+    task.oracleData?.submissionPlaceholder || 'Tuliskan analisis komprehensif, argumen rujukan standar, dan kesimpulan solusi Anda...'
+  );
+
   async function handleSubmit() {
     isSubmitting = true;
     try {
       const submissionData: Record<string, any> = {};
 
       if (oracleClass === 'A') {
-        submissionData.calculatedValue = Number(calculatedValue);
+        const numVal = Number(calculatedValue);
+        submissionData.calculatedValue = numVal;
+        const targetKey = task.oracleData?.targetField;
+        if (targetKey) {
+          submissionData[targetKey] = numVal;
+        }
         submissionData.completedChecklist = Object.keys(checkedItems).filter((k) => checkedItems[k]);
+        for (const item of Object.keys(checkedItems).filter((k) => checkedItems[k])) {
+          submissionData[item] = true;
+        }
       } else {
         submissionData.studentAnswerText = studentAnswerText;
+        submissionData.text = studentAnswerText;
       }
 
       const res = await api.tasks.submitAttempt(task.id, {
@@ -34,8 +54,8 @@
         studentAnswerText: studentAnswerText || undefined,
       });
 
-      lastAttempt = res;
-      onAttemptSubmitted(res);
+      lastAttempt = res?.attempt || res;
+      onAttemptSubmitted(lastAttempt);
     } catch (err: any) {
       alert(`Gagal evaluasi tugas: ${err.message}`);
     } finally {
@@ -59,7 +79,7 @@
   {#if oracleClass === 'A'}
     <div style="display: flex; flex-direction: column; gap: 10px;">
       {#if task.oracleData?.checklist}
-        <div style="font-size: 0.8rem; font-weight: 700; color: #334155;">Checklist Kelengkapan Regulasi:</div>
+        <div style="font-size: 0.8rem; font-weight: 700; color: #334155;">{checklistLabel}</div>
         {#each task.oracleData.checklist as itemKey}
           <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #1e293b; cursor: pointer;">
             <input type="checkbox" bind:checked={checkedItems[itemKey]} style="accent-color: #0f766e;" />
@@ -69,13 +89,13 @@
       {/if}
 
       <div>
-        <label for="hps-input" style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
-          Hasil Nilai Perhitungan Total (Rp):
+        <label for="calc-input" style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
+          {calcLabel}{calcUnit}:
         </label>
         <input
-          id="hps-input"
+          id="calc-input"
           type="number"
-          placeholder="Misal: 127650000"
+          placeholder={calcPlaceholder}
           bind:value={calculatedValue}
           style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.95rem; font-family: monospace;"
         />
@@ -84,12 +104,12 @@
   {:else}
     <div>
       <label for="analysis-input" style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
-        Dokumen Analisis / Jawaban Yuridis:
+        {analysisLabel}
       </label>
       <textarea
         id="analysis-input"
         rows="5"
-        placeholder="Tuliskan analisis komprehensif, pasal rujukan, dan kesimpulan pertimbangan hukum Anda..."
+        placeholder={analysisPlaceholder}
         bind:value={studentAnswerText}
         style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.88rem; line-height: 1.45;"
       ></textarea>

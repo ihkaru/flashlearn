@@ -121,6 +121,7 @@ export class CompetencyGraphEngine {
       results.push({
         id: node.id,
         workspaceId: node.workspaceId,
+        sourceId: node.sourceId,
         code: node.code,
         title: node.title,
         description: node.description,

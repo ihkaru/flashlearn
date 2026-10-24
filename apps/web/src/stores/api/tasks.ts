@@ -2,7 +2,8 @@ import { fetchWithAuth } from './core';
 import type { Task, Attempt } from '@flashlearn/shared';
 
 export interface SubmitTaskAttemptRequest {
-  submissionData: Record<string, any>;
+  submission?: Record<string, any>;
+  submissionData?: Record<string, any>;
   studentAnswerText?: string;
   sourceCitations?: { chunkId: string; quote: string }[];
 }
@@ -14,11 +15,13 @@ export const taskApi = {
     fetchWithAuth(`/api/v1/tasks/${id}`),
   create: (data: Partial<Task>): Promise<Task> =>
     fetchWithAuth('/api/v1/tasks', { method: 'POST', body: JSON.stringify(data) }),
-  submitAttempt: (taskId: string, data: SubmitTaskAttemptRequest): Promise<Attempt> =>
-    fetchWithAuth(`/api/v1/tasks/${taskId}/submit`, {
+  submitAttempt: (taskId: string, data: SubmitTaskAttemptRequest): Promise<any> => {
+    const submission = data.submission || data.submissionData || {};
+    return fetchWithAuth(`/api/v1/tasks/${taskId}/submit`, {
       method: 'POST',
-      body: JSON.stringify(data),
-    }),
+      body: JSON.stringify({ submission, ...data }),
+    });
+  },
   getAttempts: (taskId: string): Promise<Attempt[]> =>
     fetchWithAuth(`/api/v1/tasks/${taskId}/attempts`),
 };
