@@ -40,6 +40,7 @@ export const DOMAIN_SCHEMAS: Record<string, ResourceSchemaDef> = {
         description: 'Import universal declarative domain blueprint JSON',
         args: [
           { name: '--file', type: 'string', required: true, description: 'Path to domain blueprint JSON file' },
+          { name: '--dry-run', type: 'boolean', required: false, description: 'Validate DAG and schema invariants without persisting' },
         ],
         example: 'flashlearn workspace import-blueprint --file ./blueprints/ata-104.json',
         mutating: true,

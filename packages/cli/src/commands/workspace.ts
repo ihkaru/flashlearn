@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import type { ApiClient } from '../core/client';
 import { CliError, ExitCode, type NextAction } from '../core/envelope';
-import { synthesizeDomainBlueprint } from '../core/domain-synthesizer';
+import { validateDomainBlueprint } from '../core/blueprint-validator';
 
 export async function handleWorkspaceCommand(
   action: string,
@@ -85,10 +85,31 @@ export async function handleWorkspaceCommand(
           exitCode: ExitCode.VALIDATION_ERROR,
         });
       }
+
+      const validation = validateDomainBlueprint(blueprint);
+      if (flags['dry-run']) {
+        return {
+          data: {
+            dryRun: true,
+            workspaceName: blueprint.workspace.name,
+            slug: blueprint.workspace.slug,
+            dagIsAcyclic: validation.isValid,
+            statistics: validation.statistics,
+          },
+          nextActions: [
+            {
+              command: `flashlearn workspace import-blueprint --file ${filePath}`,
+              description: 'Persist validated domain blueprint into production FlashLearn engine',
+            },
+          ],
+        };
+      }
+
       const data = await client.request('/api/v1/workspaces/import-blueprint', { method: 'POST', body: blueprint });
       return {
         data,
         nextActions: [
+          { command: `flashlearn workspace describe ${data.workspaceId}`, description: 'Inspect live domain topology and readiness ledger' },
           { command: `flashlearn competency graph --workspace-id ${data.workspaceId}`, description: 'Verify imported competency graph' },
           { command: `flashlearn gate list --workspace-id ${data.workspaceId}`, description: 'Inspect imported authorization gates' },
         ],
@@ -140,71 +161,39 @@ export async function handleWorkspaceCommand(
     }
 
     case 'synthesize':
-    case 'bootstrap': {
-      const workspaceName = flags['workspace-name'] || flags.name || args[0];
-      const sourceFilesStr = flags['source-files'] || flags.files || flags.file;
-      const isDryRun = !!flags['dry-run'];
-      const outputFile = flags.output;
-
-      if (!workspaceName || !sourceFilesStr) {
+    case 'validate-blueprint': {
+      const filePath = flags.file || flags.blueprint || args[0];
+      if (!filePath) {
         throw new CliError({
           code: 'MISSING_ARGUMENT',
-          message: 'Workspace name and source files are required: `flashlearn workspace synthesize --workspace-name "<name>" --source-files "<file1.md,file2.md>"`',
+          message: 'Blueprint file is required: `flashlearn workspace validate-blueprint --file <blueprint.json>`',
           exitCode: ExitCode.VALIDATION_ERROR,
         });
       }
 
-      const sourceFiles = String(sourceFilesStr).split(',').map((f) => f.trim()).filter((f) => f.length > 0);
-      const synthResult = synthesizeDomainBlueprint({
-        workspaceName,
-        sourceFiles,
-        slug: flags.slug,
-        outputFile,
-      });
-
-      if (outputFile) {
-        writeFileSync(outputFile, JSON.stringify(synthResult.blueprint, null, 2), 'utf-8');
+      let blueprint: any;
+      try {
+        blueprint = JSON.parse(readFileSync(filePath, 'utf-8'));
+      } catch (err: any) {
+        throw new CliError({
+          code: 'INVALID_FILE',
+          message: `Failed to read blueprint JSON from ${filePath}: ${err.message}`,
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
       }
 
-      if (isDryRun) {
-        return {
-          data: {
-            dryRun: true,
-            workspaceName,
-            ...synthResult.statistics,
-            dagIsAcyclic: synthResult.dagIsAcyclic,
-            outputFile: outputFile || null,
-          },
-          nextActions: [
-            {
-              command: `flashlearn workspace synthesize --workspace-name "${workspaceName}" --source-files "${sourceFilesStr}"`,
-              description: 'Persist domain blueprint into production FlashLearn engine',
-            },
-          ],
-        };
-      }
-
-      const res = await client.request('/api/v1/workspaces/import-blueprint', {
-        method: 'POST',
-        body: synthResult.blueprint,
-      });
-
-      const desc = await client.request(`/api/v1/workspaces/${res.workspaceId}/describe`);
-
+      const validation = validateDomainBlueprint(blueprint);
       return {
         data: {
-          workspaceId: res.workspaceId,
-          slug: res.slug || flags.slug,
-          readinessScore: desc.readinessScore,
-          cycleDetected: desc.cycleDetected,
-          gaps: desc.gaps,
-          topology: desc.topology,
-          statistics: desc.statistics,
+          workspaceName: blueprint.workspace.name,
+          slug: blueprint.workspace.slug,
+          dagIsAcyclic: validation.isValid,
+          statistics: validation.statistics,
         },
         nextActions: [
           {
-            command: `flashlearn workspace describe ${res.workspaceId}`,
-            description: 'Inspect live domain topology and readiness ledger',
+            command: `flashlearn workspace import-blueprint --file ${filePath}`,
+            description: 'Persist validated domain blueprint into FlashLearn engine',
           },
         ],
       };

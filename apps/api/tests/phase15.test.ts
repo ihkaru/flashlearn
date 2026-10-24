@@ -1,12 +1,15 @@
 import { describe, test, expect } from 'bun:test';
-import { synthesizeDomainBlueprint, verifyAcyclicity } from '../../../packages/cli/src/core/domain-synthesizer';
+import { verifyAcyclicity, validateDomainBlueprint, certifyDomainBlueprint } from '../../../packages/cli/src/core/domain-synthesizer';
 import { container } from '../src/infrastructure/di/container';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-describe('Phase 15: Autonomous Domain Synthesizer & Multi-Domain Agnostic Engine', () => {
-  const vendorDocPath = join(__dirname, '../../../docs/samples/sop-manajemen-risiko-vendor.md');
-  const avionicsDocPath = join(__dirname, '../../../docs/samples/sop-kelaikan-avionik.md');
-  const triageDocPath = join(__dirname, '../../../docs/samples/sop-triage-klinis.md');
+describe('Phase 15: Agent-Synthesized Domain Blueprint Certification & Invariant Engine', () => {
+  const aviationBpPath = join(__dirname, '../../../packages/cli/tests/fixtures/sample-aviation-blueprint.json');
+  const triageBpPath = join(__dirname, '../../../packages/cli/tests/fixtures/sample-triage-blueprint.json');
+
+  const aviationBlueprint = JSON.parse(readFileSync(aviationBpPath, 'utf-8'));
+  const triageBlueprint = JSON.parse(readFileSync(triageBpPath, 'utf-8'));
 
   test('Tarjan SCC Algorithm: Detects acyclic DAG and catches cyclic prerequisite loops', () => {
     // 1. Valid linear DAG
@@ -30,78 +33,71 @@ describe('Phase 15: Autonomous Domain Synthesizer & Multi-Domain Agnostic Engine
     expect(cyclicCheck.cycles.length).toBeGreaterThan(0);
   });
 
-  test('Domain-Agnostic: Autonomous Synthesis for Civil Aviation Domain (ATA 104)', () => {
-    const result = synthesizeDomainBlueprint({
-      workspaceName: 'Kelaikan Sistem Avionik Pesawat',
-      sourceFiles: [avionicsDocPath],
-      slug: 'avionics-clearance',
-    });
+  test('Domain-Agnostic: Invariant Certification for Civil Aviation Blueprint (ATA 104)', () => {
+    const certified = certifyDomainBlueprint(aviationBlueprint);
 
-    expect(result.dagIsAcyclic).toBe(true);
-    expect(result.statistics.sourcesCount).toBe(1);
-    expect(result.statistics.chunksCount).toBeGreaterThanOrEqual(3);
-    expect(result.statistics.competenciesCount).toBe(3);
+    expect(certified.dagIsAcyclic).toBe(true);
+    expect(certified.statistics.sourcesCount).toBe(1);
+    expect(certified.statistics.chunksCount).toBe(2);
+    expect(certified.statistics.competenciesCount).toBe(3);
+    expect(certified.statistics.gatesCount).toBe(3);
+    expect(certified.statistics.tasksCount).toBe(3);
 
-    const bp = result.blueprint;
-    const taskA = bp.tasks.find((t: any) => t.taskType === 'calculation');
-    const taskB = bp.tasks.find((t: any) => t.taskType === 'case_study');
+    const bp = certified.blueprint;
     const taskAdv = bp.tasks.find((t: any) => t.taskType === 'adversarial_dilemma');
-
-    expect(taskA).toBeDefined();
-    expect(taskB).toBeDefined();
     expect(taskAdv).toBeDefined();
-
-    // Verify dynamic extraction from aviation text
-    const allTaskText = JSON.stringify(bp.tasks).toLowerCase();
-    expect(allTaskText).toContain('avionik');
     expect(taskAdv.adversarialSpec.trapType).toBe('OMISSION_DATA');
     expect(taskAdv.adversarialSpec.correctDisposition).toBe('REJECT_AND_DEMAND_DATA');
   });
 
-  test('Domain-Agnostic: Autonomous Synthesis for Emergency Medical Triage Domain', () => {
-    const result = synthesizeDomainBlueprint({
-      workspaceName: 'Protokol Triage Instalasi Gawat Darurat',
-      sourceFiles: [triageDocPath],
-      slug: 'medical-triage',
-    });
+  test('Domain-Agnostic: Invariant Certification for Emergency Medical Triage Blueprint', () => {
+    const certified = certifyDomainBlueprint(triageBlueprint);
 
-    expect(result.dagIsAcyclic).toBe(true);
-    expect(result.statistics.competenciesCount).toBe(3);
+    expect(certified.dagIsAcyclic).toBe(true);
+    expect(certified.statistics.competenciesCount).toBe(3);
+    expect(certified.statistics.gatesCount).toBe(3);
 
-    const bp = result.blueprint;
+    const bp = certified.blueprint;
     const taskAdv = bp.tasks.find((t: any) => t.taskType === 'adversarial_dilemma');
-    expect(taskAdv).toBeDefined();
-
-    // Verify dynamic extraction from medical triage text
-    const allTaskText = JSON.stringify(bp.tasks).toLowerCase();
-    expect(allTaskText).toContain('triage');
-    expect(taskAdv.adversarialSpec.correctDisposition).toBe('REJECT_AND_DEMAND_DATA');
+    expect(taskAdv.adversarialSpec.statutoryPolicy).toContain('Klausul Kepatuhan Mutlak');
   });
 
-  test('Strict Pipeline Integrity: Throws error if markdown is empty or lacks extractable criteria', () => {
-    // 1. Empty markdown
+  test('Strict Pipeline Integrity: Throws typed error if blueprint invariants are violated', () => {
+    // 1. Missing workspace name
     expect(() => {
-      synthesizeDomainBlueprint({
-        workspaceName: 'Empty Domain',
-        markdownTexts: [{ text: '', title: 'Empty' }],
+      validateDomainBlueprint({
+        workspace: { name: '' },
+        sources: [],
+        competencies: [],
+        gates: [],
+      });
+    }).toThrow('INVALID_DOMAIN_BLUEPRINT');
+
+    // 2. Insufficient competencies (< 2)
+    expect(() => {
+      validateDomainBlueprint({
+        workspace: { name: 'Valid Workspace' },
+        sources: [{ code: 'SRC-1', title: 'Source 1', chunks: [] }],
+        competencies: [{ code: 'C1', title: 'Only One' }],
+        gates: [{ level: 1, name: 'Gate 1' }],
       });
     }).toThrow('INSUFFICIENT_DOMAIN_SPECIFICATION');
 
-    // 2. Unstructured content with no actionable rules/bullets
+    // 3. Cyclic prerequisite loop in blueprint
     expect(() => {
-      synthesizeDomainBlueprint({
-        workspaceName: 'Unstructured Domain',
-        markdownTexts: [
-          {
-            text: '# Generic Hello\nThis is a casual paragraph without any rules, lists, or compliance standards.\nJust general text.',
-            title: 'CasualDoc',
-          },
+      validateDomainBlueprint({
+        workspace: { name: 'Cyclic Workspace' },
+        sources: [{ code: 'SRC-1', title: 'Source 1', chunks: [] }],
+        competencies: [
+          { code: 'C1', title: 'Comp 1', prerequisites: ['C2'] },
+          { code: 'C2', title: 'Comp 2', prerequisites: ['C1'] },
         ],
+        gates: [{ level: 1, name: 'Gate 1' }],
       });
-    }).toThrow('INSUFFICIENT_DOMAIN_SPECIFICATION');
+    }).toThrow('INVALID_DOMAIN_BLUEPRINT: Prerequisite graph contains cyclic loops');
   });
 
-  test('Import Synthesized Domain Blueprint and Verify 100% Domain Readiness', async () => {
+  test('Import Validated Domain Blueprint and Verify 100% Domain Readiness', async () => {
     const ts = Date.now();
     const creator = await container.userRepository.create({
       email: `synth-creator-${ts}@test.flashlearn`,
@@ -109,13 +105,15 @@ describe('Phase 15: Autonomous Domain Synthesizer & Multi-Domain Agnostic Engine
       role: 'creator',
     });
 
-    const result = synthesizeDomainBlueprint({
-      workspaceName: `Autonomous Domain Verification ${ts}`,
-      sourceFiles: [vendorDocPath],
-      slug: `auto-domain-${ts}`,
-    });
+    const customAviationBp = {
+      ...aviationBlueprint,
+      workspace: {
+        ...aviationBlueprint.workspace,
+        slug: `avionics-${ts}`,
+      },
+    };
 
-    const imported = await container.importDomainBlueprintUseCase.execute(creator.id, result.blueprint);
+    const imported = await container.importDomainBlueprintUseCase.execute(creator.id, customAviationBp);
     expect(imported.workspaceId).toBeDefined();
 
     const readiness = await container.describeDomainReadinessUseCase.execute(imported.workspaceId);

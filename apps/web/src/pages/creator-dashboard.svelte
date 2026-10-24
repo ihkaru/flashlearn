@@ -86,7 +86,7 @@
         onclick={() => (showSynthesizerModal = true)}
         style="background: #0f766e; color: #ffffff; border: none; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);"
       >
-        🤖 Sintesis Domain SOP
+        📄 Impor Blueprint Domain
       </button>
       <button
         onclick={() => auth.openApiKeyModal()}

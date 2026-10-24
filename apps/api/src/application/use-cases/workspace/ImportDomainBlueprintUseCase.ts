@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import { validateDomainBlueprint } from '../../../../../../packages/cli/src/core/blueprint-validator';
 import type { IWorkspaceRepository } from '../../../domain/ports/IWorkspaceRepository';
 import type { ISourceRepository } from '../../../domain/ports/ISourceRepository';
 import type { ICompetencyRepository } from '../../../domain/ports/ICompetencyRepository';
@@ -20,9 +21,7 @@ export class ImportDomainBlueprintUseCase {
   ) {}
 
   async execute(creatorId: string, blueprint: DomainBlueprint): Promise<ImportBlueprintResponse> {
-    if (!blueprint.workspace || !blueprint.workspace.name) {
-      throw new Error('Invalid blueprint: workspace.name is required');
-    }
+    validateDomainBlueprint(blueprint);
 
     const wsSlug = blueprint.workspace.slug || blueprint.workspace.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
@@ -86,7 +85,7 @@ export class ImportDomainBlueprintUseCase {
           sourceId,
           code: comp.code,
           title: comp.title,
-          description: comp.description,
+          description: comp.description || comp.title,
           oracleClass: comp.oracleClass,
           riskLevel: comp.riskLevel,
         });
@@ -117,6 +116,21 @@ export class ImportDomainBlueprintUseCase {
       }
     }
 
+    for (const edge of (blueprint as any).prerequisiteEdges || []) {
+      const targetId = compCodeToIdMap.get(edge.targetCompetencyCode);
+      const sourceId = compCodeToIdMap.get(edge.sourceCompetencyCode);
+      if (targetId && sourceId && targetId !== sourceId) {
+        const allNodes = await this.competencyRepo.listByWorkspace(workspaceId);
+        const allEdges = await this.competencyRepo.listEdges(workspaceId);
+        const candidateEdges = [...allEdges, { competencyId: targetId, prerequisiteId: sourceId }];
+
+        if (!this.graphEngine.hasCycle(allNodes.map((n) => n.id), candidateEdges)) {
+          await this.competencyRepo.addPrerequisite(targetId, sourceId);
+          edgesLinked++;
+        }
+      }
+    }
+
     // 5. Create Authorization Gates
     let gatesCreated = 0;
     for (const g of blueprint.gates || []) {
@@ -126,12 +140,18 @@ export class ImportDomainBlueprintUseCase {
           workspaceId,
           level: g.level,
           title: g.title || g.name,
-          description: g.description,
+          description: g.description || g.title || g.name,
         });
         gatesCreated++;
 
-        const requirements = (g.requirements || [])
-          .map((req) => {
+        const reqSource = g.requirements || (g.requiredCompetencyCodes || []).map((code: string) => ({
+          competencyCode: code,
+          minimumScore: 80,
+          requiresHumanApproval: g.level >= 3,
+        }));
+
+        const requirements = reqSource
+          .map((req: any) => {
             const cId = compCodeToIdMap.get(req.competencyCode);
             if (!cId) return null;
             return {
@@ -160,10 +180,14 @@ export class ImportDomainBlueprintUseCase {
         await this.taskRepo.create({
           competencyId: cId,
           title: t.title,
-          scenario: t.scenario,
+          scenario: t.scenario || t.title,
           taskType: t.taskType,
-          oracleData: t.oracleData,
-          rubricCriteria: t.rubricCriteria,
+          oracleData: t.oracleData || {},
+          adversarialSpec: t.adversarialSpec || null,
+          rubricCriteria: t.rubricCriteria || [
+            { id: 'crit_substance', title: 'Kesesuaian Prosedur', weight: 60, description: 'Kesesuaian dengan dokumen rujukan' },
+            { id: 'crit_accuracy', title: 'Akurasi Eksekusi', weight: 40, description: 'Ketepatan hasil atau kalkulasi' },
+          ],
           passingScore: t.passingScore ?? 80,
         });
         tasksCreated++;

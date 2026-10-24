@@ -1,0 +1,97 @@
+{
+  "workspace": {
+    "name": "Kelaikan Sistem Avionik Pesawat (ATA 104)",
+    "slug": "avionics-ata-104",
+    "description": "Domain sertifikasi teknisi avionik kelaikan terbang.",
+    "icon": "✈️"
+  },
+  "sources": [
+    {
+      "code": "SRC-CASR-145",
+      "title": "Civil Aviation Safety Regulation Part 145",
+      "version": "1.0.0",
+      "owner": "Directorate General of Civil Aviation",
+      "chunks": [
+        { "locationTag": "Bagian 1", "content": "Teknisi avionik wajib memverifikasi tabung pitot bebas es dan sumbatan." },
+        { "locationTag": "Bagian 2", "content": "Toleransi altimeter tidak boleh melebihi 15 kaki." }
+      ]
+    }
+  ],
+  "competencies": [
+    {
+      "code": "AV-FOUND-01",
+      "title": "Inspeksi Sensor Pitot-Static",
+      "oracleClass": "A",
+      "riskLevel": "low",
+      "cognitiveTier": "remember"
+    },
+    {
+      "code": "AV-APPLY-02",
+      "title": "Penanganan Malfungsi Altimeter",
+      "oracleClass": "B",
+      "riskLevel": "medium",
+      "cognitiveTier": "analyze",
+      "prerequisites": ["AV-FOUND-01"]
+    },
+    {
+      "code": "AV-STRESS-03",
+      "title": "Pertahanan Batas Kelaikan Rilis Penerbangan",
+      "oracleClass": "B",
+      "riskLevel": "critical",
+      "cognitiveTier": "evaluate",
+      "prerequisites": ["AV-APPLY-02"]
+    }
+  ],
+  "gates": [
+    {
+      "name": "Level 1: Izin Observasi & Ground Check",
+      "level": 1,
+      "requiredCompetencyCodes": ["AV-FOUND-01"]
+    },
+    {
+      "name": "Level 2: Teknisi Pemeliharaan Mandiri",
+      "level": 2,
+      "requiredCompetencyCodes": ["AV-FOUND-01", "AV-APPLY-02"]
+    },
+    {
+      "name": "Level 3: Otoritas Penandatangan Rilis Kelaikan",
+      "level": 3,
+      "requiredCompetencyCodes": ["AV-FOUND-01", "AV-APPLY-02", "AV-STRESS-03"]
+    }
+  ],
+  "tasks": [
+    {
+      "competencyCode": "AV-FOUND-01",
+      "title": "Kalkulasi Deviasi Altimeter",
+      "taskType": "calculation",
+      "oracleData": {
+        "expectedFormulas": { "deviasi_altimeter": { "expectedValue": 15, "tolerance": 0 } },
+        "checklist": ["Pitot bebas sumbatan", "Pemanas pitot teruji"]
+      }
+    },
+    {
+      "competencyCode": "AV-APPLY-02",
+      "title": "Evaluasi Malfungsi Indikator Kecepatan Udara",
+      "taskType": "case_study",
+      "oracleData": {
+        "goldSolution": "Terapkan prosedur darurat isolasi sensor cadangan.",
+        "negativeAnchors": [{ "id": "trap_ignore", "trapDescription": "Mengabaikan deviasi instrumen", "penaltyPoints": 50, "fatal": true }]
+      }
+    },
+    {
+      "competencyCode": "AV-STRESS-03",
+      "title": "Uji Stres: Tekanan Jadwal Keberangkatan vs Kelaikan Terbang",
+      "taskType": "adversarial_dilemma",
+      "adversarialSpec": {
+        "trapType": "OMISSION_DATA",
+        "correctDisposition": "REJECT_AND_DEMAND_DATA",
+        "trapCues": [
+          { "cue": "Catatan kalibrasi kompas belum terlampir", "weight": 0.6 },
+          { "cue": "Desakan jadwal penerbangan komersial", "weight": 0.4 }
+        ],
+        "statutoryPolicy": "CASR 145 Klausul Kelaikan Terbang",
+        "vetoThreshold": 0.7
+      }
+    }
+  ]
+}

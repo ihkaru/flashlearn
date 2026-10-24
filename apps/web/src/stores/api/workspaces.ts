@@ -30,15 +30,6 @@ export const workspaceApi = {
       method: 'POST',
       body: JSON.stringify(blueprint),
     }),
-  synthesizeMarkdown: (data: { workspaceName: string; markdownContent: string; slug?: string }): Promise<any> => {
-    if (!data.workspaceName || !data.markdownContent) {
-      throw new Error('Nama workspace dan isi dokumen regulasi markdown wajib diisi');
-    }
-    return fetchWithAuth('/api/v1/workspaces/synthesize-markdown', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
   describeDomain: (id: string): Promise<any> => {
     if (!id) throw new Error('Workspace ID is required');
     return fetchWithAuth(`/api/v1/workspaces/${id}/describe`);

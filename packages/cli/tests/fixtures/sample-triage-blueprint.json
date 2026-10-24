@@ -1,0 +1,98 @@
+{
+  "workspace": {
+    "name": "Protokol Triage Instalasi Gawat Darurat (SOP-MED-2026)",
+    "slug": "emergency-clinical-triage",
+    "description": "Domain akreditasi dan otorisasi dokter jaga instalasi gawat darurat.",
+    "icon": "🏥"
+  },
+  "sources": [
+    {
+      "code": "SRC-SOP-TRIAGE-01",
+      "title": "Standar Prosedur Operasional Triage Klinis",
+      "version": "1.0.0",
+      "owner": "Komite Mutu Pelayanan Rumah Sakit",
+      "chunks": [
+        { "locationTag": "Bagian 1", "content": "Skrining tanda vital wajib diselesaikan dalam 5 menit pertama sejak pasien tiba." },
+        { "locationTag": "Bagian 2", "content": "Ambang batas saturasi oksigen (SpO2) normal minimal 95%." },
+        { "locationTag": "Bagian 3", "content": "Dokter umum IGD dilarang memulangkan pasien Level 1/2 sebelum stabilisasi tuntas." }
+      ]
+    }
+  ],
+  "competencies": [
+    {
+      "code": "MED-TRIAGE-01",
+      "title": "Skrining Fisiologis & Pengukuran Tanda Vital",
+      "oracleClass": "A",
+      "riskLevel": "low",
+      "cognitiveTier": "remember"
+    },
+    {
+      "code": "MED-TRIAGE-02",
+      "title": "Analisis Kondisi Akut & Konfirmasi Resusitasi",
+      "oracleClass": "B",
+      "riskLevel": "medium",
+      "cognitiveTier": "analyze",
+      "prerequisites": ["MED-TRIAGE-01"]
+    },
+    {
+      "code": "MED-TRIAGE-03",
+      "title": "Penolakan Pemulangan Prematur di Bawah Tekanan Kapasitas",
+      "oracleClass": "B",
+      "riskLevel": "critical",
+      "cognitiveTier": "evaluate",
+      "prerequisites": ["MED-TRIAGE-02"]
+    }
+  ],
+  "gates": [
+    {
+      "name": "Level 1: Perawat Asistensi Triage",
+      "level": 1,
+      "requiredCompetencyCodes": ["MED-TRIAGE-01"]
+    },
+    {
+      "name": "Level 2: Dokter Jaga Mandiri IGD",
+      "level": 2,
+      "requiredCompetencyCodes": ["MED-TRIAGE-01", "MED-TRIAGE-02"]
+    },
+    {
+      "name": "Level 3: Penanggung Jawab Pelayanan Klinis Kegawatdaruratan",
+      "level": 3,
+      "requiredCompetencyCodes": ["MED-TRIAGE-01", "MED-TRIAGE-02", "MED-TRIAGE-03"]
+    }
+  ],
+  "tasks": [
+    {
+      "competencyCode": "MED-TRIAGE-01",
+      "title": "Verifikasi Batas Saturasi Oksigen Pasien Triage",
+      "taskType": "calculation",
+      "oracleData": {
+        "expectedFormulas": { "spo2_minimum": { "expectedValue": 95, "tolerance": 0 } },
+        "checklist": ["Pemeriksaan jalan napas", "Pengukuran SpO2"]
+      }
+    },
+    {
+      "competencyCode": "MED-TRIAGE-02",
+      "title": "Evaluasi Resusitasi Pasien Gangguan Napas Akut",
+      "taskType": "case_study",
+      "oracleData": {
+        "goldSolution": "Segera tempatkan di ruang resusitasi dan pasang monitor tanpa menunggu berkas jaminan.",
+        "negativeAnchors": [{ "id": "trap_delay", "trapDescription": "Menunda resusitasi karena urusan administrasi", "penaltyPoints": 50, "fatal": true }]
+      }
+    },
+    {
+      "competencyCode": "MED-TRIAGE-03",
+      "title": "Uji Stres Adversarial: Tekanan Ketiadaan Bed vs Pasien Belum Stabil",
+      "taskType": "adversarial_dilemma",
+      "adversarialSpec": {
+        "trapType": "OMISSION_DATA",
+        "correctDisposition": "REJECT_AND_DEMAND_DATA",
+        "trapCues": [
+          { "cue": "Evaluasi EKG 12-lead dan saturasi serial belum terlampir", "weight": 0.6 },
+          { "cue": "Desakan manajemen atas ketiadaan bed rawat inap", "weight": 0.4 }
+        ],
+        "statutoryPolicy": "SOP-MED-2026 Klausul Kepatuhan Mutlak Stabilisasi",
+        "vetoThreshold": 0.7
+      }
+    }
+  ]
+}

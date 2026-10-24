@@ -10,50 +10,46 @@
 
   let { isOpen, onClose, onSynthesized }: Props = $props();
 
-  let workspaceName = $state('');
-  let slug = $state('');
-  let markdownContent = $state('');
-  let isSynthesizing = $state(false);
+  let blueprintJson = $state('');
+  let isImporting = $state(false);
 
   function handleFileUpload(e: Event) {
     const input = e.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
-    if (!workspaceName) {
-      workspaceName = file.name.replace(/\.md$/i, '').replace(/[-_]+/g, ' ');
-    }
     const reader = new FileReader();
     reader.onload = (event) => {
-      markdownContent = (event.target?.result as string) || '';
+      blueprintJson = (event.target?.result as string) || '';
     };
     reader.readAsText(file);
   }
 
-  async function handleSynthesize() {
-    if (!workspaceName.trim()) {
-      alert('Nama domain / workspace wajib diisi.');
-      return;
-    }
-    if (!markdownContent.trim() || markdownContent.trim().length < 20) {
-      alert('Isi dokumen regulasi / SOP dalam format Markdown minimal 20 karakter.');
+  async function handleImport() {
+    if (!blueprintJson.trim()) {
+      alert('Isi atau unggah file Domain Blueprint (JSON) terlebih dahulu.');
       return;
     }
 
-    isSynthesizing = true;
+    let parsed: any;
     try {
-      const res = await api.workspaces.synthesizeMarkdown({
-        workspaceName: workspaceName.trim(),
-        markdownContent: markdownContent.trim(),
-        slug: slug.trim() || undefined,
-      });
+      parsed = JSON.parse(blueprintJson);
+    } catch (err: any) {
+      alert(`Format JSON tidak valid: ${err.message}`);
+      return;
+    }
 
-      alert(`Domain '${workspaceName}' berhasil disintesis secara otonom!\nTotal Sumber: ${res.statistics?.sourcesCount || 1}\nKompetensi DAG: ${res.statistics?.competenciesCount || 3}\nGerbang Otorisasi: ${res.statistics?.gatesCount || 3}`);
+    isImporting = true;
+    try {
+      const res = await api.workspaces.importBlueprint(parsed);
+      alert(
+        `Domain '${res.workspaceSlug}' berhasil diimpor!\nKompetensi: ${res.competenciesCreated}\nGerbang: ${res.gatesCreated}\nTugas: ${res.tasksCreated}`
+      );
       onClose();
       onSynthesized(res.workspaceId);
     } catch (err: any) {
-      alert(`Gagal sintesis domain: ${err.message}`);
+      alert(`Gagal impor domain blueprint: ${err.message}`);
     } finally {
-      isSynthesizing = false;
+      isImporting = false;
     }
   }
 </script>
@@ -69,6 +65,7 @@
     onkeydown={(e) => e.key === 'Escape' && onClose()}
   >
     <div
+      role="document"
       style="background: #ffffff; width: 100%; max-width: 660px; max-height: 90vh; border-radius: 20px; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden;"
       tabindex="-1"
       onclick={(e) => e.stopPropagation()}
@@ -78,10 +75,10 @@
       <div style="padding: 18px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #0f766e; color: #ffffff;">
         <div>
           <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.9;">
-            Autonomous Curriculum Builder · Tarjan SCC
+            Declarative Domain Ingestion · Alur 1
           </span>
           <h3 style="margin: 2px 0 0; font-size: 1.15rem; font-weight: 800;">
-            Sintesis Domain dari Regulasi / SOP Markdown
+            Impor Domain Blueprint (JSON)
           </h3>
         </div>
         <button
@@ -95,40 +92,27 @@
       <!-- Body Form -->
       <div style="padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px;">
         <div>
-          <label for="synth-ws-name" style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 4px;">
-            Nama Domain / Standar Kompetensi:
-          </label>
-          <input
-            id="synth-ws-name"
-            type="text"
-            placeholder="Contoh: SOP Manajemen Risiko Fasilitas Kritis"
-            bind:value={workspaceName}
-            style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem;"
-          />
-        </div>
-
-        <div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <label for="synth-md-content" style="font-size: 0.82rem; font-weight: 700; color: #334155;">
-              Naskah Regulasi / SOP (Format Markdown):
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label for="bp-json-content" style="font-size: 0.82rem; font-weight: 700; color: #334155;">
+              Domain Blueprint Payload (JSON):
             </label>
             <label style="background: #f1f5f9; color: #0f766e; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
               <Icon name="upload" size={12} />
-              <span>Unggah File .md</span>
-              <input type="file" accept=".md,text/markdown" onchange={handleFileUpload} style="display: none;" />
+              <span>Unggah File .json</span>
+              <input type="file" accept=".json,application/json" onchange={handleFileUpload} style="display: none;" />
             </label>
           </div>
           <textarea
-            id="synth-md-content"
-            rows="8"
-            placeholder="# BAB I: Ketentuan Umum&#10;Pasal 1: Definisi & Kepatuhan...&#10;&#10;Tempelkan naskah SOP atau regulasi markdown Anda di sini..."
-            bind:value={markdownContent}
+            id="bp-json-content"
+            rows="12"
+            placeholder={'{\n  "workspace": { "name": "Pemeliharaan Avionik ATA 104" },\n  "sources": [...],\n  "competencies": [...],\n  "gates": [...],\n  "tasks": [...]\n}'}
+            bind:value={blueprintJson}
             style="width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: monospace; font-size: 0.78rem; line-height: 1.45;"
           ></textarea>
         </div>
 
         <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px; font-size: 0.8rem; color: #166534; line-height: 1.4;">
-          <strong>Algoritma Sintesis Otonom:</strong> Memecah naskah menjadi chunk SHA-256 addressable, membangun graf prasyarat 3 tingkat Bloom (Kelas A, B, dan Adversarial Dilemma), memverifikasi asiklisitas DAG (Tarjan SCC), dan menginisialisasi 3 tingkat Gerbang Otorisasi secara otomatis.
+          <strong>Declarative Ingestion Contract:</strong> Domain Blueprint disusun oleh Coding Agent dari dokumen regulasi, memuat hierarki Bloom 3-Tier, SHA-256 chunk addressable, graf prasyarat terverifikasi (Tarjan SCC), dan batasan wewenang gerbang otorisasi.
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
@@ -139,12 +123,12 @@
             Batal
           </button>
           <button
-            disabled={isSynthesizing}
-            onclick={handleSynthesize}
+            disabled={isImporting}
+            onclick={handleImport}
             style="padding: 10px 20px; border-radius: 8px; border: none; background: #0f766e; font-weight: 700; font-size: 0.88rem; color: #ffffff; cursor: pointer; display: flex; align-items: center; gap: 6px;"
           >
             <Icon name="bolt" size={14} />
-            <span>{isSynthesizing ? 'Menyintesis Domain...' : 'Sintesis Domain Sekarang'}</span>
+            <span>{isImporting ? 'Mengimpor Blueprint...' : 'Impor Blueprint Sekarang'}</span>
           </button>
         </div>
       </div>

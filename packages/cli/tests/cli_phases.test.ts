@@ -49,33 +49,31 @@ describe('FlashLearn CLI Advanced Capabilities (Phases 11-13)', () => {
     expect(parsed.data.target.payload.adversarialSpec.trapType).toBe('OMISSION_DATA');
   });
 
-  test('Domain Synthesizer & Autonomous Builder: workspace/domain synthesize from markdown', async () => {
+  test('Domain Synthesizer & Autonomous Builder: workspace/domain import-blueprint with dry-run and validation', async () => {
     // 1. Action help
     captureOutput();
-    let code = await runCli(['workspace', 'synthesize', '--help']);
+    let code = await runCli(['workspace', 'import-blueprint', '--help']);
     expect(code).toBe(ExitCode.SUCCESS);
     let parsed = JSON.parse(stdoutData);
-    expect(parsed.data.title).toBe('FlashLearn CLI: workspace synthesize');
-    expect(parsed.data.description).toContain('Tarjan SCC');
+    expect(parsed.data.title).toBe('FlashLearn CLI: workspace import-blueprint');
 
-    // 2. Dry-run synthesis from sample markdown
+    // 2. Dry-run validation of declarative blueprint
     captureOutput();
     code = await runCli([
-      'domain',
-      'synthesize',
-      '--workspace-name=Pengadaan Berkelanjutan',
-      '--source-files=./docs/samples/sop-manajemen-risiko-vendor.md',
+      'workspace',
+      'import-blueprint',
+      '--file=packages/cli/tests/fixtures/sample-aviation-blueprint.json',
       '--dry-run',
     ]);
     expect(code).toBe(ExitCode.SUCCESS);
     parsed = JSON.parse(stdoutData);
     expect(parsed.data.dryRun).toBe(true);
     expect(parsed.data.dagIsAcyclic).toBe(true);
-    expect(parsed.data.sourcesCount).toBe(1);
-    expect(parsed.data.chunksCount).toBe(8);
-    expect(parsed.data.competenciesCount).toBe(3);
-    expect(parsed.data.gatesCount).toBe(3);
-    expect(parsed.data.tasksCount).toBe(3);
+    expect(parsed.data.statistics.sourcesCount).toBe(1);
+    expect(parsed.data.statistics.chunksCount).toBe(2);
+    expect(parsed.data.statistics.competenciesCount).toBe(3);
+    expect(parsed.data.statistics.gatesCount).toBe(3);
+    expect(parsed.data.statistics.tasksCount).toBe(3);
   });
 
   test('Phase 12 Adaptive Diagnostic Placement: diagnostic start, next, and submit CLI actions', async () => {

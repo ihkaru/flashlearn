@@ -1,12 +1,12 @@
 #!/usr/bin/env bun
 /**
- * FlashLearn Autonomous Domain Synthesizer Script
- * Agent-Agnostic Engine that ingests Markdown regulations/SOPs,
- * validates DAG acyclicity via Tarjan's SCC, and generates a complete DomainBlueprint.
+ * FlashLearn Agent-Agnostic Domain Blueprint Ingestion Script
+ * Validates declarative DomainBlueprint JSON against FlashLearn mathematical invariants
+ * and imports it into the FlashLearn platform.
  */
 
-import { writeFileSync } from 'node:fs';
-import { synthesizeDomainBlueprint } from '../../../../packages/cli/src/core/domain-synthesizer';
+import { readFileSync } from 'node:fs';
+import { validateDomainBlueprint } from '../../../../packages/cli/src/core/blueprint-validator';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -27,21 +27,18 @@ async function main() {
     }
   }
 
-  const wsName = (flags['workspace-name'] as string) || (flags['name'] as string);
-  const srcFilesStr = (flags['source-files'] as string) || (flags['sources'] as string) || (flags['file'] as string);
+  const blueprintPath = (flags['blueprint'] as string) || (flags['file'] as string) || (args[0] && !args[0].startsWith('--') ? args[0] : null);
   const isDryRun = !!flags['dry-run'];
-  const outputFile = flags['output'] as string;
   const apiUrl = (flags['api-url'] as string) || 'http://localhost:3000';
 
-  if (!wsName || !srcFilesStr) {
+  if (!blueprintPath) {
     console.error(
       JSON.stringify(
         {
           schemaVersion: '1.0.0',
           status: 'error',
           code: 'MISSING_ARGUMENT',
-          message:
-            'Usage: bun synthesize_domain.ts --workspace-name "<NAME>" --source-files "<file1.md,file2.md>" [--dry-run] [--output <path>]',
+          message: 'Usage: bun synthesize_domain.ts --blueprint <blueprint.json> [--dry-run] [--api-url <url>]',
         },
         null,
         2
@@ -50,22 +47,29 @@ async function main() {
     process.exit(64);
   }
 
-  const filePaths = srcFilesStr
-    .split(',')
-    .map((f) => f.trim())
-    .filter((f) => f.length > 0);
+  let blueprint: any;
+  try {
+    const content = readFileSync(blueprintPath, 'utf-8');
+    blueprint = JSON.parse(content);
+  } catch (err: any) {
+    console.error(
+      JSON.stringify(
+        {
+          schemaVersion: '1.0.0',
+          status: 'error',
+          code: 'FILE_READ_ERROR',
+          message: `Failed to read or parse blueprint JSON from "${blueprintPath}": ${err.message}`,
+        },
+        null,
+        2
+      )
+    );
+    process.exit(1);
+  }
 
   try {
-    const result = synthesizeDomainBlueprint({
-      workspaceName: wsName,
-      sourceFiles: filePaths,
-      slug: flags['slug'] as string,
-      outputFile,
-    });
-
-    if (outputFile) {
-      writeFileSync(outputFile, JSON.stringify(result.blueprint, null, 2), 'utf-8');
-    }
+    // 1. Mathematically validate DAG, schema invariants, and coverage
+    const validation = validateDomainBlueprint(blueprint);
 
     if (isDryRun) {
       console.log(
@@ -75,16 +79,10 @@ async function main() {
             status: 'success',
             data: {
               dryRun: true,
-              workspaceName: wsName,
-              ...result.statistics,
-              dagIsAcyclic: result.dagIsAcyclic,
-              blueprintPreview: {
-                workspace: result.blueprint.workspace,
-                sources: result.blueprint.sources.map((s: any) => ({ code: s.code, title: s.title, chunks: s.chunks.length })),
-                competencies: result.blueprint.competencies.map((c: any) => ({ code: c.code, title: c.title, tier: c.cognitiveTier })),
-                gates: result.blueprint.gates.map((g: any) => ({ name: g.name, level: g.level })),
-                tasks: result.blueprint.tasks.map((t: any) => ({ title: t.title, type: t.taskType })),
-              },
+              workspaceName: blueprint.workspace.name,
+              slug: blueprint.workspace.slug,
+              dagIsAcyclic: validation.isValid,
+              statistics: validation.statistics,
             },
           },
           null,
@@ -94,11 +92,11 @@ async function main() {
       process.exit(0);
     }
 
-    // Production Ingestion via FlashLearn REST API
+    // 2. Production Ingestion via FlashLearn REST API
     const response = await fetch(`${apiUrl}/api/v1/workspaces/import-blueprint`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(result.blueprint),
+      body: JSON.stringify(blueprint),
     });
 
     if (!response.ok) {
@@ -126,8 +124,8 @@ async function main() {
           status: 'success',
           data: {
             workspaceId: resJson.workspaceId || resJson.id,
-            statistics: result.statistics,
-            dagIsAcyclic: result.dagIsAcyclic,
+            statistics: validation.statistics,
+            dagIsAcyclic: validation.isValid,
           },
         },
         null,
@@ -143,7 +141,9 @@ async function main() {
           status: 'error',
           code: err.message?.startsWith('INSUFFICIENT_DOMAIN_SPECIFICATION')
             ? 'INSUFFICIENT_DOMAIN_SPECIFICATION'
-            : 'SYNTHESIS_FAILED',
+            : err.message?.startsWith('INVALID_DOMAIN_BLUEPRINT')
+              ? 'INVALID_DOMAIN_BLUEPRINT'
+              : 'VALIDATION_FAILED',
           message: err.message,
         },
         null,
