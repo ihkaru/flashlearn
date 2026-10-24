@@ -98,6 +98,15 @@
       Keluar
     </button>
   {:else}
+    <!-- Quick Demo Login Button -->
+    <button
+      onclick={() => auth.loginAsDemo()}
+      title="Masuk Instan sebagai Pembelajar Terverifikasi"
+      style="background: #0f766e; color: #ffffff; border: none; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0;"
+    >
+      <Icon name="bolt" size={13} />
+      <span>Demo Pembelajar</span>
+    </button>
     <!-- Guest Google Login Button -->
     <div bind:this={googleButtonContainer} style="display: flex; align-items: center; flex-shrink: 0;"></div>
   {/if}

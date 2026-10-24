@@ -100,6 +100,30 @@ class AuthState {
     }
   }
 
+  async loginAsDemo(params?: { email?: string; name?: string; role?: string }) {
+    this.isLoading = true;
+    try {
+      const res = await fetch(`${API_URL}/api/v1/auth/demo-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params || {}),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Demo login failed');
+      }
+
+      const data = await res.json();
+      this.token = data.token;
+      this.user = data.user;
+      localStorage.setItem('flashlearn_token', data.token);
+      return data.user;
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
   logout() {
     this.token = null;
     this.user = null;

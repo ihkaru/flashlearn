@@ -234,6 +234,13 @@
         {lastAttempt.feedback}
       </p>
 
+      {#if lastAttempt.conversationHash || (lastAttempt as any).merkleRootHash}
+        <div style="margin-top: 8px; padding: 6px 10px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.72rem; font-family: monospace; color: #475569; display: flex; align-items: center; justify-content: space-between;">
+          <span>🔒 Bukti Kriptografis FIPS 180-4:</span>
+          <span style="font-weight: 700;">{((lastAttempt as any).merkleRootHash || lastAttempt.conversationHash || '').slice(0, 24)}...</span>
+        </div>
+      {/if}
+
       <div style="margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 8px; display: flex; justify-content: flex-end;">
         <button
           type="button"

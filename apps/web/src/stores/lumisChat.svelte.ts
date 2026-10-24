@@ -1,8 +1,8 @@
 import {
   createTranscriptBundle,
   type LumisChatMessage,
-  type LumisTranscriptBundle,
 } from '@flashlearn/shared';
+import { api } from './api';
 
 export interface LearningChatContext {
   phase?: 'socratic_tutor' | 'adversarial_debrief' | 'diagnostic_guide' | 'drift_revalidation' | 'general';
@@ -22,15 +22,13 @@ export interface LearningChatContext {
 
 class LumisChatState {
   isOpen = $state<boolean>(false);
-  serverUrl = $state<string>(
-    import.meta.env.VITE_LUMIS_SERVER_URL || 'https://chat.dvlpid.my.id'
-  );
   context = $state<LearningChatContext>({ phase: 'general' });
   pendingPrompt = $state<string>('');
   sessionId = $state<string>('');
   lastAdoptedDraft = $state<string>('');
   connectionStatus = $state<'idle' | 'connecting' | 'connected' | 'fallback'>('idle');
   messages = $state<LumisChatMessage[]>([]);
+  isThinking = $state<boolean>(false);
 
   appendMessage(role: 'user' | 'assistant', content: string) {
     if (!content.trim()) return;
@@ -41,15 +39,74 @@ class LumisChatState {
     });
   }
 
+  async sendMessage(promptText: string) {
+    const text = promptText.trim();
+    if (!text || this.isThinking) return;
+
+    this.appendMessage('user', text);
+    this.isThinking = true;
+    this.connectionStatus = 'connecting';
+
+    try {
+      if (this.context.taskId) {
+        const history = this.messages.slice(-6).map((m) => ({
+          role: m.role,
+          text: m.content,
+        }));
+        const res = await api.tasks.askSocraticHint(this.context.taskId, text);
+
+        let reply = res.socraticGuidance;
+        if (res.reflectiveQuestion) {
+          reply += `\n\n💡 **Pertanyaan Reflektif:**\n${res.reflectiveQuestion}`;
+        }
+        if (res.citationReferences && res.citationReferences.length > 0) {
+          const citations = res.citationReferences
+            .map((c) => `• ${c.sourceCode}${c.locationTag ? ` (${c.locationTag})` : ''}: ${c.relevantPrinciple || ''}`)
+            .join('\n');
+          reply += `\n\n📜 **Rujukan Naskah Standar:**\n${citations}`;
+        }
+        if (res.suggestedAction) {
+          reply += `\n\n🎯 **Langkah Tindak Lanjut:**\n${res.suggestedAction}`;
+        }
+
+        this.appendMessage('assistant', reply);
+        this.lastAdoptedDraft = reply;
+        this.sessionId = `socratic-${this.context.taskId}-${Date.now()}`;
+        this.connectionStatus = 'connected';
+      } else {
+        // Fallback pedagogical reflection for general or domain navigation
+        await new Promise((r) => setTimeout(r, 600));
+        let reply = '';
+        if (this.context.phase === 'adversarial_debrief') {
+          reply = `Dalam skenario bertekanan tinggi seperti "${this.context.taskTitle || 'Tugas Dilema'}", kaidah integritas dan pemisahan kewenangan (Segregation of Duties) bersifat mutlak.\n\n💡 **Pertanyaan Reflektif:** Mengapa kepatuhan prosedural wajib dipertahankan meskipun terdapat desakan percepatan atau ancaman eskalasi?`;
+        } else if (this.context.phase === 'diagnostic_guide') {
+          reply = `Berdasarkan peta diagnostik di workspace "${this.context.workspaceName || 'Domain'}", fokuskan pembelajaran Anda pada node-node fondasi yang berstatus 'Ready'. Menyelesaikan prasyarat awal akan otomatis membuka akses ke tingkat wewenang berikutnya.`;
+        } else {
+          reply = `Saya adalah Tutor Sokratik FlashLearn. Silakan pilih salah satu kompetensi atau tugas pada Peta Kompetensi (DAG) agar saya dapat memberikan bimbingan reflektif berbasis pasal dan standar teknis resmi.`;
+        }
+        this.appendMessage('assistant', reply);
+        this.lastAdoptedDraft = reply;
+        this.connectionStatus = 'connected';
+      }
+    } catch (err: any) {
+      this.appendMessage('assistant', `⚠️ Maaf, terjadi kendala saat menelaah: ${err.message || 'Gagal menghubungi server Sokratik'}. Pastikan Anda telah masuk sebagai pembelajar.`);
+      this.connectionStatus = 'fallback';
+    } finally {
+      this.isThinking = false;
+    }
+  }
+
   openWithContext(ctx: LearningChatContext, initialPrompt?: string) {
     this.context = { ...ctx };
     this.messages = [];
-    if (initialPrompt) {
-      this.pendingPrompt = initialPrompt;
-      this.appendMessage('user', initialPrompt);
-    }
-    this.connectionStatus = 'connecting';
+    this.sessionId = `session-${Date.now()}`;
     this.isOpen = true;
+
+    if (initialPrompt) {
+      this.sendMessage(initialPrompt);
+    } else {
+      this.connectionStatus = 'connected';
+    }
   }
 
   adoptDraft(draft: string) {
@@ -114,7 +171,7 @@ class LumisChatState {
     statutoryPolicy?: string;
     learnerChoice?: string;
   }) {
-    const prompt = `Halo AI Advisor. Dalam skenario uji integritas [${params.taskTitle}], saya ingin mendiskusikan mengapa kepatuhan mutlak terhadap '${params.statutoryPolicy || 'aturan resmi'}' tidak boleh dikompromikan oleh desakan waktu operasional. Apa analisis risiko hukum dan etika di baliknya?`;
+    const prompt = `Halo AI Advisor. Dalam skenario uji integritas [${params.taskTitle}], saya ingin mendiskusikan mengapa kepatuhan mutlak terhadap aturan resmi tidak boleh dikompromikan oleh desakan waktu operasional. Apa analisis risiko hukum dan etika di baliknya?`;
     this.openWithContext(
       {
         phase: 'adversarial_debrief',
@@ -146,7 +203,7 @@ class LumisChatState {
     retrievability: number;
   }) {
     const pct = Math.round(params.retrievability * 100);
-    const prompt = `Halo AI Coach. Kompetensi [${params.competencyCode} - ${params.competencyTitle}] saya mengalami peluruhan retrievabilitas hingga ${pct}%. Tolong berikan pertanyaan studi kasus kilat untuk merefresh pemahaman saya sebelum tantangan revalidasi.`;
+    const prompt = `Halo AI Coach. Kompetensi [${params.competencyCode} - ${params.competencyTitle}] saya mengalami peluruhan retrievabilitas hingga ${pct}%. Tolong berikan studi kasus kilat untuk merefresh pemahaman saya.`;
     this.openWithContext(
       {
         phase: 'drift_revalidation',

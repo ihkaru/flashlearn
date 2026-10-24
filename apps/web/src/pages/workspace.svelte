@@ -26,7 +26,7 @@
   let contents = $state<Content[]>([]);
   let isLoading = $state(true);
   let activeFilter = $state<string>('all');
-  let activeViewTab = $state<'modules' | 'competencies' | 'gates'>('modules');
+  let activeViewTab = $state<'competencies' | 'gates' | 'modules'>('competencies');
 
   // Creator Content Editor Modal state (Create & Edit)
   let showEditorModal = $state(false);
@@ -186,19 +186,11 @@
     <!-- Workspace Main Views Switcher -->
     <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; overflow-x: auto;">
       <button
-        onclick={() => (activeViewTab = 'modules')}
-        style="padding: 8px 16px; border-radius: 8px; border: none; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; background: {activeViewTab === 'modules' ? '#0f766e' : '#f8fafc'}; color: {activeViewTab === 'modules' ? '#ffffff' : '#64748b'};"
-      >
-        <Icon name="book-open" size={14} />
-        <span>Modul & Kuis</span>
-      </button>
-
-      <button
         onclick={() => (activeViewTab = 'competencies')}
         style="padding: 8px 16px; border-radius: 8px; border: none; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; background: {activeViewTab === 'competencies' ? '#0f766e' : '#f8fafc'}; color: {activeViewTab === 'competencies' ? '#ffffff' : '#64748b'};"
       >
         <Icon name="bolt" size={14} />
-        <span>Peta Kompetensi</span>
+        <span>Peta Kompetensi (DAG)</span>
       </button>
 
       <button
@@ -207,6 +199,14 @@
       >
         <Icon name="shield-check" size={14} />
         <span>Paspor Gerbang</span>
+      </button>
+
+      <button
+        onclick={() => (activeViewTab = 'modules')}
+        style="padding: 8px 16px; border-radius: 8px; border: none; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; background: {activeViewTab === 'modules' ? '#0f766e' : '#f8fafc'}; color: {activeViewTab === 'modules' ? '#ffffff' : '#64748b'};"
+      >
+        <Icon name="book-open" size={14} />
+        <span>Modul & Kuis</span>
       </button>
     </div>
 

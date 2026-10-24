@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { lumisChat } from '../../stores/lumisChat.svelte';
   import Icon from '../ui/Icon.svelte';
 
-  let iframeElement = $state<HTMLIFrameElement | null>(null);
-  let isIframeReady = $state(false);
-  let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
+  let inputPrompt = $state('');
+  let messagesContainer = $state<HTMLDivElement | null>(null);
 
   const phaseBadge = $derived.by(() => {
     switch (lumisChat.context.phase) {
@@ -22,104 +21,33 @@
     }
   });
 
-  const iframeSrc = $derived.by(() => {
-    if (typeof window === 'undefined') return '';
-    const origin = encodeURIComponent(window.location.origin);
-    const title = encodeURIComponent('FlashLearn AI Tutor');
-    return `${lumisChat.serverUrl}/embed/chat?title=${title}&origin=${origin}&theme=light`;
-  });
-
-  function handleMessage(event: MessageEvent) {
-    if (typeof window === 'undefined') return;
-    try {
-      const serverOrigin = new URL(lumisChat.serverUrl).origin;
-      if (event.origin !== serverOrigin) return;
-    } catch {
-      return;
+  async function scrollToBottom() {
+    await tick();
+    if (messagesContainer) {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
-
-    const data = event.data;
-    if (!data || data.source !== 'lumis-widget') return;
-
-    if (data.event === 'lumis:ready') {
-      isIframeReady = true;
-      lumisChat.setConnected(data.payload?.sessionId);
-      if (fallbackTimer) clearTimeout(fallbackTimer);
-      syncContextToIframe();
-    } else if (data.event === 'lumis:adopt_draft' || data.event === 'lumis:draft_response') {
-      const draft = data.payload?.draft || data.payload?.text || '';
-      if (draft) {
-        lumisChat.adoptDraft(draft);
-      }
-    }
-  }
-
-  function syncContextToIframe() {
-    if (!iframeElement?.contentWindow || !isIframeReady) return;
-
-    const serverOrigin = new URL(lumisChat.serverUrl).origin;
-    iframeElement.contentWindow.postMessage(
-      {
-        source: 'host-app',
-        event: 'lumis:init',
-        payload: {
-          context: lumisChat.context,
-        },
-      },
-      serverOrigin
-    );
-
-    if (lumisChat.pendingPrompt) {
-      sendPromptToIframe(lumisChat.pendingPrompt);
-      lumisChat.pendingPrompt = '';
-    }
-  }
-
-  function sendPromptToIframe(promptText: string) {
-    if (!iframeElement?.contentWindow) return;
-    lumisChat.appendMessage('user', promptText);
-    const serverOrigin = new URL(lumisChat.serverUrl).origin;
-    iframeElement.contentWindow.postMessage(
-      {
-        source: 'host-app',
-        event: 'lumis:send_prompt',
-        payload: { prompt: promptText },
-      },
-      serverOrigin
-    );
   }
 
   $effect(() => {
-    if (lumisChat.isOpen && isIframeReady && lumisChat.pendingPrompt) {
-      sendPromptToIframe(lumisChat.pendingPrompt);
-      lumisChat.pendingPrompt = '';
+    if (lumisChat.messages.length > 0 || lumisChat.isThinking) {
+      scrollToBottom();
     }
   });
 
-  $effect(() => {
-    if (lumisChat.isOpen && !isIframeReady) {
-      if (fallbackTimer) clearTimeout(fallbackTimer);
-      fallbackTimer = setTimeout(() => {
-        if (!isIframeReady && lumisChat.isOpen) {
-          lumisChat.triggerFallback();
-        }
-      }, 7000);
-    } else if (!lumisChat.isOpen) {
-      if (fallbackTimer) clearTimeout(fallbackTimer);
-    }
-  });
+  async function handleSend() {
+    const text = inputPrompt.trim();
+    if (!text || lumisChat.isThinking) return;
+    inputPrompt = '';
+    await lumisChat.sendMessage(text);
+    await scrollToBottom();
+  }
 
-  onMount(() => {
-    if (typeof window !== 'undefined') {
-      window.addEventListener('message', handleMessage);
+  function handleKeyDown(e: KeyboardEvent) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
-  });
-
-  onDestroy(() => {
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('message', handleMessage);
-    }
-  });
+  }
 </script>
 
 <!-- Floating Chat Assistant Container -->
@@ -127,13 +55,13 @@
   style="position: fixed; bottom: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none;"
 >
   {#if lumisChat.isOpen}
-    <!-- Expanded Floating Window -->
+    <!-- Expanded Floating Window (Native Svelte, Zero Cross-Origin Iframe) -->
     <div
       role="dialog"
       aria-modal="false"
       tabindex="-1"
       onkeydown={(e) => e.key === 'Escape' && lumisChat.close()}
-      style="pointer-events: auto; width: 440px; max-width: calc(100vw - 32px); height: 620px; max-height: calc(100dvh - 90px); background: #ffffff; border-radius: 20px; border: 1px solid #cbd5e1; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25); display: flex; flex-direction: column; overflow: hidden; margin-bottom: 12px; transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;"
+      style="pointer-events: auto; width: 440px; max-width: calc(100vw - 32px); height: 600px; max-height: calc(100dvh - 90px); background: #ffffff; border-radius: 20px; border: 1px solid #cbd5e1; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25); display: flex; flex-direction: column; overflow: hidden; margin-bottom: 12px; transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;"
     >
       <!-- Chat Header -->
       <div
@@ -144,10 +72,10 @@
             <Icon name="bolt" size={16} />
           </div>
           <div>
-            <div style="font-size: 0.88rem; font-weight: 800; line-height: 1.2;">FlashLearn AI Tutor</div>
+            <div style="font-size: 0.88rem; font-weight: 800; line-height: 1.2;">FlashLearn Socratic AI</div>
             <div style="font-size: 0.72rem; opacity: 0.9; display: flex; align-items: center; gap: 4px;">
               <span style="display: inline-block; width: 6px; height: 6px; border-radius: 3px; background: #34d399;"></span>
-              <span>Lumis In-App Engine</span>
+              <span>Terisolasi & Terverifikasi (Anti-Bocoran)</span>
             </div>
           </div>
         </div>
@@ -176,45 +104,30 @@
           {/if}
         </div>
 
-        {#if lumisChat.connectionStatus === 'fallback'}
-          <div style="padding: 4px 8px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; color: #92400e;">
-            <span>⚠️ Koneksi Lumis cloud lambat.</span>
-            <button
-              onclick={() => lumisChat.openWithContext(lumisChat.context)}
-              style="background: #f59e0b; color: #ffffff; border: none; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.68rem; cursor: pointer;"
-            >
-              Coba Lagi
-            </button>
-          </div>
-        {/if}
-
         <!-- Quick Action Prompt Pills -->
         <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px;">
-          {#if lumisChat.context.scenario}
+          {#if lumisChat.lastAdoptedDraft}
             <button
-              onclick={() => {
-                const draft = `[Refleksi Pembelajaran Berdasarkan Skenario]:\n${lumisChat.context.scenario}\n\nAnalisis: Berdasarkan rujukan standar resmi dan kaidah integritas, seluruh parameter verifikasi wajib dipenuhi tanpa toleransi deviasi non-prosedural.`;
-                lumisChat.adoptDraft(draft);
-              }}
+              onclick={() => lumisChat.adoptDraft(lumisChat.lastAdoptedDraft)}
               style="white-space: nowrap; font-size: 0.72rem; font-weight: 700; background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1; padding: 4px 8px; border-radius: 6px; cursor: pointer;"
             >
               📥 Terapkan ke Form Tugas
             </button>
           {/if}
           <button
-            onclick={() => sendPromptToIframe('Berikan pertanyaan pemantik sokratik tanpa membocorkan kunci jawaban.')}
+            onclick={() => lumisChat.sendMessage('Berikan pertanyaan pemantik sokratik tanpa membocorkan kunci jawaban.')}
             style="white-space: nowrap; font-size: 0.72rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 4px 8px; border-radius: 6px; cursor: pointer;"
           >
             💡 Hint Sokratik
           </button>
           <button
-            onclick={() => sendPromptToIframe('Apa rujukan pasal atau dokumen standar resmi untuk skenario ini?')}
+            onclick={() => lumisChat.sendMessage('Apa rujukan pasal atau dokumen standar resmi untuk skenario ini?')}
             style="white-space: nowrap; font-size: 0.72rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 4px 8px; border-radius: 6px; cursor: pointer;"
           >
             📜 Rujukan Regulasi
           </button>
           <button
-            onclick={() => sendPromptToIframe('Mengapa kompromi terhadap syarat ini berisiko fatal?')}
+            onclick={() => lumisChat.sendMessage('Mengapa kompromi terhadap syarat ini berisiko fatal?')}
             style="white-space: nowrap; font-size: 0.72rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 4px 8px; border-radius: 6px; cursor: pointer;"
           >
             ⚠️ Analisis Risiko
@@ -222,17 +135,73 @@
         </div>
       </div>
 
-      <!-- Isolated Lumis Embed Iframe Viewport -->
-      <div style="flex: 1; position: relative; background: #fdfdfd;">
-        {#if iframeSrc}
-          <iframe
-            bind:this={iframeElement}
-            src={iframeSrc}
-            title="Lumis Chat Assistant"
-            allow="clipboard-write"
-            style="width: 100%; height: 100%; border: none; display: block;"
-          ></iframe>
+      <!-- Native Message Viewport -->
+      <div
+        bind:this={messagesContainer}
+        style="flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; background: #fdfdfd;"
+      >
+        {#if lumisChat.messages.length === 0}
+          <div style="text-align: center; padding: 32px 16px; color: #64748b; font-size: 0.85rem;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: #ccfbf1; color: #0f766e; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+              <Icon name="bolt" size={24} />
+            </div>
+            <div style="font-weight: 800; color: #0f172a; margin-bottom: 4px;">Tutor Sokratik Siap Membimbing</div>
+            <div style="font-size: 0.78rem; line-height: 1.5; max-width: 300px; margin: 0 auto;">
+              Ajukan pertanyaan mengenai skenario atau rujukan regulasi. Tutor memandu proses penalaran Anda tanpa mengungkap kunci jawaban.
+            </div>
+          </div>
+        {:else}
+          {#each lumisChat.messages as m}
+            <div
+              style="display: flex; flex-direction: column; align-items: {m.role === 'user' ? 'flex-end' : 'flex-start'}; max-width: 100%;"
+            >
+              <div
+                style="max-width: 86%; border-radius: {m.role === 'user' ? '14px 14px 2px 14px' : '14px 14px 14px 2px'}; padding: 10px 14px; font-size: 0.84rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; background: {m.role === 'user' ? '#0f766e' : '#ffffff'}; color: {m.role === 'user' ? '#ffffff' : '#1e293b'}; border: {m.role === 'user' ? 'none' : '1px solid #e2e8f0'}; box-shadow: 0 1px 3px rgba(0,0,0,0.04);"
+              >
+                {m.content}
+              </div>
+              <span style="font-size: 0.65rem; color: #94a3b8; margin-top: 3px; padding: 0 4px;">
+                {m.role === 'user' ? 'Anda' : 'Tutor Sokratik'}
+              </span>
+            </div>
+          {/each}
         {/if}
+
+        {#if lumisChat.isThinking}
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #f1f5f9; border-radius: 10px; width: fit-content; font-size: 0.78rem; color: #64748b;">
+            <div style="display: flex; gap: 4px;">
+              <span style="width: 6px; height: 6px; border-radius: 3px; background: #0f766e; animation: pulse 1s infinite alternate;"></span>
+              <span style="width: 6px; height: 6px; border-radius: 3px; background: #0f766e; animation: pulse 1s infinite alternate; animation-delay: 0.2s;"></span>
+              <span style="width: 6px; height: 6px; border-radius: 3px; background: #0f766e; animation: pulse 1s infinite alternate; animation-delay: 0.4s;"></span>
+            </div>
+            <span>Menelaah klausul naskah rujukan...</span>
+          </div>
+        {/if}
+      </div>
+
+      <!-- Native Chat Input Bar -->
+      <div style="padding: 10px 12px; border-top: 1px solid #e2e8f0; background: #ffffff; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input
+            type="text"
+            placeholder="Tanyakan konsep, dasar pasal, atau kalkulasi..."
+            bind:value={inputPrompt}
+            onkeydown={handleKeyDown}
+            disabled={lumisChat.isThinking}
+            style="flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem; outline: none; background: #f8fafc;"
+          />
+          <button
+            onclick={handleSend}
+            disabled={lumisChat.isThinking || !inputPrompt.trim()}
+            aria-label="Kirim Pesan"
+            style="width: 38px; height: 38px; border-radius: 10px; border: none; background: #0f766e; color: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;"
+          >
+            <Icon name="check-circle" size={16} />
+          </button>
+        </div>
+        <div style="font-size: 0.68rem; color: #94a3b8; text-align: center;">
+          Kerahasiaan terisolasi ke sesi FlashLearn Anda · Anti-Bocoran Kunci Jawaban
+        </div>
       </div>
     </div>
   {/if}

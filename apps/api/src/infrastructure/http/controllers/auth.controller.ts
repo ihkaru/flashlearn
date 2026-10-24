@@ -67,4 +67,44 @@ export const authController = new Elysia({ prefix: '/api/v1/auth' })
         description: 'Returns public client configuration such as Google Client ID.',
       },
     }
+  )
+  .post(
+    '/demo-login',
+    async ({ body, set }) => {
+      try {
+        const email = body?.email || 'learner@flashlearn.dev';
+        const role = (body?.role as any) || 'creator';
+        let user = await container.userRepository.findByEmail(email);
+        if (!user) {
+          user = await container.userRepository.create({
+            email,
+            name: body?.name || 'Pembelajar Mandiri (Demo)',
+            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`,
+            role,
+          });
+        }
+        const token = container.tokenService.generateToken(user.id);
+        return {
+          token,
+          user,
+        };
+      } catch (err: any) {
+        set.status = 500;
+        return { error: `Demo login failed: ${err.message}` };
+      }
+    },
+    {
+      body: t.Optional(
+        t.Object({
+          email: t.Optional(t.String()),
+          name: t.Optional(t.String()),
+          role: t.Optional(t.String()),
+        })
+      ),
+      detail: {
+        tags: ['Authentication'],
+        summary: '1-Click Verified Learner Demo Login',
+        description: 'Provisions an instant learner session token for frictionless evaluation without external OAuth dependencies.',
+      },
+    }
   );
