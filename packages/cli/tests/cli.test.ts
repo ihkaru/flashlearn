@@ -299,4 +299,33 @@ describe('FlashLearn Agent-First CLI (October 2026 Standards)', () => {
     expect(parsed.data.target.payload.taskType).toBe('adversarial_dilemma');
     expect(parsed.data.target.payload.adversarialSpec.trapType).toBe('OMISSION_DATA');
   });
+
+  test('Domain Synthesizer & Autonomous Builder: workspace/domain synthesize from markdown', async () => {
+    // 1. Action help
+    captureOutput();
+    let code = await runCli(['workspace', 'synthesize', '--help']);
+    expect(code).toBe(ExitCode.SUCCESS);
+    let parsed = JSON.parse(stdoutData);
+    expect(parsed.data.title).toBe('FlashLearn CLI: workspace synthesize');
+    expect(parsed.data.description).toContain('Tarjan SCC');
+
+    // 2. Dry-run synthesis from sample markdown
+    captureOutput();
+    code = await runCli([
+      'domain',
+      'synthesize',
+      '--workspace-name=Pengadaan Berkelanjutan',
+      '--source-files=./docs/samples/sop-manajemen-risiko-vendor.md',
+      '--dry-run',
+    ]);
+    expect(code).toBe(ExitCode.SUCCESS);
+    parsed = JSON.parse(stdoutData);
+    expect(parsed.data.dryRun).toBe(true);
+    expect(parsed.data.dagIsAcyclic).toBe(true);
+    expect(parsed.data.sourcesCount).toBe(1);
+    expect(parsed.data.chunksCount).toBe(8);
+    expect(parsed.data.competenciesCount).toBe(3);
+    expect(parsed.data.gatesCount).toBe(3);
+    expect(parsed.data.tasksCount).toBe(3);
+  });
 });

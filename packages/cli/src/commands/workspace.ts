@@ -1,6 +1,7 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import type { ApiClient } from '../core/client';
 import { CliError, ExitCode, type NextAction } from '../core/envelope';
+import { synthesizeDomainBlueprint } from '../core/domain-synthesizer';
 
 export async function handleWorkspaceCommand(
   action: string,
@@ -136,6 +137,77 @@ export async function handleWorkspaceCommand(
         }
       }
       return { data, nextActions: nextActions.length > 0 ? nextActions : undefined };
+    }
+
+    case 'synthesize':
+    case 'bootstrap': {
+      const workspaceName = flags['workspace-name'] || flags.name || args[0];
+      const sourceFilesStr = flags['source-files'] || flags.files || flags.file;
+      const isDryRun = !!flags['dry-run'];
+      const outputFile = flags.output;
+
+      if (!workspaceName || !sourceFilesStr) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Workspace name and source files are required: `flashlearn workspace synthesize --workspace-name "<name>" --source-files "<file1.md,file2.md>"`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      const sourceFiles = String(sourceFilesStr).split(',').map((f) => f.trim()).filter((f) => f.length > 0);
+      const synthResult = synthesizeDomainBlueprint({
+        workspaceName,
+        sourceFiles,
+        slug: flags.slug,
+        outputFile,
+      });
+
+      if (outputFile) {
+        writeFileSync(outputFile, JSON.stringify(synthResult.blueprint, null, 2), 'utf-8');
+      }
+
+      if (isDryRun) {
+        return {
+          data: {
+            dryRun: true,
+            workspaceName,
+            ...synthResult.statistics,
+            dagIsAcyclic: synthResult.dagIsAcyclic,
+            outputFile: outputFile || null,
+          },
+          nextActions: [
+            {
+              command: `flashlearn workspace synthesize --workspace-name "${workspaceName}" --source-files "${sourceFilesStr}"`,
+              description: 'Persist domain blueprint into production FlashLearn engine',
+            },
+          ],
+        };
+      }
+
+      const res = await client.request('/api/v1/workspaces/import-blueprint', {
+        method: 'POST',
+        body: synthResult.blueprint,
+      });
+
+      const desc = await client.request(`/api/v1/workspaces/${res.workspaceId}/describe`);
+
+      return {
+        data: {
+          workspaceId: res.workspaceId,
+          slug: res.slug || flags.slug,
+          readinessScore: desc.readinessScore,
+          cycleDetected: desc.cycleDetected,
+          gaps: desc.gaps,
+          topology: desc.topology,
+          statistics: desc.statistics,
+        },
+        nextActions: [
+          {
+            command: `flashlearn workspace describe ${res.workspaceId}`,
+            description: 'Inspect live domain topology and readiness ledger',
+          },
+        ],
+      };
     }
 
     default:

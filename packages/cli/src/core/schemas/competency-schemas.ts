@@ -63,6 +63,18 @@ export const COMPETENCY_SCHEMAS: Record<string, ResourceSchemaDef> = {
         example: 'flashlearn workspace describe pbj-2026',
         mutating: false,
       },
+      {
+        action: 'synthesize',
+        description: 'Autonomously synthesize complete domain blueprint from Markdown regulations/SOPs with Tarjan SCC DAG validation',
+        args: [
+          { name: '--workspace-name', type: 'string', required: true, description: 'Target workspace name' },
+          { name: '--source-files', type: 'string', required: true, description: 'Comma-separated Markdown file paths' },
+          { name: '--output', type: 'string', required: false, description: 'Optional path to save generated blueprint JSON' },
+          { name: '--dry-run', type: 'boolean', required: false, description: 'Simulate synthesis without writing to server' },
+        ],
+        example: 'flashlearn workspace synthesize --workspace-name "Risiko Vendor" --source-files "./docs/sop.md"',
+        mutating: true,
+      },
     ],
   },
   source: {

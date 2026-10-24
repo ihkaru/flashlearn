@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FlashLearnDomainBlueprint",
+  "type": "object",
+  "required": ["workspace", "sources", "competencies", "prerequisiteEdges", "gates", "tasks"],
+  "properties": {
+    "workspace": {
+      "type": "object",
+      "required": ["name", "slug", "description"],
+      "properties": {
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "description": { "type": "string" },
+        "icon": { "type": "string" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "title", "version", "owner", "chunks"],
+        "properties": {
+          "code": { "type": "string" },
+          "title": { "type": "string" },
+          "version": { "type": "string" },
+          "owner": { "type": "string" },
+          "effectiveDate": { "type": "string" },
+          "chunks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["locationTag", "content"],
+              "properties": {
+                "locationTag": { "type": "string" },
+                "content": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "competencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "title", "description", "oracleClass", "riskLevel"],
+        "properties": {
+          "code": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "oracleClass": { "type": "string", "enum": ["A", "B", "C"] },
+          "riskLevel": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+          "cognitiveTier": { "type": "string", "enum": ["remember", "apply", "analyze", "evaluate", "create"] }
+        }
+      }
+    },
+    "prerequisiteEdges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sourceCompetencyCode", "targetCompetencyCode"],
+        "properties": {
+          "sourceCompetencyCode": { "type": "string" },
+          "targetCompetencyCode": { "type": "string" }
+        }
+      }
+    },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "level", "description", "requiredCompetencyCodes"],
+        "properties": {
+          "name": { "type": "string" },
+          "level": { "type": "integer", "enum": [0, 1, 2, 3] },
+          "description": { "type": "string" },
+          "requiredCompetencyCodes": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["competencyCode", "title", "scenario", "taskType", "oracleData", "rubricCriteria"],
+        "properties": {
+          "competencyCode": { "type": "string" },
+          "title": { "type": "string" },
+          "scenario": { "type": "string" },
+          "taskType": {
+            "type": "string",
+            "enum": ["calculation", "case_study", "document_draft", "checklist", "adversarial_dilemma"]
+          },
+          "oracleData": { "type": "object" },
+          "adversarialSpec": {
+            "type": "object",
+            "properties": {
+              "trapType": { "type": "string" },
+              "correctDisposition": { "type": "string" },
+              "trapCues": { "type": "array" },
+              "statutoryPolicy": { "type": "string" },
+              "vetoThreshold": { "type": "number" }
+            }
+          },
+          "rubricCriteria": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "title", "weight", "description"],
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "weight": { "type": "number" },
+                "description": { "type": "string" }
+              }
+            }
+          },
+          "passingScore": { "type": "integer" }
+        }
+      }
+    }
+  }
+}
