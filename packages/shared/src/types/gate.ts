@@ -68,3 +68,25 @@ export interface EvaluateGateEligibilityResult {
     achievedScore: number;
   }>;
 }
+
+export interface PublicGateVerificationResponse {
+  grantId: string;
+  holderName: string;
+  workspaceName: string;
+  gateLevel: GateLevel;
+  gateTitle: string;
+  gateDescription: string;
+  status: GateGrantStatus;
+  grantedAt: string;
+  grantedBy: string;
+  revokedAt?: string | null;
+  revocationReason?: string | null;
+  evidenceSnapshot: {
+    gateLevel: GateLevel;
+    verifiedCompetencyIds: string[];
+    timestamp: string;
+    evaluatorNotes?: string;
+  };
+  isCurrentlyValid: boolean;
+  verificationUrl: string;
+}

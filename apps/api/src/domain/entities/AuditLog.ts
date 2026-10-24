@@ -5,7 +5,7 @@ export interface AuditLogProps {
   workspaceId: string;
   actorId: string;
   action: AuditAction;
-  targetType: 'gate' | 'competency' | 'attempt' | 'source';
+  targetType: 'gate' | 'competency' | 'attempt' | 'source' | 'content';
   targetId: string;
   payload: Record<string, any>;
   createdAt?: Date;
@@ -16,7 +16,7 @@ export class AuditLogEntity implements AuditLogEntry {
   readonly workspaceId: string;
   readonly actorId: string;
   readonly action: AuditAction;
-  readonly targetType: 'gate' | 'competency' | 'attempt' | 'source';
+  readonly targetType: 'gate' | 'competency' | 'attempt' | 'source' | 'content';
   readonly targetId: string;
   readonly payload: Record<string, any>;
   readonly createdAt: string;

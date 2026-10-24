@@ -6,6 +6,7 @@ import type { OracleEvaluatorClassA } from '../../../domain/services/OracleEvalu
 import type { OracleEvaluatorClassB } from '../../../domain/services/OracleEvaluatorClassB';
 import type { FlashcardGeneratorService } from '../../../domain/services/FlashcardGeneratorService';
 import type { CompetencyGraphEngine } from '../../../domain/services/CompetencyGraphEngine';
+import type { IAuditLogRepository } from '../../../domain/ports/IAuditLogRepository';
 import type {
   EvaluateAttemptRequest,
   EvaluateAttemptResponse,
@@ -21,7 +22,8 @@ export class EvaluateAttemptUseCase {
     private readonly evaluatorA: OracleEvaluatorClassA,
     private readonly evaluatorB: OracleEvaluatorClassB,
     private readonly flashcardGen: FlashcardGeneratorService,
-    private readonly graphEngine: CompetencyGraphEngine
+    private readonly graphEngine: CompetencyGraphEngine,
+    private readonly auditLogRepo?: IAuditLogRepository
   ) {}
 
   async execute(userId: string, req: EvaluateAttemptRequest): Promise<EvaluateAttemptResponse> {
@@ -105,6 +107,28 @@ export class EvaluateAttemptUseCase {
       passed,
       details,
     });
+
+    // Append Immutable Audit Log
+    if (this.auditLogRepo) {
+      await this.auditLogRepo.append({
+        workspaceId: competency.workspaceId,
+        actorId: userId,
+        action: 'ORACLE_EVALUATED',
+        targetType: 'attempt',
+        targetId: attempt.id,
+        payload: {
+          taskId: task.id,
+          taskTitle: task.title,
+          competencyId: competency.id,
+          competencyCode: competency.code,
+          score,
+          passed,
+          oracleClassUsed: competency.oracleClass,
+          assessedBy,
+          detectedTraps: details?.detectedTraps || [],
+        },
+      });
+    }
 
     // 4. Update Mastery Ledger if Passed
     let unlockedCompetencyId: string | null = null;

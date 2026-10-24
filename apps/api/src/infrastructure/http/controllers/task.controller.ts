@@ -145,4 +145,42 @@ export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
         summary: 'List Attempts for Task',
       },
     }
+  )
+  .post(
+    '/:id/socratic-hint',
+    async ({ headers, params, body, set }) => {
+      const auth = await resolveAuth(headers);
+      if (!auth.user) {
+        set.status = 401;
+        return { error: 'Unauthorized: Sign in required to consult Socratic Tutor' };
+      }
+
+      try {
+        return await container.askSocraticTutorUseCase.execute(params.id, body);
+      } catch (err: any) {
+        set.status = 400;
+        return { error: err.message };
+      }
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      body: t.Object({
+        question: t.String({ minLength: 3 }),
+        conversationHistory: t.Optional(
+          t.Array(
+            t.Object({
+              role: t.Union([t.Literal('user'), t.Literal('assistant')]),
+              text: t.String(),
+            })
+          )
+        ),
+      }),
+      detail: {
+        tags: ['Task Bank & Oracle'],
+        summary: 'Ask Socratic AI Tutor for Grounded In-Task Guidance',
+        description: 'Provides pedagogical, reflective inquiry anchored strictly in the Corpus of Record while guarding Oracle solutions.',
+      },
+    }
   );

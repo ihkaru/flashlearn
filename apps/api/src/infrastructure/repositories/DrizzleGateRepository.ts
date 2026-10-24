@@ -1,4 +1,4 @@
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, inArray } from 'drizzle-orm';
 import { db } from '../database/db';
 import { gates, gateRequirements, userGateGrants } from '../database/schema';
 import { GateEntity } from '../../domain/entities/Gate';
@@ -169,6 +169,27 @@ export class DrizzleGateRepository implements IGateRepository {
     });
   }
 
+  async findGrantById(grantId: string): Promise<UserGateGrantEntity | null> {
+    const [row] = await db
+      .select()
+      .from(userGateGrants)
+      .where(eq(userGateGrants.id, grantId))
+      .limit(1);
+
+    if (!row) return null;
+    return new UserGateGrantEntity({
+      id: row.id,
+      userId: row.userId,
+      gateId: row.gateId,
+      status: row.status as any,
+      grantedAt: row.grantedAt,
+      grantedBy: row.grantedBy,
+      revokedAt: row.revokedAt,
+      revocationReason: row.revocationReason,
+      evidenceSnapshot: row.evidenceSnapshot as any,
+    });
+  }
+
   async findGrantByUserAndGate(userId: string, gateId: string): Promise<UserGateGrantEntity | null> {
     const [row] = await db
       .select()
@@ -196,6 +217,33 @@ export class DrizzleGateRepository implements IGateRepository {
       .select()
       .from(userGateGrants)
       .where(eq(userGateGrants.userId, userId))
+      .orderBy(desc(userGateGrants.grantedAt));
+
+    return rows.map(
+      (r) =>
+        new UserGateGrantEntity({
+          id: r.id,
+          userId: r.userId,
+          gateId: r.gateId,
+          status: r.status as any,
+          grantedAt: r.grantedAt,
+          grantedBy: r.grantedBy,
+          revokedAt: r.revokedAt,
+          revocationReason: r.revocationReason,
+          evidenceSnapshot: r.evidenceSnapshot as any,
+        })
+    );
+  }
+
+  async listGrantsByWorkspace(workspaceId: string): Promise<UserGateGrantEntity[]> {
+    const gateRows = await db.select({ id: gates.id }).from(gates).where(eq(gates.workspaceId, workspaceId));
+    if (gateRows.length === 0) return [];
+    const gateIds = gateRows.map((g) => g.id);
+
+    const rows = await db
+      .select()
+      .from(userGateGrants)
+      .where(inArray(userGateGrants.gateId, gateIds))
       .orderBy(desc(userGateGrants.grantedAt));
 
     return rows.map(

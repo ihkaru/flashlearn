@@ -2,6 +2,7 @@
   import type { Task, Attempt } from '@flashlearn/shared';
   import { api } from '../../stores/api';
   import Icon from '../ui/Icon.svelte';
+  import SocraticTutorDrawer from './SocraticTutorDrawer.svelte';
 
   interface Props {
     task: Task;
@@ -74,6 +75,9 @@
       {task.scenario}
     </div>
   </div>
+
+  <!-- Socratic Pedagogical Tutor -->
+  <SocraticTutorDrawer taskId={task.id} />
 
   <!-- Form Inputs Based on Oracle Class -->
   {#if oracleClass === 'A'}

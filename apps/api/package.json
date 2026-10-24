@@ -9,7 +9,9 @@
     "db:migrate": "bun run src/infrastructure/database/migrate.ts",
     "db:push": "bun run drizzle-kit push",
     "db:generate": "bun run drizzle-kit generate",
-    "db:seed": "bun run src/infrastructure/database/seed.ts"
+    "db:seed": "bun run src/infrastructure/database/seed.ts",
+    "worker": "bun src/worker.ts",
+    "worker:once": "bun src/worker.ts --once"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.2.0",

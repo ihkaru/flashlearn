@@ -6,7 +6,7 @@ export interface IAuditLogRepository {
     workspaceId: string;
     actorId: string;
     action: AuditAction;
-    targetType: 'gate' | 'competency' | 'attempt' | 'source';
+    targetType: 'gate' | 'competency' | 'attempt' | 'source' | 'content';
     targetId: string;
     payload: Record<string, any>;
   }): Promise<AuditLogEntity>;

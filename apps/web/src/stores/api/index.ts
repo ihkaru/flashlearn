@@ -7,6 +7,7 @@ import { gateApi } from './gates';
 import { reviewerApi } from './reviewer';
 import { spacedApi } from './spaced';
 import { apiKeyApi } from './apiKeys';
+import { auditApi } from './audit';
 
 export { clearApiCache, API_URL, fetchWithAuth };
 
@@ -19,4 +20,5 @@ export const api = {
   reviewer: reviewerApi,
   spaced: spacedApi,
   apiKeys: apiKeyApi,
+  audit: auditApi,
 };

@@ -44,3 +44,67 @@ export interface UpdateWorkspaceRequest {
 export interface RollbackRequest {
   versionNumber?: number;
 }
+
+export interface DomainBlueprint {
+  version: string;
+  workspace: {
+    name: string;
+    slug?: string;
+    description: string;
+    icon?: string;
+  };
+  sources: Array<{
+    code: string;
+    title: string;
+    version: string;
+    owner: string;
+    effectiveDate: string;
+    chunks: Array<{
+      locationTag: string;
+      content: string;
+    }>;
+  }>;
+  competencies: Array<{
+    code: string;
+    sourceCode?: string;
+    title: string;
+    description: string;
+    oracleClass: 'A' | 'B' | 'C';
+    riskLevel: 'low' | 'medium' | 'high';
+    prerequisites?: string[];
+  }>;
+  gates: Array<{
+    level: 0 | 1 | 2 | 3;
+    title: string;
+    description: string;
+    requirements: Array<{
+      competencyCode: string;
+      minimumScore: number;
+      requiresHumanApproval?: boolean;
+    }>;
+  }>;
+  tasks?: Array<{
+    competencyCode: string;
+    title: string;
+    scenario: string;
+    taskType: 'calculation' | 'case_study' | 'document_draft' | 'checklist';
+    oracleData: Record<string, any>;
+    rubricCriteria: Array<{
+      id: string;
+      title: string;
+      weight: number;
+      description: string;
+    }>;
+    passingScore?: number;
+  }>;
+}
+
+export interface ImportBlueprintResponse {
+  workspaceId: string;
+  workspaceSlug: string;
+  sourcesCreated: number;
+  competenciesCreated: number;
+  edgesLinked: number;
+  gatesCreated: number;
+  tasksCreated: number;
+}

@@ -66,6 +66,45 @@ export const workspaceController = new Elysia({ prefix: '/api/v1/workspaces' })
       },
     }
   )
+  .post(
+    '/import-blueprint',
+    async ({ headers, body, set }) => {
+      const auth = await resolveAuth(headers);
+      if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
+        set.status = 403;
+        return { error: 'Forbidden: Only creators and superadmins can import domain blueprints' };
+      }
+
+      try {
+        const result = await container.importDomainBlueprintUseCase.execute(auth.user.id, body as any);
+        set.status = 201;
+        return result;
+      } catch (err: any) {
+        set.status = 400;
+        return { error: err.message };
+      }
+    },
+    {
+      body: t.Object({
+        version: t.String(),
+        workspace: t.Object({
+          name: t.String(),
+          slug: t.Optional(t.String()),
+          description: t.String(),
+          icon: t.Optional(t.String()),
+        }),
+        sources: t.Array(t.Any()),
+        competencies: t.Array(t.Any()),
+        gates: t.Array(t.Any()),
+        tasks: t.Optional(t.Array(t.Any())),
+      }),
+      detail: {
+        tags: ['Workspaces'],
+        summary: 'Import Universal Domain Blueprint',
+        description: 'Declaratively imports full domain specification with sources, competency DAG, gates, and tasks.',
+      },
+    }
+  )
   .get(
     '/:id',
     async ({ headers, params, set }) => {

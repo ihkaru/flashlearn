@@ -32,6 +32,7 @@ import { UpdateWorkspaceUseCase } from '../../application/use-cases/workspace/Up
 import { DeleteWorkspaceUseCase } from '../../application/use-cases/workspace/DeleteWorkspaceUseCase';
 import { RollbackWorkspaceUseCase } from '../../application/use-cases/workspace/RollbackWorkspaceUseCase';
 import { RestoreWorkspaceUseCase } from '../../application/use-cases/workspace/RestoreWorkspaceUseCase';
+import { ImportDomainBlueprintUseCase } from '../../application/use-cases/workspace/ImportDomainBlueprintUseCase';
 
 import { CreateContentUseCase } from '../../application/use-cases/content/CreateContentUseCase';
 import { ListContentsUseCase } from '../../application/use-cases/content/ListContentsUseCase';
@@ -63,11 +64,14 @@ import { ApproveCompetencyUseCase } from '../../application/use-cases/competency
 
 import { CreateTaskUseCase } from '../../application/use-cases/task/CreateTaskUseCase';
 import { EvaluateAttemptUseCase } from '../../application/use-cases/task/EvaluateAttemptUseCase';
+import { AskSocraticTutorUseCase } from '../../application/use-cases/task/AskSocraticTutorUseCase';
 
 import { CreateGateUseCase } from '../../application/use-cases/gate/CreateGateUseCase';
 import { EvaluateAndGrantGateUseCase } from '../../application/use-cases/gate/EvaluateAndGrantGateUseCase';
 import { ReviewClassCAttemptUseCase } from '../../application/use-cases/gate/ReviewClassCAttemptUseCase';
 import { ListPendingClassCReviewsUseCase } from '../../application/use-cases/gate/ListPendingClassCReviewsUseCase';
+import { VerifyPublicPassportUseCase } from '../../application/use-cases/gate/VerifyPublicPassportUseCase';
+import { ExportAuditBundleUseCase } from '../../application/use-cases/audit/ExportAuditBundleUseCase';
 
 import { SupersedeSourceUseCase } from '../../application/use-cases/staleness/SupersedeSourceUseCase';
 import { PracticeSpacedCardUseCase } from '../../application/use-cases/spaced/PracticeSpacedCardUseCase';
@@ -116,6 +120,15 @@ export class Container {
   public readonly deleteWorkspaceUseCase = new DeleteWorkspaceUseCase(this.workspaceRepository);
   public readonly rollbackWorkspaceUseCase = new RollbackWorkspaceUseCase(this.workspaceRepository);
   public readonly restoreWorkspaceUseCase = new RestoreWorkspaceUseCase(this.workspaceRepository);
+  public readonly importDomainBlueprintUseCase = new ImportDomainBlueprintUseCase(
+    this.workspaceRepository,
+    this.sourceRepository,
+    this.competencyRepository,
+    this.gateRepository,
+    this.taskRepository,
+    this.competencyGraphEngine,
+    this.auditLogRepository
+  );
 
   public readonly createContentUseCase = new CreateContentUseCase(
     this.contentRepository,
@@ -208,7 +221,14 @@ export class Container {
     this.oracleEvaluatorClassA,
     this.oracleEvaluatorClassB,
     this.flashcardGenerator,
-    this.competencyGraphEngine
+    this.competencyGraphEngine,
+    this.auditLogRepository
+  );
+  public readonly askSocraticTutorUseCase = new AskSocraticTutorUseCase(
+    this.taskRepository,
+    this.competencyRepository,
+    this.sourceRepository,
+    this.aiGateway
   );
 
   // Phase 04: Progressive Authorization Gates & Human Expert Use Cases
@@ -234,6 +254,11 @@ export class Container {
     this.competencyRepository,
     this.userRepository
   );
+  public readonly verifyPublicPassportUseCase = new VerifyPublicPassportUseCase(
+    this.gateRepository,
+    this.userRepository,
+    this.workspaceRepository
+  );
 
   // Phase 05: Staleness Engine & Spaced Repetition Use Cases
   public readonly supersedeSourceUseCase = new SupersedeSourceUseCase(
@@ -249,6 +274,14 @@ export class Container {
   );
   public readonly getDueSpacedCardsUseCase = new GetDueSpacedCardsUseCase(
     this.spacedFlashcardRepository
+  );
+
+  // Phase 07: Regulatory Compliance Bundle Exporter
+  public readonly exportAuditBundleUseCase = new ExportAuditBundleUseCase(
+    this.workspaceRepository,
+    this.auditLogRepository,
+    this.sourceRepository,
+    this.gateRepository
   );
 }
 

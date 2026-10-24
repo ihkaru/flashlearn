@@ -28,8 +28,10 @@ export interface IGateRepository {
     evidenceSnapshot: Record<string, any>;
   }): Promise<UserGateGrantEntity>;
 
+  findGrantById(grantId: string): Promise<UserGateGrantEntity | null>;
   findGrantByUserAndGate(userId: string, gateId: string): Promise<UserGateGrantEntity | null>;
   listGrantsByUser(userId: string): Promise<UserGateGrantEntity[]>;
+  listGrantsByWorkspace(workspaceId: string): Promise<UserGateGrantEntity[]>;
   updateGrantStatus(grantId: string, status: 'active' | 'provisional' | 'revoked', reason?: string): Promise<void>;
   suspendGrantsForWorkspace(workspaceId: string, reason: string): Promise<number>;
 }

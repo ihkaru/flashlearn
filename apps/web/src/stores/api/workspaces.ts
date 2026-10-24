@@ -1,5 +1,11 @@
 import { fetchWithAuth } from './core';
-import type { Workspace, CreateWorkspaceRequest, UpdateWorkspaceRequest } from '@flashlearn/shared';
+import type {
+  Workspace,
+  CreateWorkspaceRequest,
+  UpdateWorkspaceRequest,
+  DomainBlueprint,
+  ImportBlueprintResponse,
+} from '@flashlearn/shared';
 
 export const workspaceApi = {
   list: (scope: 'public' | 'mine' | 'all' = 'public'): Promise<Workspace[]> =>
@@ -19,4 +25,9 @@ export const workspaceApi = {
     }),
   restore: (id: string): Promise<Workspace> =>
     fetchWithAuth(`/api/v1/workspaces/${id}/restore`, { method: 'POST' }),
+  importBlueprint: (blueprint: DomainBlueprint): Promise<ImportBlueprintResponse> =>
+    fetchWithAuth('/api/v1/workspaces/import-blueprint', {
+      method: 'POST',
+      body: JSON.stringify(blueprint),
+    }),
 };

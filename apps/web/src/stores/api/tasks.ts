@@ -1,5 +1,5 @@
 import { fetchWithAuth } from './core';
-import type { Task, Attempt } from '@flashlearn/shared';
+import type { Task, Attempt, SocraticTutorResponse } from '@flashlearn/shared';
 
 export interface SubmitTaskAttemptRequest {
   submission?: Record<string, any>;
@@ -24,4 +24,9 @@ export const taskApi = {
   },
   getAttempts: (taskId: string): Promise<Attempt[]> =>
     fetchWithAuth(`/api/v1/tasks/${taskId}/attempts`),
+  askSocraticHint: (taskId: string, question: string): Promise<SocraticTutorResponse> =>
+    fetchWithAuth(`/api/v1/tasks/${taskId}/socratic-hint`, {
+      method: 'POST',
+      body: JSON.stringify({ question }),
+    }),
 };

@@ -113,3 +113,21 @@ export interface EvaluateAttemptResponse {
   unlockedCompetencyId?: string | null;
   generatedFlashcards: PostTaskFlashcard[];
 }
+
+export interface SocraticHintRequest {
+  question: string;
+  conversationHistory?: Array<{ role: 'user' | 'assistant'; text: string }>;
+}
+
+export interface SocraticCitationRef {
+  sourceCode: string;
+  locationTag: string;
+  relevantPrinciple: string;
+}
+
+export interface SocraticTutorResponse {
+  socraticGuidance: string;
+  reflectiveQuestion: string;
+  citationReferences: SocraticCitationRef[];
+  suggestedAction: string;
+}

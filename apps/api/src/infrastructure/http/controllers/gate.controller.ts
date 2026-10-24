@@ -103,4 +103,24 @@ export const gateController = new Elysia({ prefix: '/api/v1/gates' })
     }
     const grants = await container.gateRepository.listGrantsByUser(auth.user.id);
     return { success: true, data: grants };
-  });
+  })
+  .get(
+    '/verify/:grantId',
+    async ({ params, set }) => {
+      try {
+        const passport = await container.verifyPublicPassportUseCase.execute(params.grantId);
+        return { success: true, data: passport };
+      } catch (err: any) {
+        set.status = 404;
+        return { success: false, error: err.message };
+      }
+    },
+    {
+      params: t.Object({ grantId: t.String() }),
+      detail: {
+        tags: ['Progressive Authorization Gates'],
+        summary: 'Public Verification Endpoint for Digital Authority Passport',
+        description: 'Open endpoint to verify passport authenticity, validity, and scope of authority without authentication.',
+      },
+    }
+  );
