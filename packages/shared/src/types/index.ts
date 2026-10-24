@@ -7,3 +7,4 @@ export * from './task';
 export * from './gate';
 export * from './audit';
 export * from './spaced';
+export * from './consensus';

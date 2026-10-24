@@ -292,6 +292,59 @@ export const COMPETENCY_SCHEMAS: Record<string, ResourceSchemaDef> = {
         example: 'flashlearn attempt review --attempt-id att_123 --passed true --notes "Layak" --rubric-file scores.json',
         mutating: true,
       },
+      {
+        action: 'assign-reviewers',
+        description: 'Assign two double-blind expert raters to a Class C attempt',
+        args: [
+          { name: '<attempt-id>', type: 'string', required: true, description: 'Attempt UUID' },
+          { name: '--primary', type: 'string', required: true, description: 'Primary reviewer UUID' },
+          { name: '--secondary', type: 'string', required: true, description: 'Secondary reviewer UUID' },
+        ],
+        example: 'flashlearn attempt assign-reviewers att_123 --primary usr_456 --secondary usr_789',
+        mutating: true,
+      },
+      {
+        action: 'blind-review',
+        description: 'Fetch sanitized double-blind assessment dossier by blind token',
+        args: [
+          { name: '<blind-token>', type: 'string', required: true, description: 'Anonymized blind token' },
+        ],
+        example: 'flashlearn attempt blind-review bln_abc123',
+        mutating: false,
+      },
+      {
+        action: 'score',
+        description: 'Submit blind rubric score and trigger Gwet AC1/AC2 consensus evaluation',
+        args: [
+          { name: '--blind-token', type: 'string', required: true, description: 'Anonymized blind token' },
+          { name: '--rubric-scores', type: 'string', required: false, description: 'JSON rubric scores map' },
+          { name: '--rubric-file', type: 'string', required: false, description: 'Path to JSON file with scores' },
+          { name: '--total-score', type: 'number', required: false, description: 'Override total score' },
+          { name: '--notes', type: 'string', required: false, description: 'Evaluator justification' },
+        ],
+        example: 'flashlearn attempt score --blind-token bln_abc123 --rubric-scores \'{"c1": 90, "c2": 85}\'',
+        mutating: true,
+      },
+      {
+        action: 'irr-report',
+        description: 'View inter-rater reliability report, Gwet AC1/AC2, Cohen Kappa, and consensus status',
+        args: [
+          { name: '<attempt-id>', type: 'string', required: true, description: 'Attempt UUID' },
+        ],
+        example: 'flashlearn attempt irr-report att_123',
+        mutating: false,
+      },
+      {
+        action: 'arbitrate',
+        description: 'Resolve disputed evaluation via Chief Arbiter scorecard',
+        args: [
+          { name: '<attempt-id>', type: 'string', required: true, description: 'Attempt UUID' },
+          { name: '--total-score', type: 'number', required: true, description: 'Chief Arbiter total score' },
+          { name: '--notes', type: 'string', required: false, description: 'Arbitration justification' },
+        ],
+        example: 'flashlearn attempt arbitrate att_123 --total-score 90 --notes "Final arbitration"',
+        mutating: true,
+      },
     ],
   },
   diagnostic: {

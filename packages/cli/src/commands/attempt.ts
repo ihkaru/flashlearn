@@ -122,10 +122,190 @@ export async function handleAttemptCommand(
       };
     }
 
+    case 'assign-reviewers': {
+      const attemptId = args[0] || flags['attempt-id'];
+      const primaryReviewerId = flags.primary || flags['primary-reviewer-id'];
+      const secondaryReviewerId = flags.secondary || flags['secondary-reviewer-id'];
+
+      if (!attemptId || !primaryReviewerId || !secondaryReviewerId) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Required: attempt ID, --primary <reviewer-id>, and --secondary <reviewer-id>.',
+          exitCode: ExitCode.VALIDATION_ERROR,
+          suggestedFix: 'flashlearn attempt assign-reviewers <attempt-id> --primary <user1> --secondary <user2>',
+        });
+      }
+
+      if (flags['dry-run']) {
+        return {
+          data: {
+            dryRun: true,
+            message: `Would assign blind reviewers to attempt '${attemptId}'`,
+            primaryReviewerId,
+            secondaryReviewerId,
+          },
+        };
+      }
+
+      const data = await client.request('/api/v1/consensus/assign', {
+        method: 'POST',
+        body: { attemptId, primaryReviewerId, secondaryReviewerId },
+      });
+
+      return {
+        data,
+        nextActions: [
+          { command: `flashlearn attempt blind-review ${data.primaryReview?.blindToken}`, description: 'Inspect primary sanitized review artifact' },
+        ],
+      };
+    }
+
+    case 'blind-review': {
+      const blindToken = args[0] || flags['blind-token'] || flags.token;
+      if (!blindToken) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Blind token is required: `flashlearn attempt blind-review <blind-token>`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      const data = await client.request(`/api/v1/consensus/review/${blindToken}`);
+      return {
+        data,
+        nextActions: [
+          { command: `flashlearn attempt score --blind-token ${blindToken} --rubric-scores '{"crit1": 90}'`, description: 'Submit blind scorecard' },
+        ],
+      };
+    }
+
+    case 'score': {
+      const blindToken = flags['blind-token'] || flags.token || args[0];
+      const rubricScoresRaw = flags['rubric-scores'] || flags.scores;
+      const rubricFilePath = flags['rubric-file'];
+      const totalScore = flags['total-score'] !== undefined ? Number(flags['total-score']) : undefined;
+      const notes = flags.notes || flags.justification;
+
+      if (!blindToken) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Blind token is required: `flashlearn attempt score --blind-token <token> --rubric-scores \'<json>\'`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      let rubricScores: Record<string, number> = {};
+      if (rubricFilePath) {
+        try {
+          rubricScores = JSON.parse(readFileSync(rubricFilePath, 'utf-8'));
+        } catch (err: any) {
+          throw new CliError({
+            code: 'INVALID_FILE',
+            message: `Failed to read rubric scores file: ${err.message}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+          });
+        }
+      } else if (rubricScoresRaw) {
+        try {
+          rubricScores = typeof rubricScoresRaw === 'string' ? JSON.parse(rubricScoresRaw) : rubricScoresRaw;
+        } catch (err: any) {
+          throw new CliError({
+            code: 'INVALID_JSON',
+            message: `Failed to parse --rubric-scores JSON: ${err.message}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+          });
+        }
+      } else {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Provide scores via --rubric-scores \'<json>\' or --rubric-file <path>',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      if (flags['dry-run']) {
+        return {
+          data: {
+            dryRun: true,
+            message: `Would submit blind review scores for token '${blindToken}'`,
+            rubricScores,
+            totalScore,
+          },
+        };
+      }
+
+      const data = await client.request(`/api/v1/consensus/review/${blindToken}/submit`, {
+        method: 'POST',
+        body: { rubricScores, totalScore, notes },
+      });
+
+      return {
+        data,
+        nextActions: [
+          { command: `flashlearn attempt irr-report ${data.attemptId}`, description: 'View consensus and IRR report' },
+        ],
+      };
+    }
+
+    case 'irr-report': {
+      const attemptId = args[0] || flags['attempt-id'];
+      if (!attemptId) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Attempt ID is required: `flashlearn attempt irr-report <attempt-id>`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      const data = await client.request(`/api/v1/consensus/attempt/${attemptId}/irr-report`);
+      return { data };
+    }
+
+    case 'arbitrate': {
+      const attemptId = args[0] || flags['attempt-id'];
+      const totalScore = flags['total-score'] !== undefined ? Number(flags['total-score']) : flags.score ? Number(flags.score) : undefined;
+      const rubricScoresRaw = flags['rubric-scores'] || flags.scores;
+      const notes = flags.notes || flags.justification;
+
+      if (!attemptId || totalScore === undefined) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Required: attempt ID and --total-score / --score <number>.',
+          exitCode: ExitCode.VALIDATION_ERROR,
+          suggestedFix: 'flashlearn attempt arbitrate <attempt-id> --score 90 --notes "Final arbitration"',
+        });
+      }
+
+      let rubricScores: Record<string, number> = {};
+      if (rubricScoresRaw) {
+        try {
+          rubricScores = typeof rubricScoresRaw === 'string' ? JSON.parse(rubricScoresRaw) : rubricScoresRaw;
+        } catch {
+          rubricScores = {};
+        }
+      }
+
+      if (flags['dry-run']) {
+        return {
+          data: {
+            dryRun: true,
+            message: `Would arbitrate disputed attempt '${attemptId}' with score ${totalScore}`,
+          },
+        };
+      }
+
+      const data = await client.request('/api/v1/consensus/arbitrate', {
+        method: 'POST',
+        body: { attemptId, totalScore, rubricScores, notes },
+      });
+
+      return { data };
+    }
+
     default:
       throw new CliError({
         code: 'UNKNOWN_ACTION',
-        message: `Unknown action '${action}' for noun 'attempt'. Available: submit, list, pending-reviews, review.`,
+        message: `Unknown action '${action}' for noun 'attempt'. Available: submit, list, pending-reviews, review, assign-reviewers, blind-review, score, irr-report, arbitrate.`,
         exitCode: ExitCode.USAGE_ERROR,
       });
   }

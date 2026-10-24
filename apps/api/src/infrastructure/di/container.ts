@@ -11,10 +11,16 @@ import { DrizzleGateRepository } from '../repositories/DrizzleGateRepository';
 import { DrizzleAuditLogRepository } from '../repositories/DrizzleAuditLogRepository';
 import { DrizzleSpacedFlashcardRepository } from '../repositories/DrizzleSpacedFlashcardRepository';
 import { DrizzleDiagnosticSessionRepository } from '../repositories/DrizzleDiagnosticSessionRepository';
+import { DrizzleTaskAttemptReviewRepository } from '../repositories/DrizzleTaskAttemptReviewRepository';
 import { DiagnosticPlacementEngine } from '../../application/engines/DiagnosticPlacementEngine';
+import { MultiRaterConsensusEngine } from '../../domain/services/MultiRaterConsensusEngine';
 import { StartDiagnosticSessionUseCase } from '../../application/use-cases/diagnostic/StartDiagnosticSessionUseCase';
 import { GetNextDiagnosticProbeUseCase } from '../../application/use-cases/diagnostic/GetNextDiagnosticProbeUseCase';
 import { SubmitDiagnosticProbeUseCase } from '../../application/use-cases/diagnostic/SubmitDiagnosticProbeUseCase';
+import { AssignBlindReviewersUseCase } from '../../application/use-cases/consensus/AssignBlindReviewersUseCase';
+import { GetBlindReviewByTokenUseCase } from '../../application/use-cases/consensus/GetBlindReviewByTokenUseCase';
+import { SubmitBlindReviewUseCase } from '../../application/use-cases/consensus/SubmitBlindReviewUseCase';
+import { ResolveArbitrationUseCase } from '../../application/use-cases/consensus/ResolveArbitrationUseCase';
 
 import { JwtTokenService } from '../services/JwtTokenService';
 import { GoogleAuthVerifier } from '../services/GoogleAuthVerifier';
@@ -99,6 +105,7 @@ export class Container {
   public readonly auditLogRepository = new DrizzleAuditLogRepository();
   public readonly spacedFlashcardRepository = new DrizzleSpacedFlashcardRepository();
   public readonly diagnosticRepository = new DrizzleDiagnosticSessionRepository();
+  public readonly reviewRepository = new DrizzleTaskAttemptReviewRepository();
 
   // Services
   public readonly tokenService = new JwtTokenService();
@@ -107,6 +114,7 @@ export class Container {
   public readonly citationValidator = new CitationValidatorService(this.sourceRepository);
   public readonly competencyGraphEngine = new CompetencyGraphEngine();
   public readonly diagnosticPlacementEngine = new DiagnosticPlacementEngine(this.taskRepository);
+  public readonly multiRaterConsensusEngine = new MultiRaterConsensusEngine();
   public readonly oracleEvaluatorClassA = new OracleEvaluatorClassA();
   public readonly oracleEvaluatorClassB = new OracleEvaluatorClassB(this.aiGateway);
   public readonly oracleEvaluatorAdversarial = new OracleEvaluatorAdversarial(this.aiGateway);
@@ -323,6 +331,31 @@ export class Container {
     this.masteryRepository,
     this.diagnosticPlacementEngine,
     this.evaluateAttemptUseCase
+  );
+
+  // Phase 13: Double-Blind Multi-Rater Consensus Use Cases
+  public readonly assignBlindReviewersUseCase = new AssignBlindReviewersUseCase(
+    this.reviewRepository,
+    this.attemptRepository
+  );
+  public readonly getBlindReviewByTokenUseCase = new GetBlindReviewByTokenUseCase(
+    this.reviewRepository,
+    this.attemptRepository,
+    this.taskRepository
+  );
+  public readonly submitBlindReviewUseCase = new SubmitBlindReviewUseCase(
+    this.reviewRepository,
+    this.attemptRepository,
+    this.taskRepository,
+    this.masteryRepository,
+    this.multiRaterConsensusEngine
+  );
+  public readonly resolveArbitrationUseCase = new ResolveArbitrationUseCase(
+    this.reviewRepository,
+    this.attemptRepository,
+    this.taskRepository,
+    this.masteryRepository,
+    this.multiRaterConsensusEngine
   );
 }
 
