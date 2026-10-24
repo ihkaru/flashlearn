@@ -66,12 +66,13 @@
         </div>
       </div>
 
-      <div style="display: flex; gap: 10px; justify-content: flex-end; align-items: center;">
+      <div style="display: flex; gap: 10px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
         <button
           type="button"
           disabled={isProcessing}
           onclick={onClose}
-          style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; padding: 9px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; white-space: nowrap;"
+          class="fl-btn fl-btn-md"
+          style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-weight: 600; font-size: 0.85rem;"
         >
           Batal
         </button>
@@ -79,7 +80,8 @@
           type="button"
           disabled={isProcessing}
           onclick={onConfirm}
-          style="background: #e11d48; color: #ffffff; border: none; padding: 9px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.2); white-space: nowrap;"
+          class="fl-btn fl-btn-md"
+          style="background: #e11d48; color: #ffffff; border: none; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(225, 29, 72, 0.2);"
         >
           {#if isProcessing}
             <span>Menghapus...</span>

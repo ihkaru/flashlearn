@@ -1,6 +1,7 @@
 <script lang="ts">
   import { api } from '../stores/api';
   import type { ApiKeyItem } from '@flashlearn/shared';
+  import Icon from './ui/Icon.svelte';
 
   interface Props {
     isOpen: boolean;
@@ -151,14 +152,17 @@ Please perform the requested task using the API details above, and return the pu
       role="document"
     >
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="margin: 0; font-size: 1.35rem; font-weight: 800; color: #0f172a;">
-          🔑 Manajemen API Keys
+        <h2 style="margin: 0; font-size: 1.35rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+          <Icon name="key" size={20} />
+          <span>Manajemen API Keys</span>
         </h2>
         <button
           onclick={onClose}
-          style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b;"
+          class="fl-btn fl-btn-sm"
+          style="background: #f1f5f9; border: none; width: 36px; height: 36px; min-height: 36px; border-radius: 50%; padding: 0; color: #64748b;"
+          aria-label="Tutup"
         >
-          ✕
+          <Icon name="xmark" size={16} />
         </button>
       </div>
 
@@ -171,8 +175,9 @@ Please perform the requested task using the API details above, and return the pu
         <div
           style="background: #f0fdf4; border: 2px solid #86efac; border-radius: 14px; padding: 18px; margin-bottom: 20px;"
         >
-          <div style="font-weight: 700; color: #166534; font-size: 0.95rem; margin-bottom: 6px;">
-            ✓ API Key Berhasil Dibuat!
+          <div style="font-weight: 700; color: #166534; font-size: 0.95rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <Icon name="check-circle" size={16} />
+            <span>API Key Berhasil Dibuat!</span>
           </div>
           <p style="font-size: 0.85rem; color: #15803d; margin: 0 0 12px 0;">
             Salin sekarang. Demi keamanan, kunci rahasia ini tidak akan ditampilkan lagi.
@@ -186,9 +191,11 @@ Please perform the requested task using the API details above, and return the pu
             />
             <button
               onclick={() => copyToClipboard(newlyGeneratedKey!)}
-              style="background: #16a34a; color: #ffffff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap;"
+              class="fl-btn fl-btn-sm"
+              style="background: #16a34a; color: #ffffff; border: none; font-weight: 700; font-size: 0.85rem; white-space: nowrap;"
             >
-              {copied ? 'Tersalin! ✓' : 'Salin Key'}
+              <Icon name="check" size={14} />
+              <span>{copied ? 'Tersalin!' : 'Salin Key'}</span>
             </button>
           </div>
 
@@ -199,9 +206,11 @@ Please perform the requested task using the API details above, and return the pu
             </span>
             <button
               onclick={() => copyForAi(newlyGeneratedKey!)}
-              style="background: linear-gradient(135deg, #4f46e5, #0f766e); color: #ffffff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);"
+              class="fl-btn fl-btn-sm"
+              style="background: linear-gradient(135deg, #4f46e5, #0f766e); color: #ffffff; border: none; font-weight: 800; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);"
             >
-              🤖 {aiCopied ? 'Tersalin untuk AI! ✓' : 'Copy for AI Agent'}
+              <Icon name="sparkles" size={14} />
+              <span>{aiCopied ? 'Tersalin untuk AI!' : 'Copy for AI Agent'}</span>
             </button>
           </div>
         </div>
@@ -226,9 +235,11 @@ Please perform the requested task using the API details above, and return the pu
           <button
             type="submit"
             disabled={isGenerating}
-            style="background: #0f766e; color: #ffffff; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem;"
+            class="fl-btn fl-btn-md"
+            style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.9rem;"
           >
-            {isGenerating ? 'Membuat...' : '+ Buat Key'}
+            <Icon name="plus" size={15} />
+            <span>{isGenerating ? 'Membuat...' : 'Buat Key'}</span>
           </button>
         </div>
       </form>
@@ -248,7 +259,7 @@ Please perform the requested task using the API details above, and return the pu
         <div style="display: flex; flex-direction: column; gap: 10px;">
           {#each keys as k}
             <div
-              style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 10px;"
+              style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 10px; flex-wrap: wrap; gap: 8px;"
             >
               <div>
                 <div style="font-weight: 700; color: #1e293b; font-size: 0.95rem;">{k.name}</div>
@@ -258,9 +269,11 @@ Please perform the requested task using the API details above, and return the pu
               </div>
               <button
                 onclick={() => handleRevoke(k.id)}
-                style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;"
+                class="fl-btn fl-btn-sm"
+                style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-size: 0.8rem; font-weight: 700;"
               >
-                Revoke
+                <Icon name="trash" size={13} />
+                <span>Revoke</span>
               </button>
             </div>
           {/each}

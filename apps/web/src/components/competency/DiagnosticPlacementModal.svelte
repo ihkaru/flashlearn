@@ -173,16 +173,18 @@
                   });
                   handleReset();
                 }}
-                style="background: #ffffff; border: 1.5px solid #0f766e; color: #0f766e; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
+                class="fl-btn fl-btn-md"
+                style="background: #ffffff; border: 1.5px solid #0f766e; color: #0f766e; font-weight: 700; font-size: 0.875rem;"
               >
                 <Icon name="chat" size={15} />
                 <span>Konsultasi Peta Belajar (AI)</span>
               </button>
               <button
                 onclick={handleReset}
-                style="background: #0f766e; color: #ffffff; border: none; padding: 10px 24px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer;"
+                class="fl-btn fl-btn-md"
+                style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.875rem;"
               >
-                Lihat Peta Kompetensi Terbaru
+                <span>Lihat Peta Kompetensi Terbaru</span>
               </button>
             </div>
           </div>
@@ -228,7 +230,8 @@
           <button
             disabled={isSubmitting}
             onclick={handleSubmitProbe}
-            style="background: #0f766e; color: #ffffff; border: none; padding: 12px 18px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;"
+            class="fl-btn fl-btn-lg"
+            style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.92rem; width: 100%; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
           >
             <Icon name="check" size={16} />
             <span>{isSubmitting ? 'Memproses Inferensi...' : 'Kirim Jawaban Probe'}</span>

@@ -88,9 +88,11 @@
         </p>
         <button
           onclick={loadDueCards}
-          style="background: #0f766e; color: #ffffff; border: none; padding: 9px 18px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer;"
+          class="fl-btn fl-btn-md"
+          style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.9rem;"
         >
-          Periksa Kartu Baru
+          <Icon name="arrow-path" size={15} />
+          <span>Periksa Kartu Baru</span>
         </button>
       </div>
     {:else if currentCard}
@@ -134,34 +136,42 @@
 
       <!-- Rating Controls -->
       {#if isFlipped}
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
           <button
             disabled={isSubmitting}
             onclick={() => handleGrade(0)}
-            style="padding: 10px 4px; border-radius: 10px; border: 1px solid #fecaca; background: #fef2f2; color: #b91c1c; font-weight: 700; font-size: 0.8rem; cursor: pointer;"
+            class="fl-btn fl-btn-md"
+            style="border: 1px solid #fecaca; background: #fef2f2; color: #b91c1c; font-weight: 700; font-size: 0.8rem; flex-direction: column; gap: 2px; padding: 8px 4px;"
           >
-            0 · Blank
+            <Icon name="arrow-path" size={13} />
+            <span>0 · Blank</span>
           </button>
           <button
             disabled={isSubmitting}
             onclick={() => handleGrade(3)}
-            style="padding: 10px 4px; border-radius: 10px; border: 1px solid #fed7aa; background: #fff7ed; color: #c2410c; font-weight: 700; font-size: 0.8rem; cursor: pointer;"
+            class="fl-btn fl-btn-md"
+            style="border: 1px solid #fed7aa; background: #fff7ed; color: #c2410c; font-weight: 700; font-size: 0.8rem; flex-direction: column; gap: 2px; padding: 8px 4px;"
           >
-            3 · Sulit
+            <Icon name="exclamation-circle" size={13} />
+            <span>3 · Sulit</span>
           </button>
           <button
             disabled={isSubmitting}
             onclick={() => handleGrade(4)}
-            style="padding: 10px 4px; border-radius: 10px; border: 1px solid #bae6fd; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 0.8rem; cursor: pointer;"
+            class="fl-btn fl-btn-md"
+            style="border: 1px solid #bae6fd; background: #f0f9ff; color: #0369a1; font-weight: 700; font-size: 0.8rem; flex-direction: column; gap: 2px; padding: 8px 4px;"
           >
-            4 · Bagus
+            <Icon name="check" size={13} />
+            <span>4 · Bagus</span>
           </button>
           <button
             disabled={isSubmitting}
             onclick={() => handleGrade(5)}
-            style="padding: 10px 4px; border-radius: 10px; border: 1px solid #bbf7d0; background: #f0fdf4; color: #15803d; font-weight: 700; font-size: 0.8rem; cursor: pointer;"
+            class="fl-btn fl-btn-md"
+            style="border: 1px solid #bbf7d0; background: #f0fdf4; color: #15803d; font-weight: 700; font-size: 0.8rem; flex-direction: column; gap: 2px; padding: 8px 4px;"
           >
-            5 · Sempurna
+            <Icon name="sparkles" size={13} />
+            <span>5 · Sempurna</span>
           </button>
         </div>
       {:else}

@@ -115,17 +115,19 @@
           <strong>Declarative Ingestion Contract:</strong> Domain Blueprint disusun oleh Coding Agent dari dokumen regulasi, memuat hierarki Bloom 3-Tier, SHA-256 chunk addressable, graf prasyarat terverifikasi (Tarjan SCC), dan batasan wewenang gerbang otorisasi.
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+        <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e2e8f0; padding-top: 14px; flex-wrap: wrap;">
           <button
             onclick={onClose}
-            style="padding: 10px 18px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; font-weight: 700; font-size: 0.88rem; color: #475569; cursor: pointer;"
+            class="fl-btn fl-btn-md"
+            style="border: 1px solid #cbd5e1; background: #ffffff; font-weight: 700; font-size: 0.88rem; color: #475569;"
           >
             Batal
           </button>
           <button
             disabled={isImporting}
             onclick={handleImport}
-            style="padding: 10px 20px; border-radius: 8px; border: none; background: #0f766e; font-weight: 700; font-size: 0.88rem; color: #ffffff; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+            class="fl-btn fl-btn-md"
+            style="border: none; background: #0f766e; font-weight: 700; font-size: 0.88rem; color: #ffffff; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
           >
             <Icon name="bolt" size={14} />
             <span>{isImporting ? 'Mengimpor Blueprint...' : 'Impor Blueprint Sekarang'}</span>

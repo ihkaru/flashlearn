@@ -69,14 +69,15 @@
     <div style="max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
       <button
         onclick={goBack}
-        style="background: none; border: none; font-size: 0.9rem; font-weight: 700; color: #0f766e; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px 0; white-space: nowrap;"
+        class="fl-btn fl-btn-sm"
+        style="background: none; border: none; font-size: 0.9rem; font-weight: 700; color: #0f766e; white-space: nowrap;"
       >
         <Icon name="arrow-left" size={15} />
         <span>Kembali ke Workspace</span>
       </button>
 
       {#if content}
-        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap;">
           <ChipBadge
             variant={content.type === 'quiz' ? 'quiz' : content.type === 'materi' ? 'materi' : 'combined'}
             icon={content.type === 'quiz' ? 'check-circle' : content.type === 'materi' ? 'book-open' : 'layers'}
@@ -87,10 +88,10 @@
             {#if content.type !== 'materi'}
               <button
                 type="button"
-                class="fl-pill-btn"
+                class="fl-btn fl-btn-sm fl-pill-btn"
                 onclick={() => (showReviewModal = true)}
                 title="Bahas butir soal kuis & analisis kesalahan peserta"
-                style="background: #f0fdfa; color: #0f766e; border: 1.5px solid #99f6e4; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap;"
+                style="background: #f0fdfa; color: #0f766e; border: 1.5px solid #99f6e4; font-weight: 700; font-size: 0.8rem;"
               >
                 <Icon name="sparkles" size={13} />
                 <span>Bahas Kuis</span>
@@ -98,9 +99,9 @@
             {/if}
             <button
               type="button"
-              class="fl-pill-btn"
+              class="fl-btn fl-btn-sm fl-pill-btn"
               onclick={() => (showEditModal = true)}
-              style="background: #0f766e; color: #ffffff; border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(15,118,110,0.25); white-space: nowrap;"
+              style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.8rem; box-shadow: 0 2px 6px rgba(15,118,110,0.25);"
             >
               <Icon name="pencil" size={13} />
               <span>Edit Modul</span>

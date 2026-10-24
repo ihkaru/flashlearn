@@ -184,10 +184,11 @@
     <WorkspaceHeader {workspace} {isOwner} onCreateModule={openCreateModal} />
 
     <!-- Workspace Main Views Switcher -->
-    <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; overflow-x: auto;">
+    <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;">
       <button
         onclick={() => (activeViewTab = 'competencies')}
-        style="padding: 8px 16px; border-radius: 8px; border: none; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; background: {activeViewTab === 'competencies' ? '#0f766e' : '#f8fafc'}; color: {activeViewTab === 'competencies' ? '#ffffff' : '#64748b'};"
+        class="fl-btn fl-btn-md fl-pill-btn"
+        style="border: none; font-weight: 700; font-size: 0.88rem; background: {activeViewTab === 'competencies' ? '#0f766e' : '#f8fafc'}; color: {activeViewTab === 'competencies' ? '#ffffff' : '#64748b'};"
       >
         <Icon name="bolt" size={14} />
         <span>Peta Kompetensi (DAG)</span>
@@ -195,7 +196,8 @@
 
       <button
         onclick={() => (activeViewTab = 'gates')}
-        style="padding: 8px 16px; border-radius: 8px; border: none; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; background: {activeViewTab === 'gates' ? '#0f766e' : '#f8fafc'}; color: {activeViewTab === 'gates' ? '#ffffff' : '#64748b'};"
+        class="fl-btn fl-btn-md fl-pill-btn"
+        style="border: none; font-weight: 700; font-size: 0.88rem; background: {activeViewTab === 'gates' ? '#0f766e' : '#f8fafc'}; color: {activeViewTab === 'gates' ? '#ffffff' : '#64748b'};"
       >
         <Icon name="shield-check" size={14} />
         <span>Paspor Gerbang</span>
@@ -203,7 +205,8 @@
 
       <button
         onclick={() => (activeViewTab = 'modules')}
-        style="padding: 8px 16px; border-radius: 8px; border: none; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; background: {activeViewTab === 'modules' ? '#0f766e' : '#f8fafc'}; color: {activeViewTab === 'modules' ? '#ffffff' : '#64748b'};"
+        class="fl-btn fl-btn-md fl-pill-btn"
+        style="border: none; font-weight: 700; font-size: 0.88rem; background: {activeViewTab === 'modules' ? '#0f766e' : '#f8fafc'}; color: {activeViewTab === 'modules' ? '#ffffff' : '#64748b'};"
       >
         <Icon name="book-open" size={14} />
         <span>Modul & Kuis</span>
@@ -271,7 +274,8 @@
         {#if isOwner && activeFilter !== 'trash'}
           <button
             onclick={openCreateModal}
-            style="background: #0f766e; color: #ffffff; border: none; padding: 9px 18px; border-radius: 8px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
+            class="fl-btn fl-btn-md"
+            style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.875rem; box-shadow: 0 2px 8px rgba(15, 118, 110, 0.2);"
           >
             <Icon name="plus" size={14} />
             <span>Buat Modul Sekarang</span>

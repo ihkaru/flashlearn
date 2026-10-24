@@ -4,6 +4,7 @@
   import { auth } from '../stores/auth.svelte';
   import type { Workspace } from '@flashlearn/shared';
   import DomainSynthesizerModal from '../components/workspace/DomainSynthesizerModal.svelte';
+  import Icon from '../components/ui/Icon.svelte';
 
   interface Props {
     f7router?: any;
@@ -84,21 +85,27 @@
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
       <button
         onclick={() => (showSynthesizerModal = true)}
-        style="background: #0f766e; color: #ffffff; border: none; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);"
+        class="fl-btn fl-btn-md"
+        style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);"
       >
-        📄 Impor Blueprint Domain
+        <Icon name="bolt" size={15} />
+        <span>Impor Blueprint Domain</span>
       </button>
       <button
         onclick={() => auth.openApiKeyModal()}
-        style="background: #ffffff; color: #0f766e; border: 1.5px solid #0f766e; padding: 10px 16px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.03);"
+        class="fl-btn fl-btn-md"
+        style="background: #ffffff; color: #0f766e; border: 1.5px solid #0f766e; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.03);"
       >
-        🔑 API Key AI
+        <Icon name="key" size={15} />
+        <span>API Key AI</span>
       </button>
       <button
         onclick={() => (showCreateModal = true)}
-        style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 11px 18px; border-radius: 12px; font-weight: 700; cursor: pointer;"
+        class="fl-btn fl-btn-md"
+        style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 700;"
       >
-        + Workspace Manual
+        <Icon name="plus" size={15} />
+        <span>Workspace Manual</span>
       </button>
     </div>
   </div>
@@ -121,9 +128,11 @@
       </p>
       <button
         onclick={() => (showCreateModal = true)}
-        style="background: #0f766e; color: #ffffff; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer;"
+        class="fl-btn fl-btn-lg"
+        style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
       >
-        Buat Workspace Sekarang
+        <Icon name="plus" size={16} />
+        <span>Buat Workspace Sekarang</span>
       </button>
     </div>
   {:else}

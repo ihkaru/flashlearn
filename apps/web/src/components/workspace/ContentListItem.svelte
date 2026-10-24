@@ -123,7 +123,8 @@
           <button
             type="button"
             onclick={(e) => onCopyLink(c, e)}
-            style="background: #f8fafc; border: 1px solid #e2e8f0; color: #334155; padding: 5px 10px; border-radius: 6px; font-size: 0.775rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;"
+            class="fl-btn fl-btn-sm"
+            style="background: #f8fafc; border: 1px solid #e2e8f0; color: #334155; font-weight: 600; font-size: 0.775rem; white-space: nowrap;"
           >
             <Icon name={copiedLinkId === c.id ? 'check' : 'link'} size={13} />
             <span>{copiedLinkId === c.id ? 'Tersalin' : 'Salin Link'}</span>
@@ -132,10 +133,10 @@
           {#if c.type !== 'materi'}
             <button
               type="button"
-              class="fl-pill-btn"
+              class="fl-btn fl-btn-sm fl-pill-btn"
               onclick={(e) => onOpenReview(c, e, 'analysis')}
               title="Bahas butir soal & analisis kesalahan peserta"
-              style="background: #f0fdfa; border: 1.5px solid #99f6e4; color: #0f766e; padding: 5px 10px; border-radius: 6px; font-size: 0.775rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;"
+              style="background: #f0fdfa; border: 1.5px solid #99f6e4; color: #0f766e; font-weight: 700; font-size: 0.775rem;"
             >
               <Icon name="sparkles" size={13} />
               <span>Bahas Soal</span>
@@ -143,10 +144,10 @@
 
             <button
               type="button"
-              class="fl-pill-btn"
+              class="fl-btn fl-btn-sm fl-pill-btn"
               onclick={(e) => onOpenReview(c, e, 'participants')}
               title="Rekap nilai peserta & ekspor Excel"
-              style="background: #eef2ff; border: 1px solid #c7d2fe; color: #4338ca; padding: 5px 10px; border-radius: 6px; font-size: 0.775rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;"
+              style="background: #eef2ff; border: 1px solid #c7d2fe; color: #4338ca; font-weight: 700; font-size: 0.775rem;"
             >
               <Icon name="chart-bar" size={13} />
               <span>Rekap Nilai</span>
@@ -154,12 +155,13 @@
           {/if}
         </div>
 
-        <div style="display: flex; gap: 6px; align-items: center;">
+        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
           <button
             type="button"
             onclick={(e) => onOpenEdit(c, e)}
             title="Edit modul pembelajaran"
-            style="background: #0f766e; border: none; color: #ffffff; padding: 5px 12px; border-radius: 6px; font-size: 0.775rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(15,118,110,0.2); white-space: nowrap;"
+            class="fl-btn fl-btn-sm"
+            style="background: #0f766e; border: none; color: #ffffff; font-weight: 700; font-size: 0.775rem; box-shadow: 0 1px 4px rgba(15,118,110,0.2); white-space: nowrap;"
           >
             <Icon name="pencil" size={12} />
             <span>Edit</span>
@@ -169,7 +171,8 @@
             type="button"
             onclick={(e) => onRollback(c, e)}
             title="Kembalikan ke snapshot versi sebelumnya"
-            style="background: #fefce8; border: 1px solid #fef08a; color: #854d0e; padding: 5px 9px; border-radius: 6px; font-size: 0.775rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;"
+            class="fl-btn fl-btn-sm"
+            style="background: #fefce8; border: 1px solid #fef08a; color: #854d0e; font-weight: 600; font-size: 0.775rem; white-space: nowrap;"
           >
             <Icon name="arrow-path" size={12} />
             <span>Rollback</span>
@@ -180,7 +183,8 @@
             onclick={(e) => onDelete(c, e)}
             title="Hapus modul ini"
             aria-label="Hapus modul"
-            style="background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
+            class="fl-btn fl-btn-sm"
+            style="background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; padding: 4px 8px;"
           >
             <Icon name="trash" size={13} />
           </button>

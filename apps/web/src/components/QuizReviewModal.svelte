@@ -263,25 +263,25 @@
               </span>
               <button
                 type="button"
-                class="fl-pill-btn"
+                class="fl-btn fl-btn-sm fl-pill-btn"
                 onclick={() => (filterMode = 'all')}
-                style="padding: 4px 10px; border-radius: 6px; font-size: 0.775rem; font-weight: 600; cursor: pointer; border: 1px solid {filterMode === 'all' ? '#0f766e' : '#cbd5e1'}; background: {filterMode === 'all' ? '#f0fdfa' : '#ffffff'}; color: {filterMode === 'all' ? '#0f766e' : '#64748b'};"
+                style="font-size: 0.775rem; font-weight: 600; border: 1px solid {filterMode === 'all' ? '#0f766e' : '#cbd5e1'}; background: {filterMode === 'all' ? '#f0fdfa' : '#ffffff'}; color: {filterMode === 'all' ? '#0f766e' : '#64748b'};"
               >
                 Semua Soal ({questionsAnalysis.length})
               </button>
               <button
                 type="button"
-                class="fl-pill-btn"
+                class="fl-btn fl-btn-sm fl-pill-btn"
                 onclick={() => (filterMode = 'wrong_only')}
-                style="padding: 4px 10px; border-radius: 6px; font-size: 0.775rem; font-weight: 700; cursor: pointer; border: 1px solid {filterMode === 'wrong_only' ? '#dc2626' : '#cbd5e1'}; background: {filterMode === 'wrong_only' ? '#fee2e2' : '#ffffff'}; color: {filterMode === 'wrong_only' ? '#dc2626' : '#64748b'};"
+                style="font-size: 0.775rem; font-weight: 700; border: 1px solid {filterMode === 'wrong_only' ? '#dc2626' : '#cbd5e1'}; background: {filterMode === 'wrong_only' ? '#fee2e2' : '#ffffff'}; color: {filterMode === 'wrong_only' ? '#dc2626' : '#64748b'};"
               >
                 Perlu Dibahas ({missedQuestionsCount})
               </button>
               <button
                 type="button"
-                class="fl-pill-btn"
+                class="fl-btn fl-btn-sm fl-pill-btn"
                 onclick={() => (filterMode = 'mastered_only')}
-                style="padding: 4px 10px; border-radius: 6px; font-size: 0.775rem; font-weight: 600; cursor: pointer; border: 1px solid {filterMode === 'mastered_only' ? '#16a34a' : '#cbd5e1'}; background: {filterMode === 'mastered_only' ? '#dcfce7' : '#ffffff'}; color: {filterMode === 'mastered_only' ? '#16a34a' : '#64748b'};"
+                style="font-size: 0.775rem; font-weight: 600; border: 1px solid {filterMode === 'mastered_only' ? '#16a34a' : '#cbd5e1'}; background: {filterMode === 'mastered_only' ? '#dcfce7' : '#ffffff'}; color: {filterMode === 'mastered_only' ? '#16a34a' : '#64748b'};"
               >
                 Dikuasai 100% ({masteredQuestionsCount})
               </button>

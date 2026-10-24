@@ -66,7 +66,8 @@
 
       <button
         onclick={loadPendingReviews}
-        style="padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; font-size: 0.85rem; font-weight: 600; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+        class="fl-btn fl-btn-sm"
+        style="border: 1px solid #cbd5e1; background: #ffffff; font-size: 0.85rem; font-weight: 600; color: #475569;"
       >
         <Icon name="refresh" size={14} />
         <span>Segarkan</span>

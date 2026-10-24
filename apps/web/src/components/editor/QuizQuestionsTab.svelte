@@ -38,7 +38,8 @@
     <button
       type="button"
       onclick={onAddQuestion}
-      style="background: #0f766e; color: #ffffff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 0.825rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(15,118,110,0.25); white-space: nowrap;"
+      class="fl-btn fl-btn-sm"
+      style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.825rem; box-shadow: 0 2px 6px rgba(15,118,110,0.25); white-space: nowrap;"
     >
       <Icon name="plus" size={14} />
       <span>Tambah Soal</span>
@@ -62,7 +63,8 @@
   <button
     type="button"
     onclick={onAddQuestion}
-    style="width: 100%; border: 1.5px dashed #0f766e; background: #f0fdfa; color: #0f766e; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;"
+    class="fl-btn fl-btn-lg"
+    style="width: 100%; border: 1.5px dashed #0f766e; background: #f0fdfa; color: #0f766e; font-weight: 700; font-size: 0.9rem;"
   >
     <Icon name="plus" size={16} />
     <span>Tambah Butir Soal Baru</span>

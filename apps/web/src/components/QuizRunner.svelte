@@ -3,6 +3,7 @@
   import { api } from '../stores/api';
   import { auth } from '../stores/auth.svelte';
   import FlashcardDeck from './FlashcardDeck.svelte';
+  import Icon from './ui/Icon.svelte';
 
   interface Props {
     content: Content;
@@ -179,18 +180,12 @@
             placeholder="Ketik nama lengkap atau panggilanmu..."
             bind:value={guestName}
             onblur={handleNameCheck}
-            oninput={() => {
-              nameFeedback = null;
-              validationError = null;
-            }}
+            oninput={() => { nameFeedback = null; validationError = null; }}
             onkeydown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                if (isNameValid && !isCheckingName) {
-                  startQuiz();
-                } else if (!isNameValid) {
-                  validationError = 'Silakan masukkan nama atau panggilanmu (minimal 2 karakter) sebelum memulai kuis.';
-                }
+                if (isNameValid && !isCheckingName) startQuiz();
+                else if (!isNameValid) validationError = 'Silakan masukkan nama atau panggilanmu (minimal 2 karakter) sebelum memulai kuis.';
               }
             }}
             style="width: 100%; padding: 12px 16px; border: 2px solid {validationError ? '#ef4444' : nameFeedback ? '#f59e0b' : '#cbd5e1'}; border-radius: 10px; font-size: 1rem; color: #0f172a; box-sizing: border-box;"
@@ -211,15 +206,12 @@
 
         <!-- Disambiguation Suggestion if duplicate name is found -->
         {#if nameFeedback?.isTaken}
-          <div
-            style="margin-top: 10px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; font-size: 0.85rem; color: #92400e; display: flex; align-items: center; justify-content: space-between; gap: 8px;"
-          >
-            <div>
-              ⚠️ Nama <strong>"{guestName}"</strong> sudah ada di kuis ini.
-            </div>
+          <div style="margin-top: 10px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; font-size: 0.85rem; color: #92400e; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <div>⚠️ Nama <strong>"{guestName}"</strong> sudah ada di kuis ini.</div>
             <button
               onclick={applySuggestedName}
-              style="background: #f59e0b; color: #ffffff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap;"
+              class="fl-btn fl-btn-sm"
+              style="background: #f59e0b; color: #ffffff; border: none; font-weight: 700; font-size: 0.75rem; white-space: nowrap;"
             >
               Gunakan {nameFeedback.suggestedName}
             </button>
@@ -235,9 +227,11 @@
         <button
           onclick={startQuiz}
           disabled={!isNameValid || isCheckingName}
-          style="background: {!isNameValid || isCheckingName ? '#94a3b8' : '#0f766e'}; color: #ffffff; border: none; padding: 14px 24px; border-radius: 12px; font-weight: 800; font-size: 1.05rem; cursor: {!isNameValid || isCheckingName ? 'not-allowed' : 'pointer'}; box-shadow: {!isNameValid || isCheckingName ? 'none' : '0 4px 14px rgba(15, 118, 110, 0.3)'}; transition: all 0.2s ease; opacity: {!isNameValid || isCheckingName ? '0.7' : '1'};"
+          class="fl-btn fl-btn-lg"
+          style="background: {!isNameValid || isCheckingName ? '#94a3b8' : '#0f766e'}; color: #ffffff; border: none; font-weight: 800; font-size: 1.05rem; width: 100%; box-shadow: {!isNameValid || isCheckingName ? 'none' : '0 4px 14px rgba(15, 118, 110, 0.3)'}; opacity: {!isNameValid || isCheckingName ? '0.7' : '1'};"
         >
-          {isCheckingName ? 'Memeriksa Nama...' : 'Mulai Mengerjakan Kuis 🚀'}
+          <Icon name="bolt" size={18} />
+          <span>{isCheckingName ? 'Memeriksa Nama...' : 'Mulai Mengerjakan Kuis'}</span>
         </button>
 
         {#if !isNameValid}
@@ -297,16 +291,20 @@
           <button
             onclick={openFlashcards}
             disabled={isLoadingFlashcards}
-            style="background: #ea580c; color: #ffffff; border: none; padding: 15px 24px; border-radius: 14px; font-weight: 800; font-size: 1.05rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 6px 18px rgba(234, 88, 12, 0.35);"
+            class="fl-btn fl-btn-lg"
+            style="background: #ea580c; color: #ffffff; border: none; font-weight: 800; font-size: 1.02rem; width: 100%; box-shadow: 0 6px 18px rgba(234, 88, 12, 0.35);"
           >
-            ⚡ {isLoadingFlashcards ? 'Menyiapkan...' : 'Buka Soal dalam Bentuk Flashcard'}
+            <Icon name="bolt" size={18} />
+            <span>{isLoadingFlashcards ? 'Menyiapkan...' : 'Buka Soal dalam Bentuk Flashcard'}</span>
           </button>
           
           <button
             onclick={retryQuiz}
-            style="background: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer;"
+            class="fl-btn fl-btn-md"
+            style="background: #ffffff; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; width: 100%;"
           >
-            🔄 Ulangi Pengerjaan Kuis
+            <Icon name="arrow-path" size={16} />
+            <span>Ulangi Pengerjaan Kuis</span>
           </button>
         </div>
       </div>
@@ -385,9 +383,11 @@
         <button
           onclick={submitQuiz}
           disabled={isSubmitting || Object.keys(userAnswers).length === 0}
-          style="background: #0f766e; color: #ffffff; border: none; padding: 16px 36px; border-radius: 12px; font-weight: 700; font-size: 1.05rem; cursor: pointer; opacity: {Object.keys(userAnswers).length === 0 ? 0.6 : 1};"
+          class="fl-btn fl-btn-lg"
+          style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 1.05rem; box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3); opacity: {Object.keys(userAnswers).length === 0 ? 0.6 : 1};"
         >
-          {isSubmitting ? 'Memeriksa Jawaban...' : 'Kirim Jawaban Kuis'}
+          <Icon name="check-circle" size={18} />
+          <span>{isSubmitting ? 'Memeriksa Jawaban...' : 'Kirim Jawaban Kuis'}</span>
         </button>
       </div>
     {/if}

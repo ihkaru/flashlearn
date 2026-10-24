@@ -243,7 +243,8 @@
         <button
           disabled={isVerifyingVc}
           onclick={handleVerifyVc}
-          style="background: #0f766e; color: #ffffff; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+          class="fl-btn fl-btn-md"
+          style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.85rem; box-shadow: 0 2px 8px rgba(15, 118, 110, 0.2);"
         >
           <Icon name="shield-check" size={14} />
           <span>{isVerifyingVc ? 'Memverifikasi...' : 'Verifikasi Tanda Tangan Ed25519'}</span>

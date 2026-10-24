@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { FlashcardItem } from '@flashlearn/shared';
   import { Button, Block, Card, Progressbar } from 'framework7-svelte';
+  import Icon from './ui/Icon.svelte';
 
   interface Props {
     flashcards: FlashcardItem[];
@@ -154,27 +155,35 @@
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
         <button
           onclick={() => handleRating('again')}
-          style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 10px 4px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer;"
+          class="fl-btn fl-btn-md"
+          style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 700; font-size: 0.8rem; flex-direction: column; gap: 3px; padding: 8px 4px;"
         >
-          🔄 Ulangi
+          <Icon name="arrow-path" size={14} />
+          <span>Ulangi</span>
         </button>
         <button
           onclick={() => handleRating('hard')}
-          style="background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; padding: 10px 4px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer;"
+          class="fl-btn fl-btn-md"
+          style="background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; font-weight: 700; font-size: 0.8rem; flex-direction: column; gap: 3px; padding: 8px 4px;"
         >
-          ⚠️ Sulit
+          <Icon name="exclamation-circle" size={14} />
+          <span>Sulit</span>
         </button>
         <button
           onclick={() => handleRating('good')}
-          style="background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; padding: 10px 4px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer;"
+          class="fl-btn fl-btn-md"
+          style="background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; font-weight: 700; font-size: 0.8rem; flex-direction: column; gap: 3px; padding: 8px 4px;"
         >
-          👍 Bagus
+          <Icon name="check" size={14} />
+          <span>Bagus</span>
         </button>
         <button
           onclick={() => handleRating('easy')}
-          style="background: #dcfce7; color: #15803d; border: 1px solid #86efac; padding: 10px 4px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer;"
+          class="fl-btn fl-btn-md"
+          style="background: #dcfce7; color: #15803d; border: 1px solid #86efac; font-weight: 700; font-size: 0.8rem; flex-direction: column; gap: 3px; padding: 8px 4px;"
         >
-          ⭐ Mudah
+          <Icon name="sparkles" size={14} />
+          <span>Mudah</span>
         </button>
       </div>
     </div>
@@ -198,19 +207,22 @@
         </div>
       </div>
 
-      <div style="display: flex; gap: 12px; justify-content: center;">
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
         <button
           onclick={restart}
-          style="background: #0f766e; color: #ffffff; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer;"
+          class="fl-btn fl-btn-md"
+          style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
         >
-          🔄 Review Lagi
+          <Icon name="arrow-path" size={16} />
+          <span>Review Lagi</span>
         </button>
         {#if onClose}
           <button
             onclick={onClose}
-            style="background: #f1f5f9; color: #334155; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer;"
+            class="fl-btn fl-btn-md"
+            style="background: #f1f5f9; color: #334155; border: none; font-weight: 600;"
           >
-            Selesai
+            <span>Selesai</span>
           </button>
         {/if}
       </div>

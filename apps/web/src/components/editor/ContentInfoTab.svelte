@@ -31,7 +31,7 @@
       <button
         type="button"
         onclick={() => (type = 'quiz')}
-        style="text-align: left; padding: 12px; border-radius: 10px; border: 2px solid {type === 'quiz' ? '#0f766e' : '#e2e8f0'}; background: {type === 'quiz' ? '#f0fdfa' : '#ffffff'}; cursor: pointer;"
+        style="text-align: left; padding: 12px; border-radius: 10px; border: 2px solid {type === 'quiz' ? '#0f766e' : '#e2e8f0'}; background: {type === 'quiz' ? '#f0fdfa' : '#ffffff'}; cursor: pointer; min-height: 84px; display: flex; flex-direction: column; justify-content: flex-start; text-wrap: balance;"
       >
         <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.9rem; color: #0f172a; margin-bottom: 2px;">
           <Icon name="check-circle" size={15} style="color: #0f766e;" />
@@ -45,7 +45,7 @@
       <button
         type="button"
         onclick={() => (type = 'materi')}
-        style="text-align: left; padding: 12px; border-radius: 10px; border: 2px solid {type === 'materi' ? '#0f766e' : '#e2e8f0'}; background: {type === 'materi' ? '#f0fdfa' : '#ffffff'}; cursor: pointer;"
+        style="text-align: left; padding: 12px; border-radius: 10px; border: 2px solid {type === 'materi' ? '#0f766e' : '#e2e8f0'}; background: {type === 'materi' ? '#f0fdfa' : '#ffffff'}; cursor: pointer; min-height: 84px; display: flex; flex-direction: column; justify-content: flex-start; text-wrap: balance;"
       >
         <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.9rem; color: #0f172a; margin-bottom: 2px;">
           <Icon name="book-open" size={15} style="color: #1d4ed8;" />
@@ -59,7 +59,7 @@
       <button
         type="button"
         onclick={() => (type = 'combined')}
-        style="text-align: left; padding: 12px; border-radius: 10px; border: 2px solid {type === 'combined' ? '#0f766e' : '#e2e8f0'}; background: {type === 'combined' ? '#f0fdfa' : '#ffffff'}; cursor: pointer;"
+        style="text-align: left; padding: 12px; border-radius: 10px; border: 2px solid {type === 'combined' ? '#0f766e' : '#e2e8f0'}; background: {type === 'combined' ? '#f0fdfa' : '#ffffff'}; cursor: pointer; min-height: 84px; display: flex; flex-direction: column; justify-content: flex-start; text-wrap: balance;"
       >
         <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.9rem; color: #0f172a; margin-bottom: 2px;">
           <Icon name="layers" size={15} style="color: #0f766e;" />

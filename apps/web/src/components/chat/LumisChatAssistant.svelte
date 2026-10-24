@@ -105,32 +105,40 @@
         </div>
 
         <!-- Quick Action Prompt Pills -->
-        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px;">
+        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch;">
           {#if lumisChat.lastAdoptedDraft}
             <button
               onclick={() => lumisChat.adoptDraft(lumisChat.lastAdoptedDraft)}
-              style="white-space: nowrap; font-size: 0.72rem; font-weight: 700; background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1; padding: 4px 8px; border-radius: 6px; cursor: pointer;"
+              class="fl-btn fl-btn-sm fl-pill-btn"
+              style="font-size: 0.72rem; font-weight: 700; background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1;"
             >
-              📥 Terapkan ke Form Tugas
+              <Icon name="arrow-down-tray" size={12} />
+              <span>Terapkan ke Form Tugas</span>
             </button>
           {/if}
           <button
             onclick={() => lumisChat.sendMessage('Berikan pertanyaan pemantik sokratik tanpa membocorkan kunci jawaban.')}
-            style="white-space: nowrap; font-size: 0.72rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 4px 8px; border-radius: 6px; cursor: pointer;"
+            class="fl-btn fl-btn-sm fl-pill-btn"
+            style="font-size: 0.72rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155;"
           >
-            💡 Hint Sokratik
+            <Icon name="sparkles" size={12} />
+            <span>Hint Sokratik</span>
           </button>
           <button
             onclick={() => lumisChat.sendMessage('Apa rujukan pasal atau dokumen standar resmi untuk skenario ini?')}
-            style="white-space: nowrap; font-size: 0.72rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 4px 8px; border-radius: 6px; cursor: pointer;"
+            class="fl-btn fl-btn-sm fl-pill-btn"
+            style="font-size: 0.72rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155;"
           >
-            📜 Rujukan Regulasi
+            <Icon name="book-open" size={12} />
+            <span>Rujukan Regulasi</span>
           </button>
           <button
             onclick={() => lumisChat.sendMessage('Mengapa kompromi terhadap syarat ini berisiko fatal?')}
-            style="white-space: nowrap; font-size: 0.72rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 4px 8px; border-radius: 6px; cursor: pointer;"
+            class="fl-btn fl-btn-sm fl-pill-btn"
+            style="font-size: 0.72rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155;"
           >
-            ⚠️ Analisis Risiko
+            <Icon name="exclamation-circle" size={12} />
+            <span>Analisis Risiko</span>
           </button>
         </div>
       </div>

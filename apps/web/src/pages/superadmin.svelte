@@ -3,6 +3,7 @@
   import { api } from '../stores/api';
   import { auth } from '../stores/auth.svelte';
   import type { Workspace } from '@flashlearn/shared';
+  import Icon from '../components/ui/Icon.svelte';
 
   interface Props {
     f7router?: any;
@@ -83,10 +84,11 @@
     </div>
   {:else}
     <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
-      <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #0f172a; display: flex; justify-content: space-between;">
+      <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #0f172a; display: flex; justify-content: space-between; align-items: center;">
         <span>Semua Workspace Terdaftar ({allWorkspaces.length})</span>
-        <button onclick={loadAll} style="background: none; border: none; color: #0f766e; font-weight: 700; cursor: pointer;">
-          ↻ Refresh
+        <button onclick={loadAll} class="fl-btn fl-btn-sm" style="background: none; border: none; color: #0f766e; font-weight: 700;">
+          <Icon name="refresh" size={13} />
+          <span>Refresh</span>
         </button>
       </div>
 
@@ -126,13 +128,15 @@
                   <div style="display: flex; gap: 8px; justify-content: flex-end;">
                     <button
                       onclick={() => f7router?.navigate(`/workspace/${ws.id}`)}
-                      style="background: #f1f5f9; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; color: #0f766e; cursor: pointer;"
+                      class="fl-btn fl-btn-sm"
+                      style="background: #f1f5f9; border: none; font-weight: 700; color: #0f766e;"
                     >
                       Buka
                     </button>
                     <button
                       onclick={() => handleDeleteWorkspace(ws)}
-                      style="background: #fee2e2; border: 1px solid #fca5a5; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; color: #b91c1c; cursor: pointer;"
+                      class="fl-btn fl-btn-sm"
+                      style="background: #fee2e2; border: 1px solid #fca5a5; font-weight: 700; color: #b91c1c;"
                     >
                       Hapus
                     </button>

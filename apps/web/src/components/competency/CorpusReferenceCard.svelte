@@ -155,7 +155,8 @@ Jika terjadi intervensi atau intimidasi struktural, petugas wajib menerbitkan No
     <button
       type="button"
       onclick={() => (isExpanded = !isExpanded)}
-      style="border: none; background: #ffffff; border: 1px solid #bbf7d0; color: #0f766e; padding: 4px 10px; border-radius: 6px; font-size: 0.76rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;"
+      class="fl-btn fl-btn-sm"
+      style="border: 1px solid #bbf7d0; background: #ffffff; color: #0f766e; font-size: 0.76rem; font-weight: 700;"
     >
       <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={12} />
       <span>{isExpanded ? 'Sembunyikan' : 'Buka Rujukan'}</span>
@@ -170,15 +171,18 @@ Jika terjadi intervensi atau intimidasi struktural, petugas wajib menerbitkan No
         <button
           type="button"
           onclick={() => (activeTab = 'recommended')}
-          style="border: none; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap; background: {activeTab === 'recommended' ? '#0f766e' : '#ffffff'}; color: {activeTab === 'recommended' ? '#ffffff' : '#334155'}; border: 1px solid {activeTab === 'recommended' ? '#0f766e' : '#cbd5e1'};"
+          class="fl-btn fl-btn-sm fl-pill-btn"
+          style="font-size: 0.75rem; font-weight: 700; background: {activeTab === 'recommended' ? '#0f766e' : '#ffffff'}; color: {activeTab === 'recommended' ? '#ffffff' : '#334155'}; border: 1px solid {activeTab === 'recommended' ? '#0f766e' : '#cbd5e1'};"
         >
-          ⭐ Rujukan Tugas Ini
+          <Icon name="sparkles" size={12} />
+          <span>Rujukan Tugas Ini</span>
         </button>
         {#each corpusArticles as art}
           <button
             type="button"
             onclick={() => (activeTab = art.id as any)}
-            style="border: none; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; white-space: nowrap; background: {activeTab === art.id ? '#0f766e' : '#ffffff'}; color: {activeTab === art.id ? '#ffffff' : '#475569'}; border: 1px solid {activeTab === art.id ? '#0f766e' : '#e2e8f0'};"
+            class="fl-btn fl-btn-sm fl-pill-btn"
+            style="font-size: 0.75rem; font-weight: 700; background: {activeTab === art.id ? '#0f766e' : '#ffffff'}; color: {activeTab === art.id ? '#ffffff' : '#475569'}; border: 1px solid {activeTab === art.id ? '#0f766e' : '#e2e8f0'};"
           >
             {art.tag.split(' ')[0]} {art.tag.split(' ')[1]}
           </button>

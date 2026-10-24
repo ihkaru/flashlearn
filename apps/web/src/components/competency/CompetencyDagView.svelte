@@ -93,10 +93,11 @@
         Graf prasyarat kompetensi berjenjang yang diverifikasi oleh Oracle multi-tier.
       </p>
     </div>
-    <div style="display: flex; align-items: center; gap: 8px;">
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
       <button
         onclick={() => (showDiagnosticModal = true)}
-        style="padding: 6px 12px; border-radius: 8px; border: none; background: #0f766e; font-size: 0.8rem; font-weight: 700; color: #ffffff; cursor: pointer; display: flex; align-items: center; gap: 5px;"
+        class="fl-btn fl-btn-sm"
+        style="border: none; background: #0f766e; font-size: 0.8rem; font-weight: 700; color: #ffffff;"
       >
         <Icon name="bolt" size={13} />
         <span>Uji Diagnostik (KST)</span>
@@ -104,7 +105,8 @@
 
       <button
         onclick={loadGraph}
-        style="padding: 6px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; font-size: 0.8rem; font-weight: 600; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 5px;"
+        class="fl-btn fl-btn-sm"
+        style="border: 1px solid #cbd5e1; background: #ffffff; font-size: 0.8rem; font-weight: 600; color: #475569;"
       >
         <Icon name="refresh" size={13} />
         <span>Segarkan</span>
@@ -167,7 +169,7 @@
             <span style="font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: {oracle.bg}; color: {oracle.text};">
               {oracle.label}
             </span>
-            <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
               {#if node.driftStatus === 'drift_warning' || node.driftStatus === 'provisionally_expired'}
                 <button
                   onclick={(e) => {
@@ -179,7 +181,8 @@
                     });
                   }}
                   title="Coaching Kuis Kilat AI sebelum Revalidasi"
-                  style="border: none; background: #e0e7ff; color: #4338ca; padding: 3px 6px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 3px;"
+                  class="fl-btn fl-btn-sm"
+                  style="min-height: 28px; border: none; background: #e0e7ff; color: #4338ca; padding: 2px 8px; font-size: 0.72rem; font-weight: 700;"
                 >
                   <Icon name="chat" size={11} />
                   <span>Kuis AI</span>
@@ -189,9 +192,10 @@
                     e.stopPropagation();
                     handleNodeClick(node);
                   }}
-                  style="border: none; background: #b45309; color: #ffffff; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;"
+                  class="fl-btn fl-btn-sm"
+                  style="min-height: 28px; border: none; background: #b45309; color: #ffffff; padding: 2px 8px; font-size: 0.72rem; font-weight: 700;"
                 >
-                  Tantangan Revalidasi
+                  <span>Revalidasi</span>
                 </button>
               {/if}
               {#if node.masteryScore !== null && node.masteryScore !== undefined}

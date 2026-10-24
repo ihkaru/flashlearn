@@ -84,7 +84,9 @@
 
         <button
           onclick={onClose}
-          style="border: none; background: #f1f5f9; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b;"
+          class="fl-btn fl-btn-sm"
+          style="border: none; background: #f1f5f9; width: 36px; height: 36px; min-height: 36px; border-radius: 8px; color: #64748b; padding: 0;"
+          aria-label="Tutup modal"
         >
           <Icon name="xmark" size={16} />
         </button>
@@ -105,13 +107,14 @@
         {:else if currentTask}
           <!-- Task Selector if multiple -->
           {#if tasks.length > 1}
-            <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;">
+            <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch;">
               {#each tasks as t, idx}
                 <button
                   onclick={() => (selectedTaskId = t.id)}
-                  style="padding: 6px 12px; border-radius: 6px; border: none; font-size: 0.8rem; font-weight: 700; cursor: pointer; white-space: nowrap; background: {selectedTaskId === t.id ? '#0f766e' : '#f1f5f9'}; color: {selectedTaskId === t.id ? '#ffffff' : '#64748b'};"
+                  class="fl-btn fl-btn-sm fl-pill-btn"
+                  style="border: none; font-size: 0.8rem; font-weight: 700; background: {selectedTaskId === t.id ? '#0f766e' : '#f1f5f9'}; color: {selectedTaskId === t.id ? '#ffffff' : '#64748b'};"
                 >
-                  Tugas {idx + 1}
+                  <span>Tugas {idx + 1}</span>
                 </button>
               {/each}
             </div>

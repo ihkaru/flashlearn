@@ -185,7 +185,8 @@
             <button
               disabled={isSubmitting}
               onclick={handleSubmitReview}
-              style="background: #0f766e; color: #ffffff; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: flex; align-items: center; gap: 8px;"
+              class="fl-btn fl-btn-lg"
+              style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.92rem; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
             >
               <Icon name="check-circle" size={16} />
               <span>{isSubmitting ? 'Menyimpan Penilaian...' : 'Kirim Nilai Review Double-Blind'}</span>

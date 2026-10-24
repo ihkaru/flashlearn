@@ -249,7 +249,8 @@
       <button
         type="button"
         onclick={() => auth.loginAsDemo()}
-        style="background: #1d4ed8; color: #ffffff; border: none; padding: 7px 14px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(29, 78, 216, 0.25);"
+        class="fl-btn fl-btn-sm"
+        style="background: #1d4ed8; color: #ffffff; border: none; font-weight: 700; font-size: 0.8rem; box-shadow: 0 2px 6px rgba(29, 78, 216, 0.25);"
       >
         <Icon name="bolt" size={13} />
         <span>Masuk Demo Pembelajar (1-Klik)</span>
@@ -260,9 +261,10 @@
   <button
     disabled={isSubmitting}
     onclick={handleSubmit}
-    style="background: #0f766e; color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;"
+    class="fl-btn fl-btn-lg"
+    style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.95rem; width: 100%; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
   >
-    <Icon name="check-circle" size={16} />
+    <Icon name="check-circle" size={18} />
     <span>{isSubmitting ? 'Mengevaluasi via Oracle...' : 'Kirim Solusi untuk Dinilai'}</span>
   </button>
 
@@ -301,10 +303,11 @@
               statutoryPolicy: task.adversarialSpec?.statutoryPolicy,
               learnerChoice: selectedDisposition,
             })}
-          style="background: #ffffff; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; color: #0f766e; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+          class="fl-btn fl-btn-sm"
+          style="background: #ffffff; border: 1px solid #cbd5e1; font-size: 0.8rem; font-weight: 700; color: #0f766e;"
         >
           <Icon name="chat" size={13} />
-          <span>Debrief & Refleksi Integritas dengan AI Tutor</span>
+          <span>Debrief & Refleksi Integritas (AI)</span>
         </button>
       </div>
     </div>

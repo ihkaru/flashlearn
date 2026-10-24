@@ -134,12 +134,12 @@
 
         <!-- Mobile Hamburger Toggle Button -->
         <button
-          class="mobile-hamburger-btn"
+          class="mobile-hamburger-btn fl-btn"
           onclick={toggleMobileMenu}
           aria-label="Menu navigasi"
-          style="width: 36px; height: 36px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; cursor: pointer; display: none; align-items: center; justify-content: center; padding: 0;"
+          style="width: 44px; height: 44px; min-height: 44px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; display: none; align-items: center; justify-content: center; padding: 0;"
         >
-          <Icon name={mobileMenuOpen ? 'xmark' : 'bars-3'} size={18} />
+          <Icon name={mobileMenuOpen ? 'xmark' : 'bars-3'} size={20} />
         </button>
       </div>
     </div>
@@ -182,7 +182,8 @@
           <!-- Highlight Mobile API Key Button -->
           <button
             onclick={() => { closeMobileMenu(); auth.openApiKeyModal(); }}
-            style="background: #0f766e; color: #ffffff; border: none; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
+            class="fl-btn fl-btn-lg"
+            style="width: 100%; background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
           >
             <Icon name="key" size={16} />
             <span>Manajemen API Key (Coding Agent)</span>
@@ -261,7 +262,8 @@
           <div style="border-top: 1px solid #f1f5f9; padding-top: 8px;">
             <button
               onclick={() => { closeMobileMenu(); auth.logout(); }}
-              style="width: 100%; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;"
+              class="fl-btn fl-btn-md"
+              style="width: 100%; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 700; font-size: 0.9rem;"
             >
               <Icon name="xmark" size={16} />
               <span>Keluar ({auth.user?.name.split(' ')[0]})</span>

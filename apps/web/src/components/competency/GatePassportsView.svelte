@@ -125,7 +125,8 @@
     </div>
     <button
       onclick={loadGates}
-      style="padding: 6px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; font-size: 0.8rem; font-weight: 600; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 5px;"
+      class="fl-btn fl-btn-sm"
+      style="border: 1px solid #cbd5e1; background: #ffffff; font-size: 0.8rem; font-weight: 600; color: #475569;"
     >
       <Icon name="refresh" size={13} />
       <span>Segarkan</span>
@@ -178,7 +179,8 @@
                   <button
                     disabled={issuingGateId === gate.id}
                     onclick={() => handleExportVc(gate.id)}
-                    style="background: #0f766e; color: #ffffff; border: none; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
+                    class="fl-btn fl-btn-sm"
+                    style="background: #0f766e; color: #ffffff; border: none; font-size: 0.75rem; font-weight: 700;"
                   >
                     <Icon name="shield-check" size={12} />
                     <span>{issuingGateId === gate.id ? 'Menerbitkan...' : 'Ekspor W3C VC 2.0'}</span>
@@ -204,7 +206,8 @@
                 <button
                   disabled={evaluatingGateId === gate.id}
                   onclick={() => handleEvaluateGate(gate.id)}
-                  style="background: #0f766e; color: #ffffff; border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;"
+                  class="fl-btn fl-btn-sm"
+                  style="background: #0f766e; color: #ffffff; border: none; font-size: 0.8rem; font-weight: 700;"
                 >
                   {evaluatingGateId === gate.id ? 'Mengevaluasi...' : 'Klaim / Evaluasi Gerbang'}
                 </button>
@@ -275,17 +278,19 @@
             <pre style="background: #0f172a; color: #38bdf8; padding: 12px; border-radius: 10px; font-size: 0.72rem; overflow-x: auto; max-height: 220px; font-family: monospace; margin: 0;">{JSON.stringify(issuedVc, null, 2)}</pre>
           </div>
 
-          <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+          <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 14px; flex-wrap: wrap;">
             <button
               onclick={copyVcJson}
-              style="padding: 8px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; font-weight: 700; font-size: 0.85rem; color: #334155; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+              class="fl-btn fl-btn-md"
+              style="border: 1px solid #cbd5e1; background: #ffffff; font-weight: 700; font-size: 0.85rem; color: #334155;"
             >
               <Icon name="clipboard" size={14} />
               <span>{copiedVcJson ? 'Tersalin!' : 'Salin JSON'}</span>
             </button>
             <button
               onclick={downloadVcJson}
-              style="padding: 8px 16px; border-radius: 8px; border: none; background: #0f766e; font-weight: 700; font-size: 0.85rem; color: #ffffff; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+              class="fl-btn fl-btn-md"
+              style="border: none; background: #0f766e; font-weight: 700; font-size: 0.85rem; color: #ffffff;"
             >
               <Icon name="download" size={14} />
               <span>Unduh Berkas .json</span>

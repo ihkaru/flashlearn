@@ -267,12 +267,13 @@
 
       <!-- Segmented Navigation Tabs -->
       <div
-        style="display: flex; border-bottom: 1px solid #e2e8f0; background: #f8fafc; padding: 6px 16px; gap: 6px; flex-shrink: 0;"
+        style="display: flex; border-bottom: 1px solid #e2e8f0; background: #f8fafc; padding: 6px 16px; gap: 6px; flex-shrink: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;"
       >
         <button
           type="button"
           onclick={() => (activeTab = 'info')}
-          style="flex: 1; padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 0.825rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; min-width: 0; background: {activeTab === 'info' ? '#0f766e' : 'transparent'}; color: {activeTab === 'info' ? '#ffffff' : '#64748b'};"
+          class="fl-btn fl-btn-sm"
+          style="flex: 1; min-height: 38px; padding: 6px 12px; font-weight: 700; font-size: 0.825rem; border: none; white-space: nowrap; min-width: 0; background: {activeTab === 'info' ? '#0f766e' : 'transparent'}; color: {activeTab === 'info' ? '#ffffff' : '#64748b'};"
         >
           <Icon name="info-circle" size={14} />
           <span>Info Modul</span>
@@ -282,7 +283,8 @@
           <button
             type="button"
             onclick={() => (activeTab = 'questions')}
-            style="flex: 1; padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 0.825rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; min-width: 0; background: {activeTab === 'questions' ? '#0f766e' : 'transparent'}; color: {activeTab === 'questions' ? '#ffffff' : '#64748b'};"
+            class="fl-btn fl-btn-sm"
+            style="flex: 1; min-height: 38px; padding: 6px 12px; font-weight: 700; font-size: 0.825rem; border: none; white-space: nowrap; min-width: 0; background: {activeTab === 'questions' ? '#0f766e' : 'transparent'}; color: {activeTab === 'questions' ? '#ffffff' : '#64748b'};"
           >
             <Icon name="check-circle" size={14} />
             <span>Butir Soal ({questions.length})</span>
@@ -291,7 +293,8 @@
           <button
             type="button"
             onclick={() => (activeTab = 'preview')}
-            style="flex: 1; padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 0.825rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; min-width: 0; background: {activeTab === 'preview' ? '#0f766e' : 'transparent'}; color: {activeTab === 'preview' ? '#ffffff' : '#64748b'};"
+            class="fl-btn fl-btn-sm"
+            style="flex: 1; min-height: 38px; padding: 6px 12px; font-weight: 700; font-size: 0.825rem; border: none; white-space: nowrap; min-width: 0; background: {activeTab === 'preview' ? '#0f766e' : 'transparent'}; color: {activeTab === 'preview' ? '#ffffff' : '#64748b'};"
           >
             <Icon name="eye" size={14} />
             <span>Pratinjau</span>
@@ -355,12 +358,13 @@
           {/if}
         </div>
 
-        <div style="display: flex; gap: 8px; flex-shrink: 0;">
+        <div style="display: flex; gap: 8px; flex-shrink: 0; align-items: center;">
           <button
             type="button"
             disabled={isSaving}
             onclick={onClose}
-            style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; white-space: nowrap;"
+            class="fl-btn fl-btn-sm"
+            style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-weight: 600; font-size: 0.85rem; white-space: nowrap;"
           >
             Batal
           </button>
@@ -369,7 +373,8 @@
             type="button"
             disabled={isSaving}
             onclick={handleSave}
-            style="background: #0f766e; color: #ffffff; border: none; padding: 8px 20px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25); white-space: nowrap;"
+            class="fl-btn fl-btn-sm"
+            style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25); white-space: nowrap;"
           >
             {#if isSaving}
               <Icon name="arrow-path" size={14} class="animate-spin" />

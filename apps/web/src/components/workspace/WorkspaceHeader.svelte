@@ -34,7 +34,8 @@
     {#if isOwner}
       <button
         onclick={onCreateModule}
-        style="background: #0f766e; color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25); white-space: nowrap; flex-shrink: 0;"
+        class="fl-btn fl-btn-md fl-pill-btn"
+        style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.875rem; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
       >
         <Icon name="plus" size={15} />
         <span>Buat Modul</span>

@@ -121,7 +121,8 @@
               <button
                 type="button"
                 onclick={() => (searchQuery = '')}
-                style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; color: #94a3b8; cursor: pointer; display: flex; align-items: center; z-index: 2;"
+                class="fl-btn"
+                style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 0; width: 28px; height: 28px; min-height: 28px; border-radius: 6px; color: #94a3b8; z-index: 2;"
                 aria-label="Hapus pencarian"
               >
                 <Icon name="xmark" size={16} />

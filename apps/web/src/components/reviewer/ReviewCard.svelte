@@ -166,7 +166,8 @@
     <button
       disabled={isSubmitting}
       onclick={handleSubmit}
-      style="background: #0f766e; color: #ffffff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+      class="fl-btn fl-btn-sm"
+      style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.85rem;"
     >
       <Icon name="check-circle" size={14} />
       <span>{isSubmitting ? 'Menyimpan...' : 'Tandatangani Verifikasi'}</span>

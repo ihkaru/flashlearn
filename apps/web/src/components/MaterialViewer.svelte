@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Content } from '@flashlearn/shared';
+  import Icon from './ui/Icon.svelte';
 
   interface Props {
     content: Content;
@@ -51,13 +52,16 @@
     {#if !isDone}
       <button
         onclick={markCompleted}
-        style="background: #0f766e; color: #ffffff; border: none; padding: 14px 32px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
+        class="fl-btn fl-btn-lg"
+        style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 1rem; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
       >
-        ✓ Tandai Selesai Membaca
+        <Icon name="check-circle" size={18} />
+        <span>Tandai Selesai Membaca</span>
       </button>
     {:else}
       <div style="display: inline-flex; align-items: center; gap: 8px; background: #dcfce7; color: #166534; font-weight: 700; padding: 12px 24px; border-radius: 12px;">
-        ✓ Kamu telah menyelesaikan materi ini!
+        <Icon name="check-circle" size={18} />
+        <span>Kamu telah menyelesaikan materi ini!</span>
       </div>
     {/if}
   </div>

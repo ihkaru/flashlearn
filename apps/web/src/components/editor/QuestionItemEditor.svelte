@@ -78,7 +78,8 @@
         onclick={onRemove}
         title="Hapus soal ini"
         aria-label="Hapus soal ini"
-        style="background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; border-radius: 6px; padding: 4px 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;"
+        class="fl-btn fl-btn-sm"
+        style="background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; font-size: 0.75rem; font-weight: 700;"
       >
         <Icon name="trash" size={13} />
         <span>Hapus</span>
@@ -106,7 +107,8 @@
         <button
           type="button"
           onclick={onAddOption}
-          style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #0f766e; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;"
+          class="fl-btn fl-btn-sm"
+          style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #0f766e; font-weight: 700; font-size: 0.75rem;"
         >
           <Icon name="plus" size={12} />
           <span>Tambah Opsi</span>
@@ -125,7 +127,8 @@
             onclick={() => onSetCorrectOption(optIdx)}
             title="Klik untuk jadikan kunci jawaban benar"
             aria-label="Pilih opsi {optionLetters[optIdx]} sebagai kunci benar"
-            style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid {opt.isCorrect ? '#16a34a' : '#cbd5e1'}; background: {opt.isCorrect ? '#16a34a' : '#ffffff'}; color: {opt.isCorrect ? '#ffffff' : '#64748b'}; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"
+            class="fl-btn"
+            style="width: 32px; height: 32px; min-height: 32px; border-radius: 50%; border: 2px solid {opt.isCorrect ? '#16a34a' : '#cbd5e1'}; background: {opt.isCorrect ? '#16a34a' : '#ffffff'}; color: {opt.isCorrect ? '#ffffff' : '#64748b'}; font-weight: 800; font-size: 0.8rem; padding: 0; flex-shrink: 0;"
           >
             {#if opt.isCorrect}
               <Icon name="check" size={14} />
@@ -154,7 +157,8 @@
               onclick={() => onRemoveOption(optIdx)}
               title="Hapus opsi ini"
               aria-label="Hapus opsi"
-              style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; flex-shrink: 0;"
+              class="fl-btn"
+              style="background: none; border: none; color: #94a3b8; padding: 4px; min-height: 28px; width: 28px; border-radius: 6px; flex-shrink: 0;"
             >
               <Icon name="xmark" size={15} />
             </button>

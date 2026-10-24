@@ -46,19 +46,21 @@
         <div style="font-size: 0.72rem; color: #6366f1;">Panduan reflektif berbasis pasal resmi tanpa spoiler kunci jawaban</div>
       </div>
     </div>
-    <div style="display: flex; gap: 6px; align-items: center;">
+    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
       <button
         onclick={() => lumisChat.askSocraticTutor({ taskId, taskTitle, scenario })}
-        style="border: none; background: #4f46e5; color: #ffffff; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;"
+        class="fl-btn fl-btn-sm"
+        style="border: none; background: #4f46e5; color: #ffffff; font-size: 0.75rem; font-weight: 700;"
       >
         <Icon name="chat" size={12} />
         <span>Chat Interaktif (AI Tutor)</span>
       </button>
       <button
         onclick={() => (isOpen = !isOpen)}
-        style="border: none; background: #e0e7ff; color: #3730a3; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;"
+        class="fl-btn fl-btn-sm"
+        style="border: none; background: #e0e7ff; color: #3730a3; font-size: 0.75rem; font-weight: 700;"
       >
-        {isOpen ? 'Tutup' : 'Hint Cepat'}
+        <span>{isOpen ? 'Tutup' : 'Hint Cepat'}</span>
       </button>
     </div>
   </div>
@@ -77,7 +79,8 @@
         <button
           onclick={handleAsk}
           disabled={isLoading || !question.trim()}
-          style="background: #4f46e5; color: #ffffff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 4px;"
+          class="fl-btn fl-btn-sm"
+          style="background: #4f46e5; color: #ffffff; border: none; font-weight: 700; font-size: 0.8rem;"
         >
           <span>{isLoading ? 'Menelaah...' : 'Tanya'}</span>
         </button>
