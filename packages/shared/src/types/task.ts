@@ -80,7 +80,34 @@ export interface OracleDataClassC {
   submissionPlaceholder?: string;
 }
 
-export type OracleData = OracleDataClassA & Partial<OracleDataClassB> & Partial<OracleDataClassC> & Record<string, any>;
+export interface RoleBehaviorConfig {
+  rolePersona?: string;
+  guidingStyle?: string;
+  dos?: string[];
+  donts?: string[];
+  focusAreas?: string[];
+}
+
+export interface OracleBehaviorConfig extends RoleBehaviorConfig {
+  strictnessLevel?: 'moderate' | 'strict' | 'uncompromising';
+  disqualificationKeywords?: string[];
+}
+
+export interface SocraticBehaviorConfig extends RoleBehaviorConfig {
+  pedagogicalStyle?: 'dialectic' | 'first_principles' | 'regulatory_socratic' | 'scaffolded';
+  antiSpoilerLevel?: 'standard' | 'strict' | 'absolute';
+}
+
+export interface OracleBehaviorExtension {
+  oracleConfig?: OracleBehaviorConfig;
+  socraticConfig?: SocraticBehaviorConfig;
+}
+
+export type OracleData = OracleDataClassA &
+  Partial<OracleDataClassB> &
+  Partial<OracleDataClassC> &
+  Partial<OracleBehaviorExtension> &
+  Record<string, any>;
 
 export interface Task {
   id: string;

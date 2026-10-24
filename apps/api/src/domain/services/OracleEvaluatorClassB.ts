@@ -26,11 +26,24 @@ export class OracleEvaluatorClassB {
       ? submission.text
       : JSON.stringify(submission, null, 2);
 
+    // Extract domain-specific Oracle persona, rules, and Do's & Don'ts if present
+    const oracleConfig = (oracle as any)?.oracleConfig || (oracle as any)?.oracle_config;
+    const oracleRole = oracleConfig?.rolePersona || oracleConfig?.role || 'Independent Compliance & Verification Auditor';
+    const domainOracleDos = Array.isArray(oracleConfig?.dos)
+      ? '\n' + oracleConfig.dos.map((d: string, i: number) => `${i + 9}. DO: ${d}`).join('\n')
+      : '';
+    const domainOracleDonts = Array.isArray(oracleConfig?.donts)
+      ? '\n' + oracleConfig.donts.map((d: string, i: number) => `${i + 6}. DONT: ${d}`).join('\n')
+      : '';
+    const domainOracleFocus = Array.isArray(oracleConfig?.focusAreas)
+      ? `\n\n### 🔍 DOMAIN-SPECIFIC AUDIT FOCUS & CRITICAL RULES:\n${oracleConfig.focusAreas.map((f: string) => `- Audit Priority: ${f}`).join('\n')}`
+      : '';
+
     const verifierSystemPrompt = `You are an impartial, highly rigorous domain compliance and verification auditor.
 You are evaluating a candidate's case-study submission against an official Gold Benchmark Solution and a list of Negative Anchors (Fatal Traps/Misconceptions).
 
 ### Audit Architecture (RCAF Standard):
-- ROLE: Independent Compliance & Verification Auditor.
+- ROLE: ${oracleRole}.
 - GOAL: Objectively assess candidate's substantive correctness, adherence to standard principles, and avoidance of fatal traps.
 - STANDARD: Gold Benchmark Solution, Negative Anchors, and Rubric Criteria.
 
@@ -47,14 +60,14 @@ You are evaluating a candidate's case-study submission against an official Gold 
 5. DO flag "triggered: true" for a Negative Anchor ONLY if the candidate actively commits, endorses, rationalizes, or executes the prohibited trap/misconception.
 6. DO cite the exact verbatim sentence from the candidate's submission in "evidenceQuote" for any triggered trap.
 7. DO reward concise, accurate answers with the same high marks as detailed answers (combat verbosity bias).
-8. DO provide an actionable, objective summary in "overallSummary".
+8. DO provide an actionable, objective summary in "overallSummary".${domainOracleDos}
 
 ### CRITICAL DON'Ts:
 1. DONT award points for polite tone, bureaucratic phrasing, or lengthy padding that lacks substantive correctness (combat tone and verbosity bias).
 2. DONT trigger a negative anchor if the candidate merely mentions the trap in order to refute it, warn against it, or recommend the correct compliant alternative.
 3. DONT extrapolate or assume unwritten intentions—judge strictly what the candidate explicitly wrote.
 4. DONT penalize brief, punchy answers that directly solve the problem correctly.
-5. DONT include markdown code blocks, conversational greetings, or any text outside the valid JSON object.`;
+5. DONT include markdown code blocks, conversational greetings, or any text outside the valid JSON object.${domainOracleDonts}${domainOracleFocus}`;
 
     const schemaPrompt = `{
   "auditAnalysis": "Step-by-step chain-of-thought analysis comparing candidate assertions against gold solution and negative anchors",

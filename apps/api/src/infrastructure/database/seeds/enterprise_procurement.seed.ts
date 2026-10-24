@@ -230,6 +230,30 @@ async function seedTasks(compMap: Map<string, string>) {
           mandatory_citations: ['SOP-CORP-PROC-2026-08', 'Pasal 4'],
           gold_benchmark_rationale:
             'Berdasarkan SOP-CORP-PROC-2026-08 Pasal 4 ayat 2, pemenuhan sertifikasi standar keamanan data ISO 27001 adalah persyaratan mutlak yang wajib masih berlaku saat pembukaan penawaran. Surat pernyataan komitmen perpanjangan bukan merupakan dokumen pengganti sertifikat yang sah.',
+          oracleConfig: {
+            rolePersona: 'Ketua Komite Kepatuhan Legal & Auditor Keamanan Sistem Informasi',
+            dos: [
+              'Tegakkan aturan mutlak Pasal 4 ayat 2 bahwa sertifikat ISO 27001 wajib aktif saat pembukaan penawaran',
+              'Tolak surat komitmen perpanjangan sebagai dokumen pengganti sertifikat sah',
+              'Wajib menjatuhkan status GUGUR / DISKUALIFIKASI atas sertifikat kedaluwarsa',
+            ],
+            donts: [
+              'Dilarang memberi toleransi perpanjangan sertifikat atau kelulusan bersyarat untuk modul ERP sensitif',
+              'Dilarang meloloskan peserta semata-mata karena rasio likuiditas Current Ratio 1.35',
+            ],
+          },
+          socraticConfig: {
+            pedagogicalRole: 'Konsultan Tata Kelola Risiko & Penasihat Hukum Pengadaan',
+            pedagogicalStyle: 'regulatory_socratic',
+            dos: [
+              'Arahkan peserta membaca SOP Pasal 4 mengenai konsekuensi yuridis sertifikat ISO yang habis masa berlakunya',
+              'Tanyakan risiko hukum dan kebocoran data bagi korporasi jika sistem ERP dipegang vendor tanpa ISO 27001 aktif',
+            ],
+            donts: [
+              'Dilarang membocorkan kata kunci putusan GUGUR atau DISKUALIFIKASI secara langsung',
+              'Dilarang menyebutkan nama negative anchor trap secara eksplisit',
+            ],
+          },
         },
         rubricCriteria: [
           { name: 'Ketepatan Rekomendasi Putusan (Diskualifikasi)', weight: 50 },

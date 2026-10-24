@@ -71,6 +71,64 @@ Agen menyusun laporan terstruktur dengan format:
 
 ---
 
+---
+
+## 🎭 6. Konfigurasi Otonom Skill Peran: Oracle & Socrates (Do's and Don'ts)
+
+Selain struktur kurikulum dan materi, domain blueprint FlashLearn mendukung pendefinisian perilaku spesifik (*role behavior configuration*) untuk dua agen AI yang berbeda peran:
+1. **The Oracle (Penilai / Auditor Kepatuhan)**: Berperan sebagai hakim penguji yang objektif, tanpa kompromi, dan mendeteksi jebakan kesalahan fatal.
+2. **The Socratic Mentor (Tutor Pedagogis via CLI & Chat)**: Berperan sebagai pembimbing dialektis yang menuntun pemikiran kandidat secara mandiri tanpa membocorkan kunci jawaban (*Oracle Shield*).
+
+Kedua peran ini dapat dikonfigurasi langsung di dalam `oracleData` pada setiap tugas (`task`):
+
+```json
+{
+  "oracleData": {
+    "oracleConfig": {
+      "rolePersona": "Ketua Komite Kepatuhan Legal & Auditor Keamanan Sistem Informasi",
+      "strictnessLevel": "uncompromising",
+      "dos": [
+        "Wajib memverifikasi tanggal kedaluwarsa sertifikat ISO 27001 terhadap tanggal pembukaan penawaran",
+        "Tegakkan status GUGUR jika ditemukan benturan kepentingan hubungan keluarga sedarah"
+      ],
+      "donts": [
+        "Dilarang memberi kelulusan bersyarat atas janji lisan vendor untuk modul ERP sensitif",
+        "Dilarang meloloskan peserta semata-mata karena rasio likuiditas Current Ratio tinggi jika legalitas gagal"
+      ],
+      "focusAreas": [
+        "Integritas dokumen kualifikasi legalitas",
+        "Pencegahan benturan kepentingan tim panitia"
+      ]
+    },
+    "socraticConfig": {
+      "pedagogicalRole": "Konsultan Tata Kelola Risiko & Penasihat Hukum Pengadaan",
+      "pedagogicalStyle": "regulatory_socratic",
+      "dos": [
+        "Arahkan peserta membaca SOP Pasal 4 mengenai konsekuensi yuridis sertifikat ISO yang habis masa berlakunya",
+        "Ajukan pertanyaan reflektif: apa risiko hukum dan kebocoran data jika sistem ERP diserahkan ke vendor tanpa sertifikasi ISO aktif?"
+      ],
+      "donts": [
+        "Dilarang membocorkan kata kunci putusan 'GUGUR' atau 'DISKUALIFIKASI'",
+        "Dilarang mengonfirmasi angka nominal atau nama trap jebakan secara langsung"
+      ],
+      "focusAreas": [
+        "Dekonstruksi prinsip keabsahan dokumen hukum",
+        "Refleksi risiko keamanan informasi korporasi"
+      ]
+    }
+  }
+}
+```
+
+### Integrasi dengan Mekanisme CLI:
+Ketika pengguna menjalankan perintah CLI:
+```bash
+flashlearn task socratic-hint <task_id> --question "Mengapa surat komitmen ISO tidak diakui?"
+```
+Backend API secara otomatis menyuntikkan `socraticConfig.dos` dan `socraticConfig.donts` ke dalam prompt sistem tutor, sehingga jawaban CLI yang diberikan konsisten dengan persona dan batasan pedagogis domain tersebut!
+
+---
+
 ## 🛠️ CLI Script & Alat Otomasi Monorepo
 
 Script auditor terletak di:

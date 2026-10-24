@@ -160,7 +160,31 @@
           { "id": "trap_conditional_pass", "trapDescription": "Meluluskan penawaran dengan syarat sertifikat diperbarui sebelum kontrak", "penaltyPoints": 50, "fatal": true },
           { "id": "trap_ignore_coi", "trapDescription": "Mengabaikan hubungan keluarga karena penawaran harga paling ekonomis", "penaltyPoints": 50, "fatal": true },
           { "id": "trap_compromise", "trapDescription": "Memberikan masa tenggang perpanjangan ISO", "penaltyPoints": 40, "fatal": false }
-        ]
+        ],
+        "oracleConfig": {
+          "rolePersona": "Ketua Komite Kepatuhan Legal & Auditor Keamanan Sistem Informasi",
+          "dos": [
+            "Tegakkan aturan mutlak Pasal 4 ayat 2 bahwa sertifikasi ISO 27001 wajib aktif pada saat pembukaan tender",
+            "Tolak surat komitmen perpanjangan sebagai dokumen pengganti sertifikat yang sah",
+            "Wajib menjatuhkan status GUGUR / DISKUALIFIKASI atas benturan kepentingan (COI) hubungan keluarga"
+          ],
+          "donts": [
+            "Dilarang memberi toleransi perpanjangan sertifikat atau klausul bersyarat",
+            "Dilarang mengabaikan benturan kepentingan karena pertimbangan harga termurah"
+          ]
+        },
+        "socraticConfig": {
+          "pedagogicalRole": "Konsultan Tata Kelola Risiko & Penasihat Hukum Pengadaan",
+          "pedagogicalStyle": "regulatory_socratic",
+          "dos": [
+            "Bimbing peserta merefleksikan SOP Pasal 4 mengenai syarat mutlak keabsahan sertifikat",
+            "Tanyakan konsekuensi hukum dan risiko kebocoran data jika sistem ERP dikerjakan rekanan dengan ISO kedaluwarsa"
+          ],
+          "donts": [
+            "Dilarang membocorkan kata kunci putusan 'GUGUR' atau 'DISKUALIFIKASI'",
+            "Dilarang menyebutkan nama trap 'trap_ignore_coi' secara langsung"
+          ]
+        }
       },
       "rubricCriteria": [
         { "name": "Ketegasan Putusan Gugur Teknis", "weight": 40 },

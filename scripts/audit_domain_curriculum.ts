@@ -186,6 +186,16 @@ export function auditDomainCurriculum(bp: any): DomainAuditReport {
     oracleDetails.push('All tasks define 100%-weighted objective evaluation rubric criteria');
   }
 
+  const roleConfigCount = tasks.filter(
+    (t: any) =>
+      (t.oracleData?.oracleConfig?.dos && t.oracleData?.oracleConfig?.donts) ||
+      (t.oracleData?.socraticConfig?.dos && t.oracleData?.socraticConfig?.donts)
+  ).length;
+
+  if (roleConfigCount > 0) {
+    oracleDetails.push(`Role Behavior Configuration: ${roleConfigCount} task(s) define domain-specific Oracle/Socrates Do's & Don'ts`);
+  }
+
   // --- 4. Pillar: Progressive Authorization Gates ---
   const gates = Array.isArray(bp.gates) ? bp.gates : [];
   let gatePoints = 0;

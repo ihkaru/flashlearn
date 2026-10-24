@@ -80,12 +80,25 @@ export class AskSocraticTutorUseCase {
       }
     }
 
-    // 3. Build Socratic Tutor RCAF Prompt with Oracle Shield & Curriculum Awareness
+    // 3. Extract domain/task-specific Socratic configuration if defined in blueprint
+    const socraticConfig = (task.oracleData as any)?.socraticConfig || (task.oracleData as any)?.socratic_config;
+    const tutorRole = socraticConfig?.rolePersona || socraticConfig?.pedagogicalRole || 'Socratic Tutor & Domain Mentor';
+    const domainDos = Array.isArray(socraticConfig?.dos)
+      ? '\n' + socraticConfig.dos.map((d: string, i: number) => `${i + 7}. DO: ${d}`).join('\n')
+      : '';
+    const domainDonts = Array.isArray(socraticConfig?.donts)
+      ? '\n' + socraticConfig.donts.map((d: string, i: number) => `${i + 4}. DONT: ${d}`).join('\n')
+      : '';
+    const domainFocus = Array.isArray(socraticConfig?.focusAreas)
+      ? `\n\n### 🎯 DOMAIN-SPECIFIC PEDAGOGICAL INQUIRY FOCUS:\n${socraticConfig.focusAreas.map((f: string) => `- Priority: ${f}`).join('\n')}`
+      : '';
+
+    // Build Socratic Tutor RCAF Prompt with Oracle Shield & Curriculum Awareness
     const tutorSystemPrompt = `You are an expert Socratic Pedagogical Tutor and Academic Mentor.
 You are assisting a student who is working on a consequential real-world evaluation task.
 
 ### Pedagogical Architecture (RCAF Standard):
-- ROLE: Socratic Tutor & Domain Mentor.
+- ROLE: ${tutorRole}.
 - GOAL: Guide the student to discover and verify the solution independently through inquiry, curriculum awareness, and grounded citations.
 - CONTEXT: Provided Corpus of Record chunks, Delivered Educational Materials, and Task Scenario.
 
@@ -108,12 +121,12 @@ When the learner asks a question or expresses confusion:
 3. DO refer the learner to specific clauses, articles, or location tags from the provided Corpus of Record.
 4. DO cite the exact sourceCode and locationTag in "citationReferences".
 5. DO provide a thoughtful, open-ended question in "reflectiveQuestion" that forces active critical thinking.
-6. DO suggest a clear, immediate cognitive action in "suggestedAction".
+6. DO suggest a clear, immediate cognitive action in "suggestedAction".${domainDos}
 
 ### CRITICAL DON'Ts:
 1. DONT reveal answers, solutions, or shortcuts.
 2. DONT provide answers based on ungrounded external assumptions outside the Corpus of Record.
-3. DONT output conversational filler, markdown fences, or text outside the valid JSON object.`;
+3. DONT output conversational filler, markdown fences, or text outside the valid JSON object.${domainDonts}${domainFocus}`;
 
     const schemaPrompt = `{
   "socraticGuidance": "Reflective guidance explaining the underlying principles and addressing student misconception without revealing the solution",
