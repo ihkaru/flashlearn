@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { validateDomainBlueprint } from '../../../../../../packages/cli/src/core/blueprint-validator';
+import { validateDomainBlueprint, type DomainBlueprint, type ImportBlueprintResponse } from '@flashlearn/shared';
 import type { IWorkspaceRepository } from '../../../domain/ports/IWorkspaceRepository';
 import type { ISourceRepository } from '../../../domain/ports/ISourceRepository';
 import type { ICompetencyRepository } from '../../../domain/ports/ICompetencyRepository';
@@ -7,7 +7,6 @@ import type { IGateRepository } from '../../../domain/ports/IGateRepository';
 import type { ITaskRepository } from '../../../domain/ports/ITaskRepository';
 import type { CompetencyGraphEngine } from '../../../domain/services/CompetencyGraphEngine';
 import type { IAuditLogRepository } from '../../../domain/ports/IAuditLogRepository';
-import type { DomainBlueprint, ImportBlueprintResponse } from '@flashlearn/shared';
 
 export class ImportDomainBlueprintUseCase {
   constructor(
