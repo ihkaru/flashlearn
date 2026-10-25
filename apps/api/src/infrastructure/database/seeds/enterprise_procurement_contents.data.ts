@@ -1,4 +1,5 @@
 import { db } from '../db';
+import { eq, and } from 'drizzle-orm';
 import { contents, contentSourceCitations, sourceChunks, sources } from '../schema';
 
 export async function seedEnterpriseContents(workspaceId: string, compMap: Map<string, string>) {
@@ -9,10 +10,10 @@ export async function seedEnterpriseContents(workspaceId: string, compMap: Map<s
   const comp03Id = compMap.get('PROC-ENT-03');
 
   // 1. Modul 1: Strategic Sourcing & Matriks Kraljic (Combined: Materi + 3D Flashcards)
-  const existing01 = await db.query.contents.findFirst({
-    where: (c, { eq, and }) =>
-      and(eq(c.workspaceId, workspaceId), eq(c.slug, 'strategic-sourcing-dan-matriks-kraljic')),
-  });
+  const [existing01] = await db
+    .select()
+    .from(contents)
+    .where(and(eq(contents.workspaceId, workspaceId), eq(contents.slug, 'strategic-sourcing-dan-matriks-kraljic')));
 
   if (!existing01) {
     await db.insert(contents).values({
@@ -113,10 +114,10 @@ Matriks Kraljic membagi portofolio belanja menjadi 4 kuadran berdasarkan dua var
   }
 
   // 2. Modul 2: Total Cost of Ownership (TCO) Calculation (Combined)
-  const existing02 = await db.query.contents.findFirst({
-    where: (c, { eq, and }) =>
-      and(eq(c.workspaceId, workspaceId), eq(c.slug, 'kalkulasi-total-cost-of-ownership-tco')),
-  });
+  const [existing02] = await db
+    .select()
+    .from(contents)
+    .where(and(eq(contents.workspaceId, workspaceId), eq(contents.slug, 'kalkulasi-total-cost-of-ownership-tco')));
 
   if (!existing02) {
     await db.insert(contents).values({
@@ -189,10 +190,10 @@ $$\\text{TCO Sebelum Pajak} = \\text{Harga Beli Pokok} + \\text{Biaya Implementa
   }
 
   // 3. Modul 3: Vendor Due Diligence, Three-Way Matching & Anti-Split PO (Materi)
-  const existing03 = await db.query.contents.findFirst({
-    where: (c, { eq, and }) =>
-      and(eq(c.workspaceId, workspaceId), eq(c.slug, 'uji-tuntas-rekanan-three-way-matching-p2p')),
-  });
+  const [existing03] = await db
+    .select()
+    .from(contents)
+    .where(and(eq(contents.workspaceId, workspaceId), eq(contents.slug, 'uji-tuntas-rekanan-three-way-matching-p2p')));
 
   if (!existing03) {
     await db.insert(contents).values({
@@ -244,17 +245,21 @@ Pada akhir tahun buku (Desember), sering terjadi tekanan dari manajemen untuk me
   }
 
   // 4. Populate Corpus Citations (Layer 1: Corpus-Task Traceability)
-  const allContents = await db.query.contents.findMany({
-    where: (c, { eq }) => eq(c.workspaceId, workspaceId),
-  });
+  const allContents = await db
+    .select()
+    .from(contents)
+    .where(eq(contents.workspaceId, workspaceId));
 
-  const allChunks = await db.query.sourceChunks.findMany({
-    with: {
-      source: true,
-    },
-  });
+  const allChunks = await db
+    .select({
+      id: sourceChunks.id,
+      locationTag: sourceChunks.locationTag,
+      sourceCode: sources.code,
+    })
+    .from(sourceChunks)
+    .innerJoin(sources, eq(sourceChunks.sourceId, sources.id));
 
-  const entChunks = allChunks.filter((chk: any) => chk.source?.code === 'SRC-ENT-PROC-2026');
+  const entChunks = allChunks.filter((chk) => chk.sourceCode === 'SRC-ENT-PROC-2026');
 
   for (const cnt of allContents) {
     if (cnt.slug === 'strategic-sourcing-dan-matriks-kraljic') {
