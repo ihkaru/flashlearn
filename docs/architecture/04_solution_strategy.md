@@ -1,7 +1,7 @@
 ---
 arc42_section: 4
-verified_commit: 1cf9418
-verified_timestamp: 2026-10-25T20:10:07+07:00
+verified_commit: fa8d046
+verified_timestamp: 2026-10-25T20:50:00+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -12,24 +12,26 @@ tracked_paths:
 # 4. Solution Strategy
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `1cf9418` (branch: `main`)
-> - **Verified Timestamp**: `2026-10-25T20:10:07+07:00`
+> - **Verified Commit**: `fa8d046` (branch: `main`)
+> - **Verified Timestamp**: `2026-10-25T20:50:00+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
-The architecture of FlashLearn is fundamentally driven by cognitive psychology (Sweller's Cognitive Load Theory, van Merriënboer's 4C/ID model) and software craftsmanship (Clean Architecture, SOLID, and Zero-Mock assurance).
+The solution strategy is directly engineered to achieve the primary goal established in Section 1: **ensuring that learners are genuinely prepared to take on real-world operational responsibilities and execute them accurately, properly, and independently**.
+
+Rather than testing unprepared candidates on difficult tasks without adequate preparation, the system bridges the gap between learning and operational execution through five core architectural strategies:
 
 ---
 
 ## 4.1 Core Architectural Strategies
 
-### 1. The Dual-Loop Learning Architecture
-FlashLearn rejects the "Assessment-as-Instruction Fallacy"—the practice of presenting brief textbook text and immediately confronting the learner with a high-stakes, strict Oracle evaluation.
+### 1. The Dual-Loop Learning Architecture: Separating Safe Practice from Official Proof
+FlashLearn separates exploratory practice from high-stakes evaluation:
 - Every competency DAG node is structured as a **Dual-Loop Container**:
   - **Loop 1: Safe Training & Mental Model Formation (Tab 1 Sandbox)**:
-    Provides operational job aids, annotated worked examples deconstructing expert decisions, and penalty-free micro-sandboxes.
+    Equips learners with operational tools (SOP checklists, statutory citations, calculation formulas), annotated worked examples deconstructing expert decisions, and penalty-free micro-sandboxes.
   - **Loop 2: High-Assurance Certification (Tab 2 Gate Exam)**:
-    Provides rigorous, unassisted Oracle evaluation. If a candidate stalls, the **Graceful Downgrade Protocol** allows opening step-by-step guidance by automatically switching the attempt into a practice session, preserving credential integrity.
+    Provides rigorous, unassisted evaluation of authentic tasks. If a candidate stalls, the **Graceful Downgrade Protocol** allows opening step-by-step guidance by automatically switching the attempt into a practice session, preserving credential integrity.
 
 ```mermaid
 flowchart LR

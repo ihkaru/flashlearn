@@ -1,7 +1,7 @@
 ---
 arc42_section: 11
-verified_commit: 1cf9418
-verified_timestamp: 2026-10-25T20:10:07+07:00
+verified_commit: fa8d046
+verified_timestamp: 2026-10-25T20:50:00+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 11. Risks and Technical Debt
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `1cf9418` (branch: `main`)
-> - **Verified Timestamp**: `2026-10-25T20:10:07+07:00`
+> - **Verified Commit**: `fa8d046` (branch: `main`)
+> - **Verified Timestamp**: `2026-10-25T20:50:00+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 

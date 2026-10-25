@@ -1,7 +1,7 @@
 ---
 arc42_section: 1
-verified_commit: 1cf9418
-verified_timestamp: 2026-10-25T20:10:07+07:00
+verified_commit: fa8d046
+verified_timestamp: 2026-10-25T20:50:00+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -12,54 +12,74 @@ tracked_paths:
 # 1. Introduction and Goals
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `1cf9418` (branch: `main`)
-> - **Verified Timestamp**: `2026-10-25T20:10:07+07:00`
+> - **Verified Commit**: `fa8d046` (branch: `main`)
+> - **Verified Timestamp**: `2026-10-25T20:50:00+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
-FlashLearn is an enterprise-grade accelerated learning and high-assurance competency certification platform. It transitions professional workplace education from passive memorization ("The Assessment-as-Instruction Fallacy") into active, cognitive-apprenticeship-based mastery. FlashLearn synthesizes strict regulatory and operational corpora (*Corpus of Record*) into directed acyclic prerequisite competency graphs (DAGs), provides interactive safe-practice sandboxes with isomorphic worked examples, verifies candidate performance via multi-tier oracles (Classes A, B, and C), and issues tamper-evident authority credentials aligned with W3C Verifiable Credentials and OpenBadges 3.0.
+The primary goal of FlashLearn is:
+**To produce human resources who are genuinely ready to be entrusted with real-world operational responsibilities, and who can execute those responsibilities properly, accurately, and independently by progressing through systematic learning stages prepared by the system.**
+
+In critical operational domains (such as public procurement, engineering, aviation, healthcare, and financial compliance), traditional corporate training frequently fails because it tests people on theoretical knowledge without ever preparing them to execute real tasks. Learners pass exams by memorizing definitions, but when given real operational authority on the job, they make costly errors, overlook compliance risks, or freeze under pressure.
+
+FlashLearn eliminates this disconnect. Instead of assuming learners can perform complex tasks after reading brief text, the system provides an evidence-based progression that systematically builds competence, demystifies expert procedures, and rigorously verifies capability before granting operational authority.
 
 ---
 
-## 1.1 Requirements Overview & Core Capabilities
+## 1.1 The Step-by-Step Learning Progression to Job Readiness
 
-1. **Dual-Loop Learning Architecture**:
-   Every competency node serves as an integrated container providing two strictly demarcated modes:
-   - **Tab 1: Mode Belajar & Latihan (Safe Sandbox)**: Operational Job Aids (checklists, formulas, statutory citations), Annotated Worked Examples with common trap analyses, and micro-sandboxes for penalty-free schema acquisition.
-   - **Tab 2: Mode Ujian Pembuktian (Gate Exam)**: Rigorous, independent Oracle assessments where candidates prove capability under high-stakes conditions with Graceful Downgrade support.
-2. **Universal Cognitive Archetypes**:
-   Domain-agnostic categorization supporting four cognitive modes:
-   - `algorithmic_quant`: Exact multi-variable financial and engineering calculations.
-   - `artifact_audit`: Systematic compliance and defect detection across technical/legal documents.
-   - `ill_structured_case`: Multi-stakeholder ethical, legal, and operational dilemmas under pressure.
-   - `rapid_fluency`: Time-critical memory items and emergency protocols via active recall flashcards.
-3. **Corpus of Record Traceability**:
-   Every training task and assessment criteria links deterministically to verbatim legal, regulatory, or technical source chunks verified with SHA-256 cryptographic hashes.
-4. **Progressive Authorization Gates (Levels 0–3)**:
-   Tiered authority levels (Observation $\to$ Junior $\to$ Senior $\to$ Head/Terminal Authority) unlocking real-world operational permissions only when preceding prerequisite nodes are mastered.
-5. **W3C Verifiable Credentials & OpenBadges 3.0**:
-   Issuance of cryptographic digital credentials signed with Ed25519 keys, tamper-checked via Merkle audit trees and verifiable publicly without proprietary vendor lock-in.
+To ensure that learners become truly capable of handling real-world responsibility, FlashLearn guides them through four structured learning stages for every competency:
+
+```mermaid
+flowchart LR
+    S1["Stage 1: Operational Grounding & Job Aids"] --> S2["Stage 2: Expert Case Deconstruction (Worked Example)"]
+    S2 --> S3["Stage 3: Guided Practice in Safe Sandbox"]
+    S3 --> S4["Stage 4: Independent Execution & Gate Authorization"]
+    
+    classDef stage fill:#f8fafc,stroke:#334155,stroke-width:1.5px;
+    class S1,S2,S3,S4 stage;
+```
+
+### Stage 1: Operational Grounding & Job Aids (Understanding Rules & Tools)
+- Learners are equipped with practical operational tools: standard operating procedures (SOPs), working checklists, calculation formulas, and statutory references.
+- Rather than abstract academic theories, learners understand the operational boundaries, regulatory mandates, and success criteria governing the responsibility they will hold.
+
+### Stage 2: Expert Case Deconstruction (Learning from Solved Real Cases)
+- Learners study complete, realistic cases already solved by industry experts from beginning to end.
+- Every line of decision-making, calculation, and document review is annotated: *Where did this data originate? Which rule was applied? What common trap or mistake frequently causes novices to fail at this step?*
+- This eliminates guesswork and establishes a solid mental model of how an expert executes the responsibility.
+
+### Stage 3: Guided Practice in a Safe Sandbox (Building Execution Instincts)
+- Learners practice executing real tasks in an interactive, penalty-free environment.
+- Complex tasks are structured progressively (e.g. starting with pre-filled templates where learners complete key decision checkpoints) with immediate diagnostic feedback on sub-steps.
+- Learners are encouraged to struggle and correct mistakes without fear of failing or damaging their official record, building genuine procedural confidence.
+
+### Stage 4: Independent Proof of Capability & Gate Authorization (Earning Responsibility)
+- Once the learner demonstrates fluency in practice, they enter the formal assessment to prove independent capability.
+- The learner must execute an authentic task without hints or shortcuts, evaluated against deterministic standards (exact calculation tolerances, complete compliance checks, or grounded case rubrics).
+- Passing this stage unlocks the corresponding operational authority level, providing leadership and organizations with verifiable confidence that the individual is ready to perform.
 
 ---
 
 ## 1.2 Quality Goals (Q42 Model)
 
-The following high-priority quality goals govern all architectural decisions and implementations across FlashLearn:
+The following quality goals ensure that FlashLearn delivers on its core promise of producing job-ready talent reliably and securely:
 
 | Priority | Quality Tag | Quality Goal | Description & Target Metric |
 |---|---|---|---|
-| 1 | #correctness | Oracle Evaluation & Pedagogical Parity | Zero unfair task defects ("Draw the Rest of the Owl"). Evaluator Class A ensures mathematical tolerance $\le \pm 1\%$; Class B provides non-hallucinatory grounded AI judgment. |
-| 2 | #maintainability | Strict Single Responsibility & Zero-Mock Invariant | 100% of codebase files remain under the 400-line budget limit (`bun run lint:srp`). Zero mock leaks or silent stubs in production paths (`detect-mocks .`). |
-| 3 | #performance | High-Speed Response & Low-RAM Efficiency | Sub-50ms API request latency on P95. Efficient single-binary multi-stage container deployment under 256MB RAM ceiling running on ARM64. |
-| 4 | #security | Merkle Audit Trail & Cryptographic Credentials | Tamper-evident hash-chained audit trails for all learner attempts, Ed25519 digital passport signatures, and strict role-based access control (RBAC). |
+| 1 | #correctness | Operational Competence & Alignment Guarantee | Zero gap between learning materials and task demands. Every requirement in Stage 4 exams must be preceded by explicit demonstration in Stages 1–3. Mathematical calculations adhere to strict tolerances ($\le \pm 1\%$), and qualitative assessments are strictly grounded in authoritative source documents. |
+| 2 | #maintainability | Modular Architecture & Production Integrity | The system architecture remains strictly modular and maintainable. 100% of codebase files adhere to Single Responsibility limits (< 400 lines/file via `bun run lint:srp`). Zero mock implementations or fake latency in production execution pathways (`detect-mocks .`). |
+| 3 | #performance | Responsive Learning Flow & Resource Efficiency | The user experience remains fluid and distraction-free with sub-50ms P95 API response times and 120Hz smooth UI transitions. The containerized system runs efficiently with memory consumption under 256MB RAM on standard enterprise infrastructure. |
+| 4 | #security | Tamper-Proof Audit Trails & Credential Trust | Operational authorization decisions must be beyond dispute. Attempt history, evaluation scores, and source citations are anchored with SHA-256 cryptographic hashes, and authority passports are digitally signed with Ed25519 keys (W3C Verifiable Credentials) for tamper-evident verification. |
 
 ---
 
-## 1.3 Stakeholders & Personas
+## 1.3 Stakeholders & Operational Beneficiaries
 
-| Role | Name / Persona | Goals & Expectations |
+| Stakeholder / Persona | Role & Context | Primary Need & Expected Value |
 |---|---|---|
-| **Learner** | *Budi Pembelajar* | Needs structured cognitive guidance, clear worked examples, safe practice without test anxiety, and recognized portable authority credentials. |
-| **Domain Creator** | *SME / Lead Architect* | Needs automated backward scaffolding generation to avoid authoring bottlenecks when defining complex curriculum blueprints. |
-| **Enterprise Auditor** | *Compliance Officer* | Needs 100% deterministic traceability from exam tasks back to legal regulation clauses (Corpus of Record) and tamper-proof attempt ledgers. |
-| **System Operator** | *DevOps Engineer* | Demands hermetic tests, deterministic automated CI/CD deployment via Coolify, Bun runtime efficiency, and zero runtime crashes. |
+| **Learner / Candidate** | Professional acquiring new responsibilities | Needs transparent, step-by-step guidance without sudden exam traps; needs a safe space to practice before being judged; desires portable, undeniable proof of genuine competence. |
+| **Organizational Leader / Authority Delegator** | Division head, project director, or hiring manager | Needs uncompromised assurance that employees delegated with critical duties (signing contracts, approving budgets, operating equipment) will execute them correctly and without costly failures. |
+| **Domain Curriculum Author** | Senior practitioner or SME creating training | Needs a structured workflow to translate complex real-world responsibilities into clear learning stages without having to manually author dozens of variations from scratch. |
+| **Compliance & Quality Auditor** | Regulatory or governance inspector | Requires immutable, auditable proof that certified personnel have demonstrated mastery over statutory requirements (Corpus of Record) through verifiable evaluation records. |
+| **System Operator** | Platform & DevOps engineer | Demands a deterministic, stable, and low-resource platform with automated regression gates, hermetic test suites, and zero downtime deployments. |
