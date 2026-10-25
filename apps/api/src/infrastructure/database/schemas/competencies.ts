@@ -34,6 +34,7 @@ export const competencies = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
+    uniqueIndex('idx_competencies_ws_code').on(table.workspaceId, table.code),
     index('idx_competencies_workspace_id').on(table.workspaceId),
     index('idx_competencies_domain_id').on(table.domainId),
     index('idx_competencies_source_id').on(table.sourceId),
@@ -105,6 +106,7 @@ export const tasks = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
+    uniqueIndex('idx_tasks_comp_title').on(table.competencyId, table.title),
     index('idx_tasks_competency_id').on(table.competencyId),
     index('idx_tasks_task_type').on(table.taskType),
   ]
@@ -145,6 +147,7 @@ export const gates = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
+    uniqueIndex('idx_gates_ws_level').on(table.workspaceId, table.level),
     index('idx_gates_workspace_id').on(table.workspaceId),
     index('idx_gates_domain_id').on(table.domainId),
     index('idx_gates_level').on(table.level),

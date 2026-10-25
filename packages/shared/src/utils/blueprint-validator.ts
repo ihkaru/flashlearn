@@ -123,6 +123,8 @@ export function validateDomainBlueprint(bp: any): BlueprintValidationResult {
 
   // 6. Validate Tasks
   const tasks = Array.isArray(bp.tasks) ? bp.tasks : [];
+  const compTaskTitles = new Set<string>();
+
   for (let i = 0; i < tasks.length; i++) {
     const t = tasks[i];
     if (!t.competencyCode || !compCodes.has(t.competencyCode)) {
@@ -131,10 +133,36 @@ export function validateDomainBlueprint(bp: any): BlueprintValidationResult {
     if (!t.title || !t.taskType) {
       throw new Error(`INVALID_DOMAIN_BLUEPRINT: Task at index ${i} is missing "title" or "taskType"`);
     }
+    if (t.scenario !== undefined && (typeof t.scenario !== 'string' || t.scenario.trim().length < 15)) {
+      throw new Error(
+        `INVALID_DOMAIN_BLUEPRINT: Task "${t.title}" scenario must be at least 15 characters`
+      );
+    }
+    const compTaskKey = `${t.competencyCode}:${t.title.trim()}`;
+    if (compTaskTitles.has(compTaskKey)) {
+      throw new Error(
+        `INVALID_DOMAIN_BLUEPRINT: Duplicate task "${t.title}" under competency "${t.competencyCode}"`
+      );
+    }
+    compTaskTitles.add(compTaskKey);
+
     if (t.taskType === 'adversarial_dilemma' && !t.adversarialSpec) {
       throw new Error(
         `INVALID_DOMAIN_BLUEPRINT: Task "${t.title}" is of type adversarial_dilemma but missing "adversarialSpec"`
       );
+    }
+
+    if (t.taskType !== 'adversarial_dilemma' && (!t.oracleData || typeof t.oracleData !== 'object')) {
+      throw new Error(`INVALID_DOMAIN_BLUEPRINT: Task "${t.title}" must provide a non-empty "oracleData" specification`);
+    }
+
+    if (Array.isArray(t.rubricCriteria) && t.rubricCriteria.length > 0) {
+      const totalWeight = t.rubricCriteria.reduce((sum: number, rc: any) => sum + (Number(rc.weight) || 0), 0);
+      if (totalWeight !== 100) {
+        throw new Error(
+          `INVALID_DOMAIN_BLUEPRINT: Task "${t.title}" rubricCriteria weights must sum to 100 (got ${totalWeight})`
+        );
+      }
     }
   }
 

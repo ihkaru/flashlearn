@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, uuid, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, uuid, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { workspaces } from './core';
 import { domains } from './domains';
 
@@ -18,6 +18,7 @@ export const sources = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
+    uniqueIndex('idx_sources_ws_code').on(table.workspaceId, table.code),
     index('idx_sources_workspace_id').on(table.workspaceId),
     index('idx_sources_domain_id').on(table.domainId),
     index('idx_sources_code').on(table.code),

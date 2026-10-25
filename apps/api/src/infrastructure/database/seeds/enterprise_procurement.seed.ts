@@ -212,18 +212,18 @@ async function seedTasks(compMap: Map<string, string>) {
       .insert(tasks)
       .values({
         competencyId: comp01Id,
-        title: 'Klasifikasi Portofolio Belanja Berdasarkan Matriks Kraljic',
+        title: 'Klasifikasi Portofolio Belanja Fasilitas & Rantai Pasok Berdasarkan Matriks Kraljic',
         scenario:
-          'Sebagai Lead Strategic Sourcing, lakukan pemetaan kategori belanja korporat ke dalam 4 kuadran Matriks Kraljic (Routine, Leverage, Bottleneck, Strategic) sesuai SOP-CORP-PROC-2026-08 Pasal 2:\n1. Pembelian ATK dan consumable kantor standar.\n2. Biji plastik polimer custom dari pemasok tunggal untuk produk inti manufaktur.\n3. Suku cadang mesin lama impor dengan supplier tunggal dan nilai kecil.\n4. Layanan sewa armada logistik terstandardisasi dengan banyak alternatif vendor di pasar.',
+          'Sebagai Lead Strategic Sourcing, lakukan pemetaan kategori portofolio belanja korporat ke dalam 4 kuadran Matriks Kraljic (Routine, Leverage, Bottleneck, Strategic) sesuai SOP-CORP-PROC-2026-08 Pasal 2:\n1. Jasa kebersihan (cleaning service) & pest control gedung operasional standar dengan puluhan vendor lokal.\n2. Baja lembaran cold-rolled custom dari pemasok utama untuk struktur rangka produk otomotif inti.\n3. Reagen kimia analisis laboratorium bersertifikasi KAN dari importir tunggal dengan nilai belanja kecil tahunan.\n4. Karton kemasan box berstandar SNI dengan 15 alternatif pabrik lokal siap pasok volume besar.',
         taskType: 'case_study',
         passingScore: 80,
         oracleData: {
           classification: { item1: 'Routine', item2: 'Strategic', item3: 'Bottleneck', item4: 'Leverage' },
           checklist: [
-            'Mengidentifikasi ATK sebagai kuadran Routine dengan fokus simplifikasi proses & e-procurement',
-            'Mengidentifikasi polimer custom sebagai kuadran Strategic dengan fokus kemitraan kolaboratif jangka panjang',
-            'Mengidentifikasi suku cadang langka sebagai kuadran Bottleneck dengan fokus pengamanan pasokan & safety stock',
-            'Mengidentifikasi armada logistik sebagai kuadran Leverage dengan fokus tender kompetitif & negosiasi harga',
+            'Mengidentifikasi cleaning service sebagai kuadran Routine (simplifikasi administrasi & kontrak e-katalog)',
+            'Mengidentifikasi baja lembaran custom sebagai kuadran Strategic (kemitraan kolaboratif jangka panjang & integrasi rantai pasok)',
+            'Mengidentifikasi reagen lab importir tunggal sebagai kuadran Bottleneck (pengamanan pasokan, buffer stock, pencarian substitusi)',
+            'Mengidentifikasi karton kemasan SNI sebagai kuadran Leverage (tender kompetitif & negosiasi harga agresif)',
           ],
         },
         rubricCriteria: [
@@ -240,27 +240,27 @@ async function seedTasks(compMap: Map<string, string>) {
       .insert(tasks)
       .values({
         competencyId: comp02Id,
-        title: 'Kalkulasi Total Cost of Ownership (TCO) Pengadaan Server Cloud',
+        title: 'Kalkulasi Total Cost of Ownership (TCO) Pengadaan Storage SAN Tier-1',
         scenario:
-          'Perusahaan merencanakan pengadaan cluster server hybrid dengan harga beli pokok Rp 500.000.000, biaya implementasi & migrasi Rp 80.000.000, kontrak SLA tahunan Rp 40.000.000/tahun selama durasi 3 tahun, dan estimasi nilai sisa (residual value) sebesar Rp 50.000.000. Hitung nilai TCO komprehensif sebelum pajak, nilai PPN 11%, dan TCO final sesuai SOP-CORP-PROC-2026-08 Pasal 3.',
+          'Perusahaan merencanakan pengadaan sistem SAN Storage Tier-1 untuk core database perbankan dengan harga beli pokok Rp 750.000.000, biaya instalasi & konfigurasi jaringan SAN Rp 120.000.000, kontrak pemeliharaan & SLA 24/7 sebesar Rp 55.000.000/tahun selama durasi kontrak 4 tahun, dan estimasi nilai sisa (residual value) pada akhir tahun ke-4 sebesar Rp 90.000.000. Sesuai SOP-CORP-PROC-2026-08 Pasal 3, hitung nilai TCO komprehensif sebelum pajak, nilai PPN 11%, dan TCO final.',
         taskType: 'calculation',
         passingScore: 80,
         oracleData: {
           formula: 'purchasePrice + implementationCost + (annualSla * contractYears) - residualValue',
           variables: {
-            purchasePrice: 500000000,
-            implementationCost: 80000000,
-            annualSla: 40000000,
-            contractYears: 3,
-            residualValue: 50000000,
-            expectedTcoPreTax: 650000000,
-            expectedPpn: 71500000,
-            expectedTcoFinal: 721500000,
+            purchasePrice: 750000000,
+            implementationCost: 120000000,
+            annualSla: 55000000,
+            contractYears: 4,
+            residualValue: 90000000,
+            expectedTcoPreTax: 1000000000,
+            expectedPpn: 110000000,
+            expectedTcoFinal: 1110000000,
           },
           checklist: [
-            'Verifikasi biaya SLA 3 tahun (Rp 120.000.000)',
-            'Pengurangan nilai sisa residual value (Rp 50.000.000)',
-            'Kalkulasi PPN 11% atas TCO pokok (Rp 71.500.000)',
+            'Verifikasi biaya SLA 4 tahun (Rp 220.000.000)',
+            'Pengurangan nilai sisa residual value akhir tahun ke-4 (Rp 90.000.000)',
+            'Kalkulasi PPN 11% atas TCO pokok Rp 1.000.000.000 (Rp 110.000.000)',
             'Batas margin overhead vendor <= 15%',
           ],
         },

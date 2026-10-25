@@ -19,6 +19,15 @@ export class CreateTaskUseCase {
       throw new Error(`Target competency node '${dto.competencyId}' not found`);
     }
 
+    if (dto.scenario.trim().length < 20) {
+      throw new Error('Task scenario must be an authentic description with at least 20 characters');
+    }
+
+    const existingTasks = await this.taskRepo.listByCompetency(dto.competencyId);
+    if (existingTasks.some((t) => t.title.trim().toLowerCase() === dto.title.trim().toLowerCase())) {
+      throw new Error(`Task with title '${dto.title}' already exists for this competency`);
+    }
+
     return await this.taskRepo.create({
       competencyId: dto.competencyId,
       title: dto.title,

@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { contents } from '../schema';
+import { contents, contentSourceCitations, sourceChunks, sources } from '../schema';
 
 export async function seedEnterpriseContents(workspaceId: string, compMap: Map<string, string>) {
   console.log('📚 Seeding Enterprise Procurement Reading Modules (Contents)...');
@@ -243,5 +243,73 @@ Pada akhir tahun buku (Desember), sering terjadi tekanan dari manajemen untuk me
     });
   }
 
-  console.log('✓ 3 Enterprise Procurement Reading Modules Seeded Successfully!');
+  // 4. Populate Corpus Citations (Layer 1: Corpus-Task Traceability)
+  const allContents = await db.query.contents.findMany({
+    where: (c, { eq }) => eq(c.workspaceId, workspaceId),
+  });
+
+  const allChunks = await db.query.sourceChunks.findMany({
+    with: {
+      source: true,
+    },
+  });
+
+  const entChunks = allChunks.filter((chk: any) => chk.source?.code === 'SRC-ENT-PROC-2026');
+
+  for (const cnt of allContents) {
+    if (cnt.slug === 'strategic-sourcing-dan-matriks-kraljic') {
+      const targetChunk = entChunks.find((c: any) => c.locationTag.includes('Prinsip & Kraljic'));
+      if (targetChunk) {
+        await db
+          .insert(contentSourceCitations)
+          .values({
+            contentId: cnt.id,
+            sourceChunkId: targetChunk.id,
+            relevanceScore: '1.00',
+            annotation: 'Rujukan resmi SOP Pasal 1-2 mengenai 5 Pilar Pengadaan & 4 Kuadran Matriks Kraljic',
+          })
+          .onConflictDoNothing();
+      }
+    } else if (cnt.slug === 'kalkulasi-total-cost-of-ownership-tco') {
+      const targetChunk = entChunks.find((c: any) => c.locationTag.includes('Formulasi TCO'));
+      if (targetChunk) {
+        await db
+          .insert(contentSourceCitations)
+          .values({
+            contentId: cnt.id,
+            sourceChunkId: targetChunk.id,
+            relevanceScore: '1.00',
+            annotation: 'Formula baku perhitungan Total Cost of Ownership (TCO) & batas overhead margin wajar',
+          })
+          .onConflictDoNothing();
+      }
+    } else if (cnt.slug === 'uji-tuntas-rekanan-three-way-matching-p2p') {
+      const chunkAudit = entChunks.find((c: any) => c.locationTag.includes('Uji Tuntas'));
+      const chunkP2P = entChunks.find((c: any) => c.locationTag.includes('P2P Control'));
+      if (chunkAudit) {
+        await db
+          .insert(contentSourceCitations)
+          .values({
+            contentId: cnt.id,
+            sourceChunkId: chunkAudit.id,
+            relevanceScore: '1.00',
+            annotation: 'Kriteria mutlak uji tuntas rekanan ISO 27001 & larangan surat komitmen pengganti',
+          })
+          .onConflictDoNothing();
+      }
+      if (chunkP2P) {
+        await db
+          .insert(contentSourceCitations)
+          .values({
+            contentId: cnt.id,
+            sourceChunkId: chunkP2P.id,
+            relevanceScore: '0.95',
+            annotation: 'Prinsip verifikasi Three-Way Matching dan larangan pemecahan paket pengadaan (Anti-Split PO)',
+          })
+          .onConflictDoNothing();
+      }
+    }
+  }
+
+  console.log('✓ 3 Enterprise Procurement Reading Modules & Citations Seeded Successfully!');
 }

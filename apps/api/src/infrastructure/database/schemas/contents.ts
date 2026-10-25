@@ -36,6 +36,7 @@ export const contents = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
+    uniqueIndex('idx_contents_ws_slug').on(table.workspaceId, table.slug),
     index('idx_contents_workspace_id').on(table.workspaceId),
     index('idx_contents_domain_id').on(table.domainId),
     index('idx_contents_competency_id').on(table.competencyId),
