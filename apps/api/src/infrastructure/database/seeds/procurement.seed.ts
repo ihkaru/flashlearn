@@ -8,6 +8,7 @@ import {
   gates,
   gateRequirements,
   tasks,
+  spacedFlashcards,
 } from '../schema';
 import { createHash } from 'crypto';
 
@@ -164,13 +165,36 @@ export async function seedProcurement(creatorId: string) {
     if (gate2 && c3) await db.insert(gateRequirements).values({ gateId: gate2.id, competencyId: c3.id, minimumScore: 80, requiresHumanApproval: false }).onConflictDoNothing();
     if (gate3 && c4) await db.insert(gateRequirements).values({ gateId: gate3.id, competencyId: c4.id, minimumScore: 85, requiresHumanApproval: true }).onConflictDoNothing();
 
-    // 5. Tasks (Class A, B, C)
+    // 5. Tasks (Class A, B, C, Adversarial Dilemma, Isomorphic Variant)
+    if (c1) {
+      await db.insert(tasks).values({
+        competencyId: c1.id,
+        title: 'Audit Kepatuhan Etika & Penanganan Benturan Kepentingan (Kelas A)',
+        scenario: 'Sebagai Pokja Pemilihan, telaah dokumen penawaran paket pengadaan alat kesehatan di mana terdapat afiliasi keluarga antara PPK dan rekanan serta pembagian paket pekerjaan di bawah batas tender.',
+        taskType: 'case_study',
+        scenarioVariantCode: 'variant_a',
+        isIsomorphicVariant: false,
+        passingScore: 80,
+        oracleData: {
+          acceptable_verdicts: ['PELANGGARAN_ETIKA', 'BENTURAN_KEPENTINGAN', 'BATALKAN_TENDER'],
+          mandatory_citations: ['Perpres 16/2018 Pasal 7'],
+          gold_benchmark_rationale: 'Pasal 7 Perpres 16/2018 secara tegas melarang benturan kepentingan dan pemecahan paket pekerjaan untuk menghindari tender.',
+        },
+        rubricCriteria: [
+          { name: 'Identifikasi Pelanggaran Etika Pengadaan', weight: 50 },
+          { name: 'Penerapan Sanksi & Ketentuan Perpres', weight: 50 },
+        ],
+      }).onConflictDoNothing();
+    }
+
     if (c2) {
       await db.insert(tasks).values({
         competencyId: c2.id,
         title: 'Kalkulasi HPS Pengadaan Perangkat Komputer (Kelas A)',
         scenario: 'Hitung HPS resmi berdasarkan harga survei pasar dengan margin overhead/keuntungan maksimal 15% dan PPN 11%.',
         taskType: 'calculation',
+        scenarioVariantCode: 'variant_a',
+        isIsomorphicVariant: false,
         passingScore: 80,
         oracleData: {
           formula: 'basePrice * (1 + overheadPercent/100) * 1.11',
@@ -182,6 +206,26 @@ export async function seedProcurement(creatorId: string) {
           { name: 'Kepatuhan Checklist Regulasi', weight: 40 },
         ],
       }).onConflictDoNothing();
+
+      // Isomorphic Variant B
+      await db.insert(tasks).values({
+        competencyId: c2.id,
+        title: 'Kalkulasi HPS Pengadaan Switch Jaringan & Fiber Optik (Varian B)',
+        scenario: 'Hitung HPS resmi pengadaan switch jaringan dengan harga pokok survei pasar Rp 250.000.000, margin overhead 12%, dan PPN 11%.',
+        taskType: 'calculation',
+        scenarioVariantCode: 'variant_b',
+        isIsomorphicVariant: true,
+        passingScore: 80,
+        oracleData: {
+          formula: 'basePrice * (1 + overheadPercent/100) * 1.11',
+          variables: { basePrice: 250000000, overheadPercent: 12 },
+          expectedHpsFinal: 310800000,
+        },
+        rubricCriteria: [
+          { name: 'Kebenaran Nilai Total HPS Varian B', weight: 60 },
+          { name: 'Kepatuhan Regulasi Overhead & PPN', weight: 40 },
+        ],
+      }).onConflictDoNothing();
     }
 
     if (c3) {
@@ -190,6 +234,8 @@ export async function seedProcurement(creatorId: string) {
         title: 'Evaluasi Kualifikasi Teknis Tender Infrastruktur Cloud (Kelas B)',
         scenario: 'Evaluasi dokumen peserta PT Mega Cloud yang bersertifikat ISO 27001 kedaluwarsa dengan janji komitmen.',
         taskType: 'case_study',
+        scenarioVariantCode: 'variant_a',
+        isIsomorphicVariant: false,
         passingScore: 75,
         oracleData: {
           goldSolution: 'Peserta wajib dinyatakan GUGUR teknis. Surat komitmen perpanjangan bukan sertifikat sah pada saat pembukaan penawaran.',
@@ -218,6 +264,8 @@ export async function seedProcurement(creatorId: string) {
         title: 'Sidang Putusan Sanggah Kasus Tender Pembangunan Gedung (Kelas C)',
         scenario: 'Rancang jawaban nota dinas atas sanggahan rekanan yang menuduh Pokja memasang spesifikasi diskriminatif.',
         taskType: 'case_study',
+        scenarioVariantCode: 'variant_a',
+        isIsomorphicVariant: false,
         passingScore: 85,
         oracleData: {
           expertReviewRequired: true,
@@ -227,6 +275,58 @@ export async function seedProcurement(creatorId: string) {
           { id: 'crit_procedural', name: 'Integritas Bukti Berita Acara Rapat Evaluasi', maxScore: 35 },
           { id: 'crit_audit_defense', name: 'Ketahanan Argumen terhadap Audit Inspektorat', maxScore: 30 },
         ],
+      }).onConflictDoNothing();
+
+      // Adversarial Dilemma for PBJ
+      await db.insert(tasks).values({
+        competencyId: c4.id,
+        title: 'Uji Stres Adversarial PBJ: Tekanan Batas Waktu Akhir Tahun vs Jaminan Pelaksanaan',
+        scenario: 'Pada tanggal 26 Desember, Kepala Satuan Kerja mendesak Anda menandatangani BAST dan mencairkan pembayaran 100% dengan jaminan pelaksanaan yang belum dikonfirmasi bank, dengan ancaman DIPA hangus. Bagaimana disposisi profesional Anda?',
+        taskType: 'adversarial_dilemma',
+        scenarioVariantCode: 'variant_a',
+        isIsomorphicVariant: false,
+        passingScore: 90,
+        adversarialSpec: {
+          trapType: 'PRESSURE_EXECUTIVE',
+          correctDisposition: 'REJECT_AND_DEMAND_DATA',
+          trapCues: [
+            { cue: 'Ancaman hangusnya DIPA anggaran akhir tahun', weight: 0.5 },
+            { cue: 'Desakan lisan Kuasa Pengguna Anggaran', weight: 0.5 },
+          ],
+          statutoryPolicy: 'Perpres 16/2018 jo 12/2021 Pasal 57',
+          vetoThreshold: 0.7,
+        },
+        oracleData: {
+          acceptable_verdicts: ['TOLAK_BAST', 'TAHAN_PEMBAYARAN'],
+          checklist: ['Verifikasi keaslian jaminan pelaksanaan ke bank', 'Tolak intervensi lisan tanpa dasar hukum'],
+        },
+        rubricCriteria: [
+          { name: 'Keteguhan Menolak Pembayaran Tanpa Jaminan Sah', weight: 50 },
+          { name: 'Penerapan Pasal Kepatuhan Pencairan Anggaran', weight: 50 },
+        ],
+      }).onConflictDoNothing();
+    }
+
+    // 6. Causal Priming Flashcards
+    if (c1 && chunkHps) {
+      await db.insert(spacedFlashcards).values({
+        userId: creatorId,
+        competencyId: c1.id,
+        sourceChunkId: chunkHps.id,
+        cardType: 'causal_prediction',
+        front: 'Jika Pokja meluluskan penawaran dengan batas laba/overhead 20% padahal aturan membatasi maksimal 15%, apa konsekuensi hukum langsung saat audit BPK?',
+        back: 'Kelebihan 5% dinyatakan sebagai temuan kerugian negara yang wajib disetorkan kembali ke kas negara, dan Pokja dapat diperiksa atas kelalaian tugas.',
+        predictionOptions: [
+          'Kelebihan 5% dinyatakan sebagai temuan kerugian negara oleh BPK',
+          'Sistem LPSE otomatis memperbarui pagu anggaran',
+          'Tender langsung dialihkan ke metode penunjukan langsung',
+        ],
+        causalRationale: 'Pasal 26 Perpres 16/2018 membatasi keuntungan dan overhead maksimal 15% sebagai batas legalitas HPS.',
+        category: 'causal_priming',
+        repetitionIntervalDays: 1,
+        easeFactor: 250,
+        consecutiveCorrectAnswers: 0,
+        nextReviewDue: new Date(),
       }).onConflictDoNothing();
     }
   }

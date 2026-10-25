@@ -19,7 +19,8 @@ export class DescribeDomainReadinessUseCase {
   ) {}
 
   async execute(workspaceIdOrSlug: string): Promise<DomainDiagnosticReport> {
-    let ws = await this.workspaceRepo.findById(workspaceIdOrSlug);
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(workspaceIdOrSlug);
+    let ws = isUUID ? await this.workspaceRepo.findById(workspaceIdOrSlug) : null;
     if (!ws) {
       ws = await this.workspaceRepo.findBySlug(workspaceIdOrSlug);
     }

@@ -3,6 +3,9 @@ import { users, workspaces, contents, apiKeys } from './schema';
 import { createHash } from 'crypto';
 import { seedProcurement } from './seeds/procurement.seed';
 import { seedEnterpriseProcurement } from './seeds/enterprise_procurement.seed';
+import { seedSoftwareArchitecture } from './seeds/software_architecture.seed';
+import { seedTypeScriptMastery } from './seeds/typescript_mastery.seed';
+import { seedWilkerstat } from './seeds/wilkerstat.seed';
 
 async function seed() {
   console.log('🌱 Starting FlashLearn Database Seeding...');
@@ -245,6 +248,15 @@ Pisahkan use case berdasarkan aktor:
 
   // 6. Seed Enterprise Level Procurement (Corporate Sourcing & P2P) Blueprint
   await seedEnterpriseProcurement(creator.id);
+
+  // 7. Seed Software Engineering & Clean Architecture Domain Blueprint
+  await seedSoftwareArchitecture(creator.id);
+
+  // 8. Seed TypeScript Mastery & Bun Native Performance Blueprint
+  await seedTypeScriptMastery(creator.id);
+
+  // 9. Seed Pelatihan Wilkerstat SE2026 Domain Blueprint
+  await seedWilkerstat(creator.id);
 
   console.log('🎉 FlashLearn Database Seeding Finished Successfully!');
   process.exit(0);

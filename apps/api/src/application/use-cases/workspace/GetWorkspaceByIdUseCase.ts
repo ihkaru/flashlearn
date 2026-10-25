@@ -10,7 +10,8 @@ export class GetWorkspaceByIdUseCase {
     role?: UserRole
   ): Promise<Workspace | null> {
     const isSuperadmin = role === 'superadmin';
-    let entity = await this.workspaceRepository.findById(idOrSlug);
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
+    let entity = isUUID ? await this.workspaceRepository.findById(idOrSlug) : null;
     if (!entity) {
       entity = await this.workspaceRepository.findBySlug(idOrSlug);
     }
