@@ -14,7 +14,8 @@ Welcome to **FlashLearn**, an active-recall learning application built with Bun,
 - **User Story Gap Auditor**: `bun run audit:stories` (See [AGENT.md](AGENT.md))
 - **Coding Agent Manual**: See [AGENT.md](AGENT.md)
 - **Run automated test suite**: `cd apps/api && bun test`
-- **Competency Engine Roadmap**: See [docs/roadmap-competency-engine.md](docs/roadmap-competency-engine.md)
+- **Cognitive Architecture Roadmap (v2.0)**: See [docs/roadmap/00_overview.md](docs/roadmap/00_overview.md)
+- **Competency Engine Roadmap (v1.0)**: See [docs/roadmap-competency-engine.md](docs/roadmap-competency-engine.md)
 - **Run Impeccable detector**: `npx impeccable detect`
 
 ---
@@ -53,7 +54,16 @@ The platform is transitioning into an evidence-based competency authorization en
 - **Invariant 2**: Generator $\neq$ Verifier dual-agent boundary.
 - **Invariant 4**: Strict Oracle classification (Class A: Deterministic script runner, Class B: Benchmarked case comparator, Class C: Human expert reviewer queue).
 
-### 7. Safe Production Deployments & Migration Mandates (Coolify)
+### 7. Cognitive Architecture & Scaffolding Roadmap (v2.0)
+The platform is re-architected to eliminate the *Assessment-as-Instruction Fallacy* and bridge the scaffolding gap via **Dual-Loop Learning Architecture** and **4 Universal Cognitive Archetypes** (`cognitive_archetype`):
+- **Overview & Invariants**: [docs/roadmap/00_overview.md](docs/roadmap/00_overview.md)
+- **Phase 1 (Backend Core & Schema)**: [docs/roadmap/01_phase1_cognitive_archetypes_and_schema.md](docs/roadmap/01_phase1_cognitive_archetypes_and_schema.md)
+- **Phase 2 (Dual-Loop UI Modal)**: [docs/roadmap/02_phase2_dual_loop_ui_task_runner.md](docs/roadmap/02_phase2_dual_loop_ui_task_runner.md)
+- **Phase 3 (Backward Scaffolding Generator)**: [docs/roadmap/03_phase3_backward_scaffolding_generator.md](docs/roadmap/03_phase3_backward_scaffolding_generator.md)
+- **Phase 4 (Procedural Parity Auditor)**: [docs/roadmap/04_phase4_procedural_parity_auditor.md](docs/roadmap/04_phase4_procedural_parity_auditor.md)
+- **Phase 5 (Contrasting Domains Gauntlet)**: [docs/roadmap/05_phase5_contrasting_domains_validation.md](docs/roadmap/05_phase5_contrasting_domains_validation.md)
+
+### 8. Safe Production Deployments & Migration Mandates (Coolify)
 To guarantee zero-downtime and protect the end-to-end data pipeline from UI to database:
 - **Pre-flight Advisory Lock**: `migrate.ts` automatically acquires PostgreSQL Advisory Lock `84920384` to prevent migration race conditions during rolling container deployments.
 - **Safe Expand-and-Contract**: Never drop or rename columns in the same release as code changes. Add new columns as optional/nullable or with defaults.
