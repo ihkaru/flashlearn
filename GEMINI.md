@@ -10,6 +10,8 @@ Welcome to **FlashLearn**, an active-recall learning application built with Bun,
 - **Database migrations**: `cd apps/api && bun run db:generate` (generate SQL) & `bun run db:migrate` (safe migration runner)
 - **API Documentation**: `http://localhost:3000/docs` (Scalar UI) or `http://localhost:3000/swagger`
 - **Agent-First CLI**: `bun run cli <noun> <action>` (See [docs/agent-first-cli.md](docs/agent-first-cli.md))
+- **Run arc42 Architecture Linter**: `bun run lint:arc42` or `bun run lint:arc42:strict`
+- **arc42 Architecture Documentation**: See [docs/architecture/01_introduction_and_goals.md](docs/architecture/01_introduction_and_goals.md)
 - **Run SRP & File Length Linter**: `bun run lint:srp`
 - **User Story Gap Auditor**: `bun run audit:stories` (See [AGENT.md](AGENT.md))
 - **Coding Agent Manual**: See [AGENT.md](AGENT.md)
@@ -69,6 +71,19 @@ To guarantee zero-downtime and protect the end-to-end data pipeline from UI to d
 - **Safe Expand-and-Contract**: Never drop or rename columns in the same release as code changes. Add new columns as optional/nullable or with defaults.
 - **Strict Migration Artifacts**: Always run `bun run db:generate` to generate tested `.sql` files into `apps/api/drizzle/` before committing. Coolify executes `bun run db:migrate` via `start.sh`.
 - **Failure Isolation**: If a database migration fails, `start.sh` exits with code 1, aborting container startup so Coolify preserves the running healthy container without service disruption.
+
+### 9. arc42 Enterprise Architecture Standard & Drift Governance
+The system architecture is documented under `docs/architecture/` adhering to the international arc42 standard (ISO/IEC/IEEE 42010 aligned) and Q42 quality model:
+- **Modular Numbered Sections**: 12 dedicated files from `01_introduction_and_goals.md` to `12_glossary.md`.
+- **Git Provenance Tracking**: Each section records baseline `verified_commit` and `verified_timestamp` in its YAML frontmatter.
+- **Automated Verification**: Enforced via `bun run lint:arc42:strict` and an automated pre-commit hook (`.git/hooks/pre-commit`).
+- **Core Views**:
+  - Solution Strategy: [docs/architecture/04_solution_strategy.md](docs/architecture/04_solution_strategy.md)
+  - Building Block View (C4 Container & Hexagonal): [docs/architecture/05_building_block_view.md](docs/architecture/05_building_block_view.md)
+  - Runtime View (Dual-Loop, Oracles, Gates): [docs/architecture/06_runtime_view.md](docs/architecture/06_runtime_view.md)
+  - Deployment View: [docs/architecture/07_deployment_view.md](docs/architecture/07_deployment_view.md)
+  - ADR Register: [docs/architecture/09_architecture_decisions.md](docs/architecture/09_architecture_decisions.md)
+  - Risks & Technical Debt: [docs/architecture/11_risks_and_technical_debt.md](docs/architecture/11_risks_and_technical_debt.md)
 
 ---
 

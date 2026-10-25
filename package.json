@@ -14,6 +14,8 @@
     "test": "bun test",
     "cli": "bun run ./packages/cli/src/index.ts",
     "lint:srp": "bun run scripts/check_srp_limits.ts",
+    "lint:arc42": "arc42-lint docs/architecture",
+    "lint:arc42:strict": "arc42-lint docs/architecture --strict",
     "audit:stories": "python3 scripts/audit_story_gap.py",
     "audit:domain": "bun run scripts/audit_domain_curriculum.ts"
   },
