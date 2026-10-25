@@ -22,6 +22,7 @@ export class DrizzleCompetencyRepository implements ICompetencyRepository {
       title: row.title,
       description: row.description,
       oracleClass: row.oracleClass as OracleClass,
+      cognitiveArchetype: (row as any).cognitiveArchetype || 'ill_structured_case',
       riskLevel: row.riskLevel as RiskLevel,
       isExpertApproved: row.isExpertApproved,
       approvedBy: row.approvedBy,
@@ -86,6 +87,7 @@ export class DrizzleCompetencyRepository implements ICompetencyRepository {
         title: data.title,
         description: data.description,
         oracleClass: data.oracleClass,
+        cognitiveArchetype: data.cognitiveArchetype || 'ill_structured_case',
         riskLevel: data.riskLevel || 'low',
         isExpertApproved: false,
       })
@@ -101,6 +103,7 @@ export class DrizzleCompetencyRepository implements ICompetencyRepository {
     if (data.description !== undefined) updatePayload.description = data.description;
     if (data.code !== undefined) updatePayload.code = data.code.trim().toUpperCase();
     if (data.oracleClass !== undefined) updatePayload.oracleClass = data.oracleClass;
+    if (data.cognitiveArchetype !== undefined) updatePayload.cognitiveArchetype = data.cognitiveArchetype;
     if (data.riskLevel !== undefined) updatePayload.riskLevel = data.riskLevel;
 
     const [row] = await db

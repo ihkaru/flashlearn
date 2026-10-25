@@ -3,6 +3,8 @@ import type { ContentType, QuizQuestion } from '@flashlearn/shared';
 export interface ContentProps {
   id: string;
   workspaceId: string;
+  domainId?: string | null;
+  competencyId?: string | null;
   title: string;
   slug: string;
   type: ContentType;
@@ -25,6 +27,14 @@ export class ContentEntity {
 
   get workspaceId(): string {
     return this.props.workspaceId;
+  }
+
+  get domainId(): string | null | undefined {
+    return this.props.domainId;
+  }
+
+  get competencyId(): string | null | undefined {
+    return this.props.competencyId;
   }
 
   get title(): string {
@@ -72,6 +82,8 @@ export class ContentEntity {
     return {
       id: this.props.id,
       workspaceId: this.props.workspaceId,
+      domainId: this.props.domainId || null,
+      competencyId: this.props.competencyId || null,
       title: this.props.title,
       slug: this.props.slug,
       type: this.props.type,

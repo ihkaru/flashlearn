@@ -1,4 +1,4 @@
-import type { OracleClass, RiskLevel } from '@flashlearn/shared';
+import type { OracleClass, RiskLevel, CognitiveArchetype } from '@flashlearn/shared';
 
 export interface CompetencyProps {
   id: string;
@@ -9,6 +9,7 @@ export interface CompetencyProps {
   title: string;
   description: string;
   oracleClass: OracleClass;
+  cognitiveArchetype?: CognitiveArchetype;
   riskLevel: RiskLevel;
   isExpertApproved: boolean;
   approvedBy?: string | null;
@@ -52,6 +53,10 @@ export class CompetencyEntity {
     return this.props.oracleClass;
   }
 
+  get cognitiveArchetype(): CognitiveArchetype {
+    return this.props.cognitiveArchetype || 'ill_structured_case';
+  }
+
   get riskLevel(): RiskLevel {
     return this.props.riskLevel;
   }
@@ -82,5 +87,25 @@ export class CompetencyEntity {
 
   isHighRisk(): boolean {
     return this.props.riskLevel === 'high';
+  }
+
+  toNode() {
+    return {
+      id: this.props.id,
+      workspaceId: this.props.workspaceId,
+      domainId: this.props.domainId ?? null,
+      sourceId: this.props.sourceId ?? null,
+      code: this.props.code,
+      title: this.props.title,
+      description: this.props.description,
+      oracleClass: this.props.oracleClass,
+      cognitiveArchetype: this.cognitiveArchetype,
+      riskLevel: this.props.riskLevel,
+      isExpertApproved: this.props.isExpertApproved,
+      approvedBy: this.props.approvedBy ?? null,
+      prerequisiteIds: this.props.prerequisiteIds ?? [],
+      createdAt: this.props.createdAt.toISOString(),
+      updatedAt: this.props.updatedAt.toISOString(),
+    };
   }
 }

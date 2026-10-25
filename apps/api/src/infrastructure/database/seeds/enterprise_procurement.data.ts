@@ -51,6 +51,7 @@ export const ENTERPRISE_COMPETENCIES = [
     description:
       'Penguasaan 5 pilar tata kelola pengadaan korporat dan kemampuan memetakan belanja ke 4 kuadran Kraljic (Routine, Leverage, Bottleneck, Strategic).',
     oracleClass: 'A' as const,
+    cognitiveArchetype: 'artifact_audit' as const,
     riskLevel: 'low' as const,
   },
   {
@@ -59,6 +60,7 @@ export const ENTERPRISE_COMPETENCIES = [
     description:
       'Kemampuan menyusun TCO komprehensif (harga beli, implementasi, SLA tahunan, residual value, PPN 11%) dan memvalidasi batas overhead maksimal 15%.',
     oracleClass: 'A' as const,
+    cognitiveArchetype: 'algorithmic_quant' as const,
     riskLevel: 'medium' as const,
   },
   {
@@ -67,6 +69,7 @@ export const ENTERPRISE_COMPETENCIES = [
     description:
       'Verifikasi legalitas, analisis rasio likuiditas keuangan (Current Ratio >= 1.2), keabsahan sertifikasi ISO, dan deteksi benturan kepentingan (COI).',
     oracleClass: 'B' as const,
+    cognitiveArchetype: 'artifact_audit' as const,
     riskLevel: 'high' as const,
   },
   {
@@ -75,6 +78,7 @@ export const ENTERPRISE_COMPETENCIES = [
     description:
       'Pemeriksaan integritas dokumen Three-Way Matching (PO, BAST/GR, Invoice) dan audit forensik terhadap pola pemecahan paket pengadaan (split PO).',
     oracleClass: 'B' as const,
+    cognitiveArchetype: 'artifact_audit' as const,
     riskLevel: 'high' as const,
   },
   {
@@ -83,6 +87,7 @@ export const ENTERPRISE_COMPETENCIES = [
     description:
       'Kemampuan mempertahankan kepatuhan regulasi mutlak saat menghadapi desakan eksekutif dan risiko hangusnya anggaran akhir tahun.',
     oracleClass: 'B' as const,
+    cognitiveArchetype: 'ill_structured_case' as const,
     riskLevel: 'critical' as const,
   },
 ];

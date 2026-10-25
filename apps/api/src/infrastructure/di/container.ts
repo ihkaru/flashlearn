@@ -8,6 +8,7 @@ import { CreateCompetencyNodeUseCase } from '../../application/use-cases/compete
 import { LinkPrerequisiteUseCase } from '../../application/use-cases/competency/LinkPrerequisiteUseCase';
 import { GetCompetencyGraphUseCase } from '../../application/use-cases/competency/GetCompetencyGraphUseCase';
 import { ApproveCompetencyUseCase } from '../../application/use-cases/competency/ApproveCompetencyUseCase';
+import { GetCompetencyLearningBundleUseCase } from '../../application/use-cases/competency/GetCompetencyLearningBundleUseCase';
 
 import { CreateTaskUseCase } from '../../application/use-cases/task/CreateTaskUseCase';
 import { EvaluateAttemptUseCase } from '../../application/use-cases/task/EvaluateAttemptUseCase';
@@ -66,6 +67,13 @@ export class Container extends BaseContainer {
     this.competencyGraphEngine
   );
   public readonly approveCompetencyUseCase = new ApproveCompetencyUseCase(this.competencyRepository);
+  public readonly getCompetencyLearningBundleUseCase = new GetCompetencyLearningBundleUseCase(
+    this.competencyRepository,
+    this.contentRepository,
+    this.taskRepository,
+    this.sourceRepository,
+    this.backwardScaffoldingGenerator
+  );
 
   // Phase 03 & 06: Task Bank, Evaluation & Socratic Tutor
   public readonly createTaskUseCase = new CreateTaskUseCase(

@@ -2,6 +2,12 @@ export type OracleClass = 'A' | 'B' | 'C';
 export type RiskLevel = 'low' | 'medium' | 'high';
 export type MasteryStatus = 'locked' | 'ready' | 'in_progress' | 'mastered' | 'stale';
 
+export type CognitiveArchetype =
+  | 'algorithmic_quant'
+  | 'artifact_audit'
+  | 'ill_structured_case'
+  | 'rapid_fluency';
+
 export interface CompetencyNode {
   id: string;
   workspaceId: string;
@@ -11,6 +17,7 @@ export interface CompetencyNode {
   title: string;
   description: string;
   oracleClass: OracleClass;
+  cognitiveArchetype?: CognitiveArchetype;
   riskLevel: RiskLevel;
   isExpertApproved: boolean;
   approvedBy?: string | null;
@@ -69,6 +76,7 @@ export interface CreateCompetencyDto {
   title: string;
   description: string;
   oracleClass: OracleClass;
+  cognitiveArchetype?: CognitiveArchetype;
   riskLevel: RiskLevel;
   prerequisiteIds?: string[];
 }
@@ -76,4 +84,33 @@ export interface CreateCompetencyDto {
 export interface LinkPrerequisiteDto {
   competencyId: string;
   prerequisiteId: string;
+}
+
+export interface CompetencyLearningBundle {
+  competency: CompetencyNode;
+  readingMaterials: Array<{
+    id: string;
+    title: string;
+    summary?: string | null;
+    body?: string | null;
+    readingTimeMinutes?: number | null;
+    type: 'materi' | 'quiz' | 'combined';
+  }>;
+  workedExamples?: Array<{
+    id: string;
+    title: string;
+    scenario: string;
+    solutionSteps: Array<{ step: string; explanation: string; commonTrap?: string }>;
+    finalOutcome: string;
+  }>;
+  jobAid?: {
+    checklist?: string[];
+    formulas?: Record<string, string>;
+    statutoryCitations?: string[];
+  };
+  microSandbox?: {
+    title: string;
+    scenario: string;
+    checkpoints: Array<{ label: string; hint: string }>;
+  };
 }

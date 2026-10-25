@@ -86,6 +86,7 @@ export class ImportDomainBlueprintUseCase {
           title: comp.title,
           description: comp.description || comp.title,
           oracleClass: comp.oracleClass,
+          cognitiveArchetype: (comp as any).cognitiveArchetype || 'ill_structured_case',
           riskLevel: comp.riskLevel,
         });
         competenciesCreated++;

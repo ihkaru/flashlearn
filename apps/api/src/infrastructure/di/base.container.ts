@@ -31,6 +31,7 @@ import { OracleEvaluatorAdversarial } from '../../domain/services/OracleEvaluato
 import { FlashcardGeneratorService } from '../../domain/services/FlashcardGeneratorService';
 import { GateAuthorizationEngine } from '../../domain/services/GateAuthorizationEngine';
 import { SpacedRepetitionScheduler } from '../../domain/services/SpacedRepetitionScheduler';
+import { BackwardScaffoldingGenerator } from '../../application/services/BackwardScaffoldingGenerator';
 
 import { LoginWithGoogleUseCase } from '../../application/use-cases/auth/LoginWithGoogleUseCase';
 import { GetCurrentUserUseCase } from '../../application/use-cases/auth/GetCurrentUserUseCase';
@@ -97,6 +98,7 @@ export class BaseContainer {
   public readonly flashcardGenerator = new FlashcardGeneratorService();
   public readonly gateAuthorizationEngine = new GateAuthorizationEngine();
   public readonly spacedScheduler = new SpacedRepetitionScheduler();
+  public readonly backwardScaffoldingGenerator = new BackwardScaffoldingGenerator();
 
   // Auth & Workspace Use Cases
   public readonly loginWithGoogleUseCase = new LoginWithGoogleUseCase(

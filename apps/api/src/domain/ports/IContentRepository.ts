@@ -3,6 +3,8 @@ import type { ContentType, QuizQuestion } from '@flashlearn/shared';
 
 export interface CreateContentData {
   workspaceId: string;
+  domainId?: string | null;
+  competencyId?: string | null;
   title: string;
   slug: string;
   type: ContentType;
@@ -14,6 +16,8 @@ export interface CreateContentData {
 }
 
 export interface UpdateContentData {
+  domainId?: string | null;
+  competencyId?: string | null;
   title?: string;
   slug?: string;
   type?: ContentType;
@@ -28,6 +32,7 @@ export interface IContentRepository {
   findById(id: string, includeDeleted?: boolean): Promise<ContentEntity | null>;
   findBySlug(workspaceId: string, slug: string): Promise<ContentEntity | null>;
   listByWorkspace(workspaceId: string, onlyPublished?: boolean, includeDeleted?: boolean): Promise<ContentEntity[]>;
+  listByCompetency(competencyId: string): Promise<ContentEntity[]>;
   create(data: CreateContentData): Promise<ContentEntity>;
   update(id: string, data: UpdateContentData): Promise<ContentEntity | null>;
   delete(id: string): Promise<boolean>;

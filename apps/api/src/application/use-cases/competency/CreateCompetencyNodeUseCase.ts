@@ -26,6 +26,7 @@ export class CreateCompetencyNodeUseCase {
       title: dto.title,
       description: dto.description || '',
       oracleClass: dto.oracleClass || 'A',
+      cognitiveArchetype: dto.cognitiveArchetype || 'ill_structured_case',
       riskLevel: dto.riskLevel || 'low',
     });
 

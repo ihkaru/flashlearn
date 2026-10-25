@@ -130,6 +130,7 @@ export async function seedEnterpriseProcurement(creatorId: string) {
         title: def.title,
         description: def.description,
         oracleClass: def.oracleClass,
+        cognitiveArchetype: def.cognitiveArchetype || 'ill_structured_case',
         riskLevel: def.riskLevel,
         isExpertApproved: true,
       })

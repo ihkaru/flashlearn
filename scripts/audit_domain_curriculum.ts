@@ -153,6 +153,17 @@ export function auditDomainCurriculum(bp: any): DomainAuditReport {
     dagDetails.push(`Cohesive prerequisite linkages: ${edges.length} directed progression edges`);
   }
 
+  const validArchetypes = new Set(['algorithmic_quant', 'artifact_audit', 'ill_structured_case', 'rapid_fluency']);
+  const withArchetype = comps.filter((c: any) => c.cognitiveArchetype && validArchetypes.has(c.cognitiveArchetype)).length;
+  if (withArchetype === comps.length && comps.length > 0) {
+    dagDetails.push(`Universal Cognitive Archetypes: 100% competencies assigned (${withArchetype}/${comps.length})`);
+  } else if (withArchetype < comps.length) {
+    findings.push({
+      severity: 'MEDIUM',
+      message: `${comps.length - withArchetype} competency node(s) lack explicit cognitiveArchetype (system falls back to inference)`,
+    });
+  }
+
   // --- 3. Pillar: Multi-Tier Oracle Rigor ---
   const tasks = Array.isArray(bp.tasks) ? bp.tasks : [];
   let classACount = 0;
@@ -194,6 +205,26 @@ export function auditDomainCurriculum(bp: any): DomainAuditReport {
 
   if (roleConfigCount > 0) {
     oracleDetails.push(`Role Behavior Configuration: ${roleConfigCount} task(s) define domain-specific Oracle/Socrates Do's & Don'ts`);
+  }
+
+  // Anti-Draw-the-Owl Procedural Parity Check
+  let parityDefects = 0;
+  for (const t of tasks) {
+    if (t.taskType === 'calculation') {
+      const hasFormula = Boolean(t.oracleData?.formula);
+      const hasVars = Boolean(t.oracleData?.variables);
+      if (!hasFormula || !hasVars) {
+        parityDefects++;
+        findings.push({
+          severity: 'HIGH',
+          message: `UNFAIR_TASK_DEFECT (Draw the Rest of the Owl): Calculation task "${t.title}" lacks formula/variables in oracleData for procedural scaffolding derivation`,
+        });
+      }
+    }
+  }
+
+  if (parityDefects === 0 && tasks.length > 0) {
+    oracleDetails.push('Procedural Parity Verified: 0 Draw-the-Owl defects; all calculation tasks have formula specifications');
   }
 
   // --- 4. Pillar: Progressive Authorization Gates ---

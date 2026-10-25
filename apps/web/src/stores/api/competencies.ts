@@ -1,5 +1,5 @@
 import { fetchWithAuth } from './core';
-import type { CompetencyNode, CompetencyEdge } from '@flashlearn/shared';
+import type { CompetencyNode, CompetencyEdge, CompetencyLearningBundle } from '@flashlearn/shared';
 
 export interface CompetencyGraphResponse {
   nodes: (CompetencyNode & {
@@ -14,6 +14,8 @@ export const competencyApi = {
     fetchWithAuth(`/api/v1/competencies/graph?workspaceId=${encodeURIComponent(workspaceId)}${domainId ? `&domainId=${encodeURIComponent(domainId)}` : ''}`),
   get: (id: string): Promise<CompetencyNode> =>
     fetchWithAuth(`/api/v1/competencies/${id}`),
+  getLearningBundle: (id: string): Promise<CompetencyLearningBundle> =>
+    fetchWithAuth(`/api/v1/competencies/${id}/learning-bundle`),
   create: (data: Partial<CompetencyNode>): Promise<CompetencyNode> =>
     fetchWithAuth('/api/v1/competencies', { method: 'POST', body: JSON.stringify(data) }),
   createPrerequisite: (data: { competencyId: string; prerequisiteCompetencyId: string }): Promise<CompetencyEdge> =>

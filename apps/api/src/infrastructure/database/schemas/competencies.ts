@@ -27,6 +27,9 @@ export const competencies = pgTable(
     title: text('title').notNull(),
     description: text('description').notNull(),
     oracleClass: text('oracle_class', { enum: ['A', 'B', 'C'] }).notNull(),
+    cognitiveArchetype: text('cognitive_archetype', {
+      enum: ['algorithmic_quant', 'artifact_audit', 'ill_structured_case', 'rapid_fluency'],
+    }).default('ill_structured_case').notNull(),
     riskLevel: text('risk_level', { enum: ['low', 'medium', 'high'] }).default('low').notNull(),
     isExpertApproved: boolean('is_expert_approved').default(false).notNull(),
     approvedBy: uuid('approved_by').references(() => users.id, { onDelete: 'set null' }),
@@ -40,6 +43,7 @@ export const competencies = pgTable(
     index('idx_competencies_source_id').on(table.sourceId),
     index('idx_competencies_code').on(table.code),
     index('idx_competencies_oracle_class').on(table.oracleClass),
+    index('idx_competencies_archetype').on(table.cognitiveArchetype),
   ]
 );
 

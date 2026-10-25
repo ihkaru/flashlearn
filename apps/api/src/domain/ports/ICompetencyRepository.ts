@@ -1,5 +1,5 @@
 import type { CompetencyEntity } from '../entities/Competency';
-import type { OracleClass, RiskLevel, CompetencyEdge } from '@flashlearn/shared';
+import type { OracleClass, RiskLevel, CompetencyEdge, CognitiveArchetype } from '@flashlearn/shared';
 
 export interface CreateCompetencyData {
   workspaceId: string;
@@ -9,6 +9,7 @@ export interface CreateCompetencyData {
   title: string;
   description: string;
   oracleClass: OracleClass;
+  cognitiveArchetype?: CognitiveArchetype;
   riskLevel: RiskLevel;
 }
 

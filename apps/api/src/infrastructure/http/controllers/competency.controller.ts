@@ -54,6 +54,28 @@ export const competencyController = new Elysia({ prefix: '/api/v1/competencies' 
       },
     }
   )
+  .get(
+    '/:id/learning-bundle',
+    async ({ params, set }) => {
+      try {
+        return await container.getCompetencyLearningBundleUseCase.execute(params.id);
+      } catch (err: any) {
+        set.status = 404;
+        return { error: err.message };
+      }
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      detail: {
+        tags: ['Competency & Mastery DAG'],
+        summary: 'Get Integrated Learning Bundle for Competency',
+        description:
+          'Returns integrated learning container payload including reading materials, isomorphic worked examples, job aid checklists/formulas, and micro-sandbox for safe practice.',
+      },
+    }
+  )
   .post(
     '/',
     async ({ headers, body, set }) => {

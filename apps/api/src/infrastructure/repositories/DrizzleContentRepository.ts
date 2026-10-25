@@ -14,6 +14,8 @@ export class DrizzleContentRepository implements IContentRepository {
     return new ContentEntity({
       id: row.id,
       workspaceId: row.workspaceId,
+      domainId: row.domainId,
+      competencyId: row.competencyId,
       title: row.title,
       slug: row.slug,
       type: row.type as ContentType,
@@ -63,11 +65,23 @@ export class DrizzleContentRepository implements IContentRepository {
     return rows.map((r) => this.mapToEntity(r));
   }
 
+  async listByCompetency(competencyId: string): Promise<ContentEntity[]> {
+    const rows = await db
+      .select()
+      .from(contents)
+      .where(and(eq(contents.competencyId, competencyId), isNull(contents.deletedAt)))
+      .orderBy(desc(contents.createdAt));
+
+    return rows.map((r) => this.mapToEntity(r));
+  }
+
   async create(data: CreateContentData): Promise<ContentEntity> {
     const [row] = await db
       .insert(contents)
       .values({
         workspaceId: data.workspaceId,
+        domainId: data.domainId || null,
+        competencyId: data.competencyId || null,
         title: data.title,
         slug: data.slug,
         type: data.type,
