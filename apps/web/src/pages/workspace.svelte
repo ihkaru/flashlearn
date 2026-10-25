@@ -2,7 +2,7 @@
   import { Page } from 'framework7-svelte';
   import { api } from '../stores/api';
   import { auth } from '../stores/auth.svelte';
-  import type { Workspace, Content } from '@flashlearn/shared';
+  import type { Workspace, Content, Domain } from '@flashlearn/shared';
   import ContentEditorModal from '../components/ContentEditorModal.svelte';
   import ConfirmDeleteModal from '../components/ConfirmDeleteModal.svelte';
   import QuizReviewModal from '../components/QuizReviewModal.svelte';
@@ -10,6 +10,8 @@
   import ContentListItem from '../components/workspace/ContentListItem.svelte';
   import CompetencyDagView from '../components/competency/CompetencyDagView.svelte';
   import GatePassportsView from '../components/competency/GatePassportsView.svelte';
+  import DomainTrackSelector from '../components/workspace/DomainTrackSelector.svelte';
+  import CreateDomainModal from '../components/workspace/CreateDomainModal.svelte';
   import Icon from '../components/ui/Icon.svelte';
 
   interface Props {
@@ -24,6 +26,8 @@
 
   let workspace = $state<Workspace | null>(null);
   let contents = $state<Content[]>([]);
+  let domains = $state<Domain[]>([]);
+  let selectedDomainId = $state<string>('');
   let isLoading = $state(true);
   let activeFilter = $state<string>('all');
   let activeViewTab = $state<'competencies' | 'gates' | 'modules'>('competencies');
@@ -31,6 +35,7 @@
   // Creator Content Editor Modal state (Create & Edit)
   let showEditorModal = $state(false);
   let contentToEdit = $state<Content | null>(null);
+  let showCreateDomainModal = $state(false);
 
   // Soft Delete confirmation modal state
   let showDeleteModal = $state(false);
@@ -55,12 +60,17 @@
   async function loadWorkspaceData() {
     isLoading = true;
     try {
-      const [ws, items] = await Promise.all([
+      const [ws, items, domRes] = await Promise.all([
         api.workspaces.get(id),
         api.contents.listByWorkspace(id),
+        api.domains.listByWorkspace(id).catch(() => ({ domains: [] })),
       ]);
       workspace = ws;
       contents = items;
+      domains = domRes.domains || [];
+      if (domains.length > 0 && (!selectedDomainId || !domains.some(d => d.id === selectedDomainId))) {
+        selectedDomainId = domains[0].id;
+      }
     } catch (err: any) {
       alert(`Gagal memuat workspace: ${err.message}`);
     } finally {
@@ -183,6 +193,16 @@
     <!-- Workspace Header Subcomponent -->
     <WorkspaceHeader {workspace} {isOwner} onCreateModule={openCreateModal} />
 
+    {#if domains.length > 0}
+      <DomainTrackSelector
+        {domains}
+        {selectedDomainId}
+        onSelectDomain={(dId) => (selectedDomainId = dId)}
+        {isOwner}
+        onOpenCreateDomain={() => (showCreateDomainModal = true)}
+      />
+    {/if}
+
     <!-- Workspace Main Views Switcher -->
     <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;">
       <button
@@ -303,7 +323,7 @@
       </div>
     {/if}
   {:else if activeViewTab === 'competencies'}
-    <CompetencyDagView workspaceId={workspace.id} />
+    <CompetencyDagView workspaceId={workspace.id} domainId={selectedDomainId} />
   {:else if activeViewTab === 'gates'}
     <GatePassportsView workspaceId={workspace.id} />
   {/if}
@@ -311,6 +331,14 @@
 </div>
 
 <!-- Modal Components -->
+{#if showCreateDomainModal && workspace}
+  <CreateDomainModal
+    workspaceId={workspace.id}
+    onClose={() => (showCreateDomainModal = false)}
+    onCreated={loadWorkspaceData}
+  />
+{/if}
+
 {#if showEditorModal && workspace}
   <ContentEditorModal
     isOpen={showEditorModal}

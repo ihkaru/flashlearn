@@ -3,6 +3,7 @@ export type SourceStatus = 'active' | 'superseded' | 'draft';
 export interface Source {
   id: string;
   workspaceId: string;
+  domainId?: string | null;
   title: string;
   code: string;
   version: string;
@@ -52,6 +53,7 @@ export interface CitationValidationResult {
 
 export interface IngestSourceDto {
   workspaceId: string;
+  domainId?: string | null;
   title: string;
   code: string;
   version?: string;

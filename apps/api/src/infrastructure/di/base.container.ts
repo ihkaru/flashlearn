@@ -13,6 +13,8 @@ import { DrizzleSpacedFlashcardRepository } from '../repositories/DrizzleSpacedF
 import { DrizzleDiagnosticSessionRepository } from '../repositories/DrizzleDiagnosticSessionRepository';
 import { DrizzleTaskAttemptReviewRepository } from '../repositories/DrizzleTaskAttemptReviewRepository';
 import { DrizzleCredentialRepository } from '../repositories/DrizzleCredentialRepository';
+import { DrizzleDomainRepository } from '../repositories/DrizzleDomainRepository';
+import { DrizzleSocraticChatRepository } from '../repositories/DrizzleSocraticChatRepository';
 
 import { JwtTokenService } from '../services/JwtTokenService';
 import { GoogleAuthVerifier } from '../services/GoogleAuthVerifier';
@@ -76,6 +78,8 @@ export class BaseContainer {
   public readonly diagnosticRepository = new DrizzleDiagnosticSessionRepository();
   public readonly reviewRepository = new DrizzleTaskAttemptReviewRepository();
   public readonly credentialRepository = new DrizzleCredentialRepository();
+  public readonly domainRepository = new DrizzleDomainRepository();
+  public readonly socraticChatRepository = new DrizzleSocraticChatRepository();
 
   // Services
   public readonly tokenService = new JwtTokenService();

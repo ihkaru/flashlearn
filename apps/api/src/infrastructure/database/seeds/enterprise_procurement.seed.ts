@@ -1,6 +1,7 @@
 import { db } from '../db';
 import {
   workspaces,
+  domains,
   sources,
   sourceChunks,
   competencies,
@@ -38,10 +39,59 @@ export async function seedEnterpriseProcurement(creatorId: string) {
 
   if (!activeWs) return;
 
+  // 1b. Domains (Authority & Responsibility Tracks)
+  const [d1] = await db
+    .insert(domains)
+    .values({
+      workspaceId: activeWs.id,
+      code: 'DOM-ENT-STRAT',
+      name: 'Strategic Sourcing & Kraljic Specialist',
+      slug: 'strategic-sourcing-kraljic',
+      description: 'Lintasan kompetensi analisis portofolio pengadaan korporat dan negosiasi TCO.',
+      targetRole: 'Spesialis Strategic Sourcing & Analis Pengadaan',
+      responsibilityScope: 'Kewenangan memetakan belanja korporat, menentukan strategi sourcing berdasarkan Matriks Kraljic, dan memimpin kalkulasi TCO multi-tahun.',
+      legalAuthorityLevel: 2,
+      minPassingScore: 85,
+      icon: '📊',
+      status: 'active',
+    })
+    .onConflictDoNothing()
+    .returning();
+
+  const [d2] = await db
+    .insert(domains)
+    .values({
+      workspaceId: activeWs.id,
+      code: 'DOM-ENT-P2P',
+      name: 'Procure-to-Pay (P2P) Governance & Anti-Fraud',
+      slug: 'p2p-governance-anti-fraud',
+      description: 'Lintasan kompetensi pengendalian kontrak, three-way matching, dan mitigasi fraud.',
+      targetRole: 'Lead Pengendali Kontrak & Auditor P2P',
+      responsibilityScope: 'Kewenangan memvalidasi Three-Way Matching (PO, GR, Invoice), verifikasi kepatuhan vendor due diligence, dan mendeteksi anomali invoice fraud.',
+      legalAuthorityLevel: 3,
+      minPassingScore: 85,
+      icon: '🛡️',
+      status: 'active',
+    })
+    .onConflictDoNothing()
+    .returning();
+
+  const activeD1 =
+    d1 ||
+    (await db.query.domains.findFirst({
+      where: (d, { eq, and }) => and(eq(d.workspaceId, activeWs.id), eq(d.code, 'DOM-ENT-STRAT')),
+    }));
+
+  const activeD2 =
+    d2 ||
+    (await db.query.domains.findFirst({
+      where: (d, { eq, and }) => and(eq(d.workspaceId, activeWs.id), eq(d.code, 'DOM-ENT-P2P')),
+    }));
+
   // 2. Source & Chunks (Corpus of Record)
   const [source] = await db
     .insert(sources)
-    .values({ ...ENTERPRISE_SOURCE, workspaceId: activeWs.id })
+    .values({ ...ENTERPRISE_SOURCE, workspaceId: activeWs.id, domainId: activeD1?.id })
     .onConflictDoNothing()
     .returning();
 
@@ -69,10 +119,12 @@ export async function seedEnterpriseProcurement(creatorId: string) {
   // 3. Competencies DAG
   const compMap = new Map<string, string>();
   for (const def of ENTERPRISE_COMPETENCIES) {
+    const targetDomainId = def.code.includes('03') || def.code.includes('04') ? activeD2?.id : activeD1?.id;
     const [inserted] = await db
       .insert(competencies)
       .values({
         workspaceId: activeWs.id,
+        domainId: targetDomainId,
         sourceId: activeSource.id,
         code: def.code,
         title: def.title,
@@ -107,10 +159,12 @@ export async function seedEnterpriseProcurement(creatorId: string) {
 
   // 4. Progressive Authorization Gates
   for (const gDef of ENTERPRISE_GATES) {
+    const targetDomainId = gDef.level >= 2 ? activeD2?.id : activeD1?.id;
     const [g] = await db
       .insert(gates)
       .values({
         workspaceId: activeWs.id,
+        domainId: targetDomainId,
         level: gDef.level,
         title: gDef.title,
         description: gDef.description,

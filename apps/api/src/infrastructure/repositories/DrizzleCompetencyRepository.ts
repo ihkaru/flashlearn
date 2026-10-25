@@ -16,6 +16,7 @@ export class DrizzleCompetencyRepository implements ICompetencyRepository {
     return new CompetencyEntity({
       id: row.id,
       workspaceId: row.workspaceId,
+      domainId: row.domainId,
       sourceId: row.sourceId,
       code: row.code,
       title: row.title,
@@ -79,6 +80,7 @@ export class DrizzleCompetencyRepository implements ICompetencyRepository {
       .insert(competencies)
       .values({
         workspaceId: data.workspaceId,
+        domainId: data.domainId ?? null,
         sourceId: data.sourceId ?? null,
         code: data.code.trim().toUpperCase(),
         title: data.title,

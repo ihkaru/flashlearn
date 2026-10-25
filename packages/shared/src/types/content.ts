@@ -18,6 +18,8 @@ export interface QuizQuestion {
 export interface Content {
   id: string;
   workspaceId: string;
+  domainId?: string | null;
+  competencyId?: string | null;
   title: string;
   slug: string;
   type: ContentType;
@@ -25,10 +27,24 @@ export interface Content {
   readingTimeMinutes: number | null;
   body: string | null; // Markdown for 'materi' and 'combined'
   questions: QuizQuestion[] | null; // Questions for 'quiz' and 'combined'
+  citations?: ContentSourceCitation[];
   isPublished: boolean;
   deletedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ContentSourceCitation {
+  id: string;
+  contentId: string;
+  sourceChunkId: string;
+  locationTag?: string;
+  sourceCode?: string;
+  sourceTitle?: string;
+  chunkContent?: string;
+  relevanceScore: number;
+  annotation?: string | null;
+  createdAt: string;
 }
 
 export interface QuizAnswerSubmission {
@@ -72,6 +88,8 @@ export interface FlashcardItem {
 
 export interface CreateContentRequest {
   workspaceId: string;
+  domainId?: string;
+  competencyId?: string;
   title: string;
   slug?: string;
   type: ContentType;
@@ -83,6 +101,8 @@ export interface CreateContentRequest {
 }
 
 export interface UpdateContentRequest {
+  domainId?: string;
+  competencyId?: string;
   title?: string;
   slug?: string;
   type?: ContentType;

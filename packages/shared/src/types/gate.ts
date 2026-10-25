@@ -6,6 +6,7 @@ export type GateGrantStatus = 'active' | 'provisional' | 'revoked';
 export interface Gate {
   id: string;
   workspaceId: string;
+  domainId?: string | null;
   level: GateLevel;
   title: string;
   description: string;

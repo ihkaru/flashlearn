@@ -47,6 +47,35 @@
     {content.body || 'Materi sedang disiapkan oleh kreator.'}
   </div>
 
+  <!-- Official Corpus of Record Citations -->
+  {#if content.citations && content.citations.length > 0}
+    <div style="margin-top: 24px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 18px 20px;">
+      <h4 style="margin: 0 0 12px 0; font-size: 0.95rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+        <Icon name="book-open" size={16} />
+        Dasar Regulasi & Rujukan Pasal Resmi (Corpus of Record)
+      </h4>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        {#each content.citations as cit (cit.id || cit.sourceChunkId)}
+          <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; font-size: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+              <span style="font-weight: 800; color: #0f766e; background: #ccfbf1; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">
+                {cit.locationTag || 'Pasal Rujukan'}
+              </span>
+              {#if cit.sourceCode}
+                <span style="font-weight: 700; color: #64748b; font-size: 0.78rem;">
+                  {cit.sourceCode}
+                </span>
+              {/if}
+            </div>
+            <div style="color: #334155; line-height: 1.45;">
+              {cit.chunkContent || cit.annotation || 'Rujukan pasal resmi terverifikasi.'}
+            </div>
+          </div>
+        {/each}
+      </div>
+    </div>
+  {/if}
+
   <!-- Finish Button -->
   <div style="margin-top: 32px; text-align: center;">
     {#if !isDone}

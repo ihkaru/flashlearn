@@ -1,11 +1,13 @@
 import { pgTable, text, timestamp, integer, uuid, index } from 'drizzle-orm/pg-core';
 import { workspaces } from './core';
+import { domains } from './domains';
 
 export const sources = pgTable(
   'sources',
   {
     id: uuid('id').defaultRandom().primaryKey(),
     workspaceId: uuid('workspace_id').references(() => workspaces.id, { onDelete: 'cascade' }).notNull(),
+    domainId: uuid('domain_id').references(() => domains.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     code: text('code').notNull(),
     version: text('version').notNull(),
@@ -17,6 +19,7 @@ export const sources = pgTable(
   },
   (table) => [
     index('idx_sources_workspace_id').on(table.workspaceId),
+    index('idx_sources_domain_id').on(table.domainId),
     index('idx_sources_code').on(table.code),
     index('idx_sources_status').on(table.status),
   ]

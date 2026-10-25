@@ -17,6 +17,8 @@ import { diagnosticController } from './infrastructure/http/controllers/diagnost
 import { consensusController } from './infrastructure/http/controllers/consensus.controller';
 import { driftController } from './infrastructure/http/controllers/drift.controller';
 import { credentialController } from './infrastructure/http/controllers/credential.controller';
+import { domainController } from './infrastructure/http/controllers/domain.controller';
+import { socraticChatController } from './infrastructure/http/controllers/socratic-chat.controller';
 
 import { join } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
@@ -89,6 +91,8 @@ const app = new Elysia()
   .use(consensusController)
   .use(driftController)
   .use(credentialController)
+  .use(domainController)
+  .use(socraticChatController)
   .get('/c/:id', ({ params, redirect }: any) => redirect(`/#/content/${params.id}`, 302))
   .get('/content/:id', ({ params, redirect }: any) => redirect(`/#/content/${params.id}`, 302))
   .get('/workspace/:id', ({ params, redirect }: any) => redirect(`/#/workspace/${params.id}`, 302))

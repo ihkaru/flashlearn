@@ -134,11 +134,11 @@ async function runSafeMigration() {
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public' 
-      AND table_name IN ('users', 'workspaces', 'contents', 'sources', 'source_chunks');
+      AND table_name IN ('users', 'workspaces', 'contents', 'sources', 'source_chunks', 'domains');
     `;
 
-    if (verifiedTables.length < 5) {
-      throw new Error(`Schema integrity check failed. Expected 5 core tables, found ${verifiedTables.length}`);
+    if (verifiedTables.length < 6) {
+      throw new Error(`Schema integrity check failed. Expected 6 core tables, found ${verifiedTables.length}`);
     }
     console.log(`✓ [DB Migration] Schema integrity verified (Found ${verifiedTables.length} core tables).`);
 

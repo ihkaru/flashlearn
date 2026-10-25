@@ -10,13 +10,17 @@ export class GetCompetencyGraphUseCase {
     private readonly graphEngine: CompetencyGraphEngine
   ) {}
 
-  async execute(workspaceId: string, userId?: string | null): Promise<CompetencyGraphResponse> {
-    const nodes = await this.competencyRepo.listByWorkspace(workspaceId);
-    const edges = await this.competencyRepo.listEdges(workspaceId);
+  async execute(workspaceId: string, userId?: string | null, domainId?: string | null): Promise<CompetencyGraphResponse> {
+    const rawNodes = await this.competencyRepo.listByWorkspace(workspaceId);
+    const rawEdges = await this.competencyRepo.listEdges(workspaceId);
 
-    const nodeIds = nodes.map((n) => n.id);
+    const nodes = domainId ? rawNodes.filter((n) => !n.domainId || n.domainId === domainId) : rawNodes;
+    const nodeIds = new Set(nodes.map((n) => n.id));
+    const edges = rawEdges.filter((e) => nodeIds.has(e.competencyId) && nodeIds.has(e.prerequisiteId));
+
+    const nodeIdsArray = nodes.map((n) => n.id);
     const masteryMap = userId
-      ? await this.masteryRepo.batchGetStatus(userId, nodeIds)
+      ? await this.masteryRepo.batchGetStatus(userId, nodeIdsArray)
       : new Map();
 
     const evaluatedNodes = this.graphEngine.evaluateLearnerProgression(nodes, edges, masteryMap);
@@ -39,6 +43,7 @@ export class GetCompetencyGraphUseCase {
 
     return {
       workspaceId,
+      domainId: domainId ?? null,
       totalNodes: nodes.length,
       nodes: evaluatedNodes,
       edges,

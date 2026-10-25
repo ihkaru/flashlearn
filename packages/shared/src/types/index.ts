@@ -1,5 +1,6 @@
 export * from './user';
 export * from './workspace';
+export * from './domain';
 export * from './content';
 export * from './source';
 export * from './competency';
@@ -11,3 +12,4 @@ export * from './consensus';
 export * from './drift';
 export * from './vc';
 export * from './lumis-audit';
+export * from './socratic-chat';

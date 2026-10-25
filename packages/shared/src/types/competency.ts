@@ -5,6 +5,7 @@ export type MasteryStatus = 'locked' | 'ready' | 'in_progress' | 'mastered' | 's
 export interface CompetencyNode {
   id: string;
   workspaceId: string;
+  domainId?: string | null;
   sourceId?: string | null;
   code: string;
   title: string;
@@ -47,6 +48,7 @@ export interface LearnerCompetencyStatus extends CompetencyNode {
 
 export interface CompetencyGraphResponse {
   workspaceId: string;
+  domainId?: string | null;
   totalNodes: number;
   nodes: LearnerCompetencyStatus[];
   edges: CompetencyEdge[];
@@ -61,6 +63,7 @@ export interface CompetencyGraphResponse {
 
 export interface CreateCompetencyDto {
   workspaceId: string;
+  domainId?: string | null;
   sourceId?: string | null;
   code: string;
   title: string;

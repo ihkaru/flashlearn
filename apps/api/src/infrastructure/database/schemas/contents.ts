@@ -4,12 +4,15 @@ import {
   timestamp,
   boolean,
   integer,
+  numeric,
   jsonb,
   uuid,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import type { QuizQuestion } from '@flashlearn/shared';
 import { users, workspaces } from './core';
+import { domains } from './domains';
 import { sources, sourceChunks } from './sources';
 import { competencies } from './competencies';
 
@@ -18,6 +21,7 @@ export const contents = pgTable(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     workspaceId: uuid('workspace_id').references(() => workspaces.id, { onDelete: 'cascade' }).notNull(),
+    domainId: uuid('domain_id').references(() => domains.id, { onDelete: 'set null' }),
     competencyId: uuid('competency_id').references(() => competencies.id, { onDelete: 'set null' }),
     title: text('title').notNull(),
     slug: text('slug').notNull(),
@@ -33,6 +37,7 @@ export const contents = pgTable(
   },
   (table) => [
     index('idx_contents_workspace_id').on(table.workspaceId),
+    index('idx_contents_domain_id').on(table.domainId),
     index('idx_contents_competency_id').on(table.competencyId),
     index('idx_contents_is_published').on(table.isPublished),
     index('idx_contents_deleted_at').on(table.deletedAt),
@@ -90,5 +95,22 @@ export const spacedFlashcards = pgTable(
     index('idx_spaced_fc_user').on(table.userId),
     index('idx_spaced_fc_due').on(table.nextReviewDue),
     index('idx_spaced_fc_comp').on(table.competencyId),
+  ]
+);
+
+export const contentSourceCitations = pgTable(
+  'content_source_citations',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    contentId: uuid('content_id').references(() => contents.id, { onDelete: 'cascade' }).notNull(),
+    sourceChunkId: uuid('source_chunk_id').references(() => sourceChunks.id, { onDelete: 'cascade' }).notNull(),
+    relevanceScore: numeric('relevance_score', { precision: 4, scale: 2 }).default('1.0').notNull(),
+    annotation: text('annotation'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('idx_content_chunk_unique').on(table.contentId, table.sourceChunkId),
+    index('idx_content_citations_content').on(table.contentId),
+    index('idx_content_citations_chunk').on(table.sourceChunkId),
   ]
 );

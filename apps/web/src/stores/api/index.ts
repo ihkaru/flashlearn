@@ -12,11 +12,14 @@ import { credentialApi } from './credentials';
 import { diagnosticApi } from './diagnostic';
 import { driftApi } from './drift';
 import { consensusApi } from './consensus';
+import { domainApi } from './domains';
+import { socraticChatApi } from './socraticChat';
 
 export { clearApiCache, API_URL, fetchWithAuth };
 
 export const api = {
   workspaces: workspaceApi,
+  domains: domainApi,
   contents: contentApi,
   competencies: competencyApi,
   tasks: taskApi,
@@ -29,4 +32,5 @@ export const api = {
   diagnostic: diagnosticApi,
   drift: driftApi,
   consensus: consensusApi,
+  socraticChat: socraticChatApi,
 };

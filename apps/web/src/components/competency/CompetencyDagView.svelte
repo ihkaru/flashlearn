@@ -9,10 +9,11 @@
 
   interface Props {
     workspaceId: string;
+    domainId?: string;
     onSelectCompetency?: (competencyId: string) => void;
   }
 
-  let { workspaceId, onSelectCompetency }: Props = $props();
+  let { workspaceId, domainId, onSelectCompetency }: Props = $props();
 
   let graphData = $state<CompetencyGraphResponse | null>(null);
   let isLoading = $state(true);
@@ -21,15 +22,17 @@
   let showTaskModal = $state(false);
   let showDiagnosticModal = $state(false);
 
-  onMount(() => {
-    loadGraph();
+  $effect(() => {
+    if (workspaceId) {
+      loadGraph();
+    }
   });
 
   async function loadGraph() {
     isLoading = true;
     errorMessage = null;
     try {
-      graphData = await api.competencies.getGraph(workspaceId);
+      graphData = await api.competencies.getGraph(workspaceId, domainId);
     } catch (err: any) {
       errorMessage = err.message || 'Gagal memuat graf kompetensi';
     } finally {

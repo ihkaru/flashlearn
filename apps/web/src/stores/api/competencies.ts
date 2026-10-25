@@ -10,8 +10,8 @@ export interface CompetencyGraphResponse {
 }
 
 export const competencyApi = {
-  getGraph: (workspaceId: string): Promise<CompetencyGraphResponse> =>
-    fetchWithAuth(`/api/v1/competencies/graph?workspaceId=${workspaceId}`),
+  getGraph: (workspaceId: string, domainId?: string): Promise<CompetencyGraphResponse> =>
+    fetchWithAuth(`/api/v1/competencies/graph?workspaceId=${encodeURIComponent(workspaceId)}${domainId ? `&domainId=${encodeURIComponent(domainId)}` : ''}`),
   get: (id: string): Promise<CompetencyNode> =>
     fetchWithAuth(`/api/v1/competencies/${id}`),
   create: (data: Partial<CompetencyNode>): Promise<CompetencyNode> =>

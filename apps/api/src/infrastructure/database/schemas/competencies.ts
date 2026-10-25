@@ -13,6 +13,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import type { AdversarialDilemmaSpec } from '@flashlearn/shared';
 import { users, workspaces } from './core';
+import { domains } from './domains';
 import { sources } from './sources';
 
 export const competencies = pgTable(
@@ -20,6 +21,7 @@ export const competencies = pgTable(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     workspaceId: uuid('workspace_id').references(() => workspaces.id, { onDelete: 'cascade' }).notNull(),
+    domainId: uuid('domain_id').references(() => domains.id, { onDelete: 'cascade' }),
     sourceId: uuid('source_id').references(() => sources.id, { onDelete: 'set null' }),
     code: text('code').notNull(),
     title: text('title').notNull(),
@@ -33,6 +35,7 @@ export const competencies = pgTable(
   },
   (table) => [
     index('idx_competencies_workspace_id').on(table.workspaceId),
+    index('idx_competencies_domain_id').on(table.domainId),
     index('idx_competencies_source_id').on(table.sourceId),
     index('idx_competencies_code').on(table.code),
     index('idx_competencies_oracle_class').on(table.oracleClass),
@@ -134,6 +137,7 @@ export const gates = pgTable(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     workspaceId: uuid('workspace_id').references(() => workspaces.id, { onDelete: 'cascade' }).notNull(),
+    domainId: uuid('domain_id').references(() => domains.id, { onDelete: 'cascade' }),
     level: integer('level').notNull(),
     title: text('title').notNull(),
     description: text('description').notNull(),
@@ -142,6 +146,7 @@ export const gates = pgTable(
   },
   (table) => [
     index('idx_gates_workspace_id').on(table.workspaceId),
+    index('idx_gates_domain_id').on(table.domainId),
     index('idx_gates_level').on(table.level),
   ]
 );
@@ -188,6 +193,7 @@ export const diagnosticSessions = pgTable(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     workspaceId: uuid('workspace_id').references(() => workspaces.id, { onDelete: 'cascade' }).notNull(),
+    domainId: uuid('domain_id').references(() => domains.id, { onDelete: 'cascade' }),
     userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
     status: text('status', { enum: ['in_progress', 'completed'] }).default('in_progress').notNull(),
     probedItems: jsonb('probed_items').$type<any[]>().notNull(),
@@ -199,6 +205,7 @@ export const diagnosticSessions = pgTable(
   },
   (table) => [
     index('idx_diagnostic_sessions_workspace').on(table.workspaceId),
+    index('idx_diagnostic_sessions_domain').on(table.domainId),
     index('idx_diagnostic_sessions_user').on(table.userId),
   ]
 );

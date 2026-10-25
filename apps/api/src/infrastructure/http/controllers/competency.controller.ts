@@ -16,7 +16,7 @@ export const competencyController = new Elysia({ prefix: '/api/v1/competencies' 
       const userId = auth.user?.id || null;
 
       try {
-        return await container.getCompetencyGraphUseCase.execute(workspaceId, userId);
+        return await container.getCompetencyGraphUseCase.execute(workspaceId, userId, query.domainId || null);
       } catch (err: any) {
         set.status = 400;
         return { error: err.message };
@@ -25,6 +25,7 @@ export const competencyController = new Elysia({ prefix: '/api/v1/competencies' 
     {
       query: t.Object({
         workspaceId: t.String({ description: 'Workspace / Domain ID' }),
+        domainId: t.Optional(t.String({ description: 'Optional Domain filter' })),
       }),
       detail: {
         tags: ['Competency & Mastery DAG'],
