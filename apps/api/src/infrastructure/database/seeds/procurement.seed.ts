@@ -9,6 +9,7 @@ import {
   gateRequirements,
   tasks,
   spacedFlashcards,
+  contents,
 } from '../schema';
 import { createHash } from 'crypto';
 
@@ -329,6 +330,17 @@ export async function seedProcurement(creatorId: string) {
         nextReviewDue: new Date(),
       }).onConflictDoNothing();
     }
+    // 7. Educational Reading Materials
+    await db.insert(contents).values({
+      workspaceId: activeWs.id,
+      title: 'Pengantar Tata Kelola Pengadaan Barang dan Jasa Pemerintah',
+      slug: 'pengantar-tata-kelola-pengadaan-barang-dan-jasa-pemerintah',
+      type: 'materi',
+      summary: 'Panduan komprehensif prinsip, etika, dan batasan regulasi Perpres 16/2018 jo 12/2021.',
+      readingTimeMinutes: 5,
+      body: '## Tata Kelola PBJ Nasional\n\nPengadaan Barang dan Jasa Pemerintah berlandaskan pada prinsip efisien, efektif, transparan, terbuka, bersaing, adil, dan akuntabel sesuai Perpres 16/2018 jo 12/2021.\n\n### Prinsip Utama\n1. Efisiensi & Nilai Manfaat Terbaik\n2. Keadilan & Kesetaraan Kesempatan Rekanan\n3. Akuntabilitas & Kepatuhan Audit Regulasi',
+      isPublished: true,
+    }).onConflictDoNothing();
   }
 
   console.log('✓ Procurement (PBJ) Domain Blueprint Seeded Successfully!');
