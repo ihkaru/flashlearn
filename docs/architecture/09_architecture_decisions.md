@@ -1,7 +1,7 @@
 ---
 arc42_section: 9
-verified_commit: fa8d046
-verified_timestamp: 2026-10-25T20:50:00+07:00
+verified_commit: 0f9e4c2
+verified_timestamp: 2026-10-25T22:00:00+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 9. Architecture Decisions (ADRs)
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `fa8d046` (branch: `main`)
-> - **Verified Timestamp**: `2026-10-25T20:50:00+07:00`
+> - **Verified Commit**: `0f9e4c2` (branch: `main`)
+> - **Verified Timestamp**: `2026-10-25T22:00:00+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -66,3 +66,21 @@ This section documents architecturally significant decisions (ADRs) that shape t
 - **Decision**: Issue digital authority passports conforming to W3C Verifiable Credentials 2.0 and OpenBadges 3.0, signed cryptographically using Ed25519 keypairs. Verification is open to external verifiers via public portals and standard crypto libraries.
 - **Consequences**: Portable, tamper-proof, decentralized credentials verifiable offline or by third-party enterprise HR systems.
 - **Risks Created**: RISK-05
+
+---
+
+## ADR-06: Causal Schema Priming & Mandatory Unaided Practice Gate
+- **Status**: Accepted
+- **Context**: Empirical meta-analyses (Bastani et al., 2025) demonstrate that unguided AI tutoring during practice inflates assisted performance but drops unaided exam performance by 17% due to the "AI Crutch Paradox". In addition, traditional definition-recalling flashcards fail to build procedural mental models.
+- **Decision**: Re-engineer flashcards into Causal Prediction Probes ("What-If" directionality) and Micro-Debugging error spotting before the sandbox. Enforce a mandatory Unaided Practice Checkpoint where the AI tutor is completely disabled before the Gate Exam tab unlocks.
+- **Consequences**: Eliminates the illusion of competence, forcing genuine procedural schema retrieval before certification.
+- **Risks Created**: RISK-06
+
+---
+
+## ADR-07: Autonomous Coding Agent CLI Generation Pipeline & Zero-Domain Hardcoding
+- **Status**: Accepted
+- **Context**: Hardcoding domain business rules (e.g. procurement regulations or engineering formulas) inside the application codebase destroys portability and creates high maintenance overhead when expanding to new enterprise domains.
+- **Decision**: Mandate that all domain curricula (Corpus of Record, DAG edges, causal flashcards, analogical quizzes, worked examples, adaptive scaffolding, and oracle tests) must be 100% generated and certified by an autonomous Coding Agent through the Headless CLI (`bun run cli domain import / generate / certify`). The application codebase remains strictly domain-agnostic.
+- **Consequences**: Enables zero-code onboarding of arbitrary regulatory and technical domains while enforcing automated invariant verification before database ingestion.
+- **Risks Created**: RISK-07

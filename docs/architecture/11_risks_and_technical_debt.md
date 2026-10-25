@@ -1,7 +1,7 @@
 ---
 arc42_section: 11
-verified_commit: fa8d046
-verified_timestamp: 2026-10-25T20:50:00+07:00
+verified_commit: 0f9e4c2
+verified_timestamp: 2026-10-25T22:00:00+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 11. Risks and Technical Debt
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `fa8d046` (branch: `main`)
-> - **Verified Timestamp**: `2026-10-25T20:50:00+07:00`
+> - **Verified Commit**: `0f9e4c2` (branch: `main`)
+> - **Verified Timestamp**: `2026-10-25T22:00:00+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -32,6 +32,8 @@ The following risks are tracked and actively mitigated across architectural comp
 | RISK-03 | Quality drift in auto-generated backward scaffolding for edge-case blueprints | Medium | Medium | Strict schema validation before LLM pipeline execution, heuristic fallback generators for standard archetypes, human creator review flag. | AI Pipeline Team |
 | RISK-04 | Upstream AI Gateway latency spikes or rate limits during Class B evaluations | High | Medium | Asynchronous evaluation queue with exponential backoff retries; pre-evaluation by Class A deterministic checkers before invoking LLM judge. | AI Integration |
 | RISK-05 | Key management, rotation, and revocation overhead for Ed25519 digital authority passports | High | Low | Infisical universal secret management, public key distribution endpoints (`/.well-known/did.json`), and W3C Bitstring Status List 2021 revocation registry. | Security & Compliance |
+| RISK-06 | Learner frustration or anxiety spike when AI tutor assistance is disabled in Unaided Practice | Medium | Medium | Progressive hint fading schedule (full explanations fade to statutory clause citations only) prior to complete AI shutdown. | UX & Cognitive Design |
+| RISK-07 | AI hallucination in statutory clauses or numerical imbalances in CLI-generated domain blueprints | High | Low | Mandatory SHA-256 chunk citation matching against raw ingested text, Tarjan SCC acyclicity validator, and automated AST oracle solvability proofs. | CLI & Automation |
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 arc42_section: 6
-verified_commit: fa8d046
-verified_timestamp: 2026-10-25T20:50:00+07:00
+verified_commit: 0f9e4c2
+verified_timestamp: 2026-10-25T22:00:00+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -12,16 +12,16 @@ tracked_paths:
 # 6. Runtime View
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `fa8d046` (branch: `main`)
-> - **Verified Timestamp**: `2026-10-25T20:50:00+07:00`
+> - **Verified Commit**: `0f9e4c2` (branch: `main`)
+> - **Verified Timestamp**: `2026-10-25T22:00:00+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
-The Runtime View describes the dynamic behavior of FlashLearn components across critical operational scenarios.
+The Runtime View describes the dynamic behavior of FlashLearn components across critical operational workflows.
 
 ---
 
-## 6.1 Scenario 1: Dual-Loop Competency Learning & Graceful Downgrade
+## 6.1 Scenario 1: Dual-Loop Competency Learning & Unaided Practice Gate
 
 When a candidate selects a competency node on the DAG, FlashLearn opens the integrated learning container:
 
@@ -39,31 +39,37 @@ sequenceDiagram
     API->>DB: Query Competency, Linked Tasks & Source Chunks (IF-03)
     DB-->>API: Return Entities
     API->>Scaffolder: generate(node, tasks, citations)
-    Scaffolder-->>API: ScaffoldingBundle (JobAid, WorkedExample, MicroSandbox)
+    Scaffolder-->>API: ScaffoldingBundle (JobAid, CausalProbes, WorkedExample, AdaptiveSandbox)
     API-->>Web: 200 OK (CompetencyLearningBundle)
     
     Web->>Learner: Renders Tab 1: Belajar & Latihan (Sandbox)
-    Note over Learner,Web: Learner reviews checklist, explores worked example & common traps
+    Note over Learner,Web: Phase 1: Review Job Aid & Checklist
+    Note over Learner,Web: Phase 2: Causal Schema Priming (What-If Flashcards & Micro-Debugging)
+    Note over Learner,Web: Phase 3: Study Expert Worked Example & Error Traps
+    Note over Learner,Web: Phase 4: Guided Sandbox Practice with Socratic AI
+    Note over Learner,Web: Phase 5: Mandatory Unaided Practice (AI Disabled)
+
+    Learner->>Web: Completes Unaided Practice Checkpoint
+    Web->>API: POST /api/v1/tasks/:id/attempt (is_practice: true, is_unaided: true) (IF-01)
+    API-->>Web: 200 OK (passed: true, has_passed_unaided_sandbox: true)
+    Web->>Learner: Unlocks Tab 2: Ujian Pembuktian (Resmi)
     
-    Learner->>Web: Clicks "Saya Sudah Paham & Siap Masuk Ujian Pembuktian"
-    Web->>Learner: Switches to Tab 2: Ujian Pembuktian (Resmi)
-    
-    alt Learner Struggles in Tab 2
-        Learner->>Web: Clicks "Buntu? Buka Panduan Langkah"
-        Web->>Learner: Confirmation Modal (Downgrade to Practice Mode)
-        Learner->>Web: Confirms Downgrade
-        Web->>Learner: Switches back to Tab 1 (Marks session as is_practice: true)
-    else Learner Solves Exam
-        Learner->>Web: Submits Official Solution
+    alt Learner Enters Exam & Solves Case
+        Learner->>Web: Submits Official Solution (is_unaided: true)
         Web->>API: POST /api/v1/tasks/:id/attempt (IF-01)
+    else Learner Stalls in Exam
+        Learner->>Web: Clicks "Buntu? Buka Panduan Langkah"
+        Web->>Learner: Confirmation Modal (Graceful Downgrade Protocol)
+        Learner->>Web: Confirms Downgrade
+        Web->>Learner: Switches back to Tab 1 (Burns scenario instance, restarts practice)
     end
 ```
 
 ---
 
-## 6.2 Scenario 2: Multi-Tier Oracle Evaluation & Merkle Attempt Hashing
+## 6.2 Scenario 2: Multi-Tier Oracle Evaluation & Multi-Observation Entrustment
 
-Evaluates candidate submissions and commits an immutable cryptographic audit record:
+Evaluates candidate submissions and verifies multi-observation requirements before granting authority credentials:
 
 ```mermaid
 sequenceDiagram
@@ -76,7 +82,7 @@ sequenceDiagram
     participant AI as AI Gateway Service
     participant DB as PostgreSQL Database
 
-    Learner->>Web: Submits Task Answer / Calculation
+    Learner->>Web: Submits Task Answer / Calculation (Scenario Variant A)
     Web->>API: POST /api/v1/tasks/:id/attempt (IF-01)
     API->>DB: Fetch Task, Rubric & Competency (IF-03)
     
@@ -90,17 +96,26 @@ sequenceDiagram
         OracleB-->>API: Score, Criteria Feedback, Pass/Fail
     end
     
-    API->>API: Compute Merkle hash for conversation transcript & attempt
+    API->>API: Compute Merkle hash for conversation transcript, execution artifacts & attempt
     API->>DB: Insert Attempt record & update Mastery Ledger (IF-03)
-    API-->>Web: Attempt Response (Score, Passed, Rubric Details)
-    Web->>Learner: Displays Feedback Card & updates DAG progress
+    
+    alt Multi-Observation Requirement (e.g. 2 Variants Required)
+        DB-->>API: Observation Count: 1 of 2 Passed
+        API-->>Web: Attempt Response (Score: 92, Passed: true, Next: "Selesaikan Varian B")
+        Web->>Learner: Prompts for Scenario Variant B
+    else All Required Observations Passed
+        DB-->>API: Observation Count: 2 of 2 Passed
+        API->>DB: Update Mastery Record (mastered) & Grant Gate Authority (IF-03)
+        API-->>Web: Attempt Response (Score: 95, Authority Passport Issued)
+        Web->>Learner: Displays Digital Passport with Merkle Execution Proof
+    end
 ```
 
 ---
 
-## 6.3 Scenario 3: Progressive Gate Authorization & W3C VC Issuance
+## 6.3 Scenario 3: Gate Authorization & W3C Verifiable Credential Issuance
 
-Validates prerequisite thresholds and issues cryptographic authority credentials:
+When all prerequisite competency gates are mastered, the system issues an Ed25519-signed digital credential encapsulating the Merkle root of the execution artifacts:
 
 ```mermaid
 sequenceDiagram
@@ -108,26 +123,21 @@ sequenceDiagram
     actor Learner as Budi Pembelajar
     participant Web as FlashLearn Web Client
     participant API as FlashLearn API Service
-    participant GateEngine as GateAuthorizationEngine
-    participant CryptoEngine as W3cCredentialCryptoEngine
+    participant Crypto as W3cCredentialCryptoEngine
     participant DB as PostgreSQL Database
+    actor Employer as External Auditor / Employer
 
-    Learner->>Web: Requests Gate Passport Evaluation (Level 1/2/3)
-    Web->>API: POST /api/v1/gates/:id/evaluate (IF-01)
-    API->>DB: Query Candidate Mastery across all required competencies (IF-03)
-    DB-->>API: Mastery Records & Verified Attempt IDs
-    API->>GateEngine: evaluateGate(gate, candidateMastery)
-    
-    alt All Required Competencies Mastered (Score >= Passing threshold)
-        GateEngine-->>API: Authorized: Grant Gate
-        API->>CryptoEngine: issueVerifiableCredential(subject, gate, evidence)
-        CryptoEngine->>CryptoEngine: Sign JSON-LD payload with Ed25519 Private Key
-        API->>DB: Insert Gate Passport & Store Signed VC (IF-03)
-        API-->>Web: Gate Granted (Passport Token, Signed VC)
-        Web->>Learner: Displays Digital Passport & W3C VC Download Modal
-    else Prerequisites Incomplete
-        GateEngine-->>API: Denied: Missing Prerequisite Competencies
-        API-->>Web: 400 Bad Request (Detailed Gap List)
-        Web->>Learner: Highlights Missing DAG Nodes in Red/Amber
-    end
+    Learner->>Web: Clicks "Terbitkan Paspor Digital W3C"
+    Web->>API: POST /api/v1/gates/:id/claim-passport (IF-01)
+    API->>DB: Verify All Prerequisite Masteries & Attempt Hashes (IF-03)
+    DB-->>API: Verified Clean
+    API->>Crypto: signCredential(user, gate, executionArtifactHashes)
+    Crypto-->>API: Signed W3C Verifiable Credential (Ed25519Signature2020)
+    API->>DB: Store Issued Credential in issued_credentials (IF-03)
+    API-->>Web: Credential Payload & Public Verification Link
+    Web->>Learner: Displays Passport Badge with QR code and Verification URL
+
+    Employer->>API: GET /verify-passport/:token (IF-05)
+    API->>DB: Fetch Credential & Cryptographic Proof (IF-03)
+    API-->>Employer: Human-Readable Verification Page + Merkle Execution Artifacts
 ```

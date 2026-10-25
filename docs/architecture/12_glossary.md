@@ -1,7 +1,7 @@
 ---
 arc42_section: 12
-verified_commit: fa8d046
-verified_timestamp: 2026-10-25T20:50:00+07:00
+verified_commit: 0f9e4c2
+verified_timestamp: 2026-10-25T22:00:00+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 12. Glossary
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `fa8d046` (branch: `main`)
-> - **Verified Timestamp**: `2026-10-25T20:50:00+07:00`
+> - **Verified Commit**: `0f9e4c2` (branch: `main`)
+> - **Verified Timestamp**: `2026-10-25T22:00:00+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -31,6 +31,10 @@ This section defines key pedagogical, domain, architectural, and security terms 
 | **Four-Component Instructional Design (4C/ID)** | Instructional Design | Van Merriënboer's framework structuring complex learning around authentic learning tasks, supportive information, procedural information, and part-task practice. |
 | **Worked Example Effect** | Pedagogy | The phenomenon where novice learners develop problem schemas faster and with less extraneous load when analyzing fully solved expert solutions before solving unassisted problems. |
 | **Faded Scaffolding** | Pedagogy | A progressive learning strategy where initial problems are heavily assisted (e.g. 70% pre-filled), systematically removing prompts and helpers until the learner performs fully unassisted. |
+| **Causal Flashcard ("What-If" Probe)** | Cognitive Priming | An active-recall probe presenting an operational parameter shift requiring the learner to predict the directional outcome before flipping the card to reveal the expert rationale. |
+| **Analogical Comparison** | Learning Science | An instructional exercise presenting two structurally isomorphic cases from different industries side-by-side to train the mind to recognize deep relational schemas. |
+| **Micro-Debugging** | Assessment | An error-spotting drill presenting a completed worksheet containing a deliberate regulatory or numerical defect to build an early warning audit instinct ($g = 0.64$). |
+| **Unaided Practice Gate** | Architectural Guardrail | A mandatory checkpoint in the sandbox requiring error-free task execution with all AI tutoring disabled before the high-stakes Gate Exam tab unlocks. |
 | **Cognitive Archetypes** | Architecture | FlashLearn's 4 universal domain-agnostic task paradigms: (1) Analytical Calculation, (2) Multi-Variable Classification, (3) Adversarial Audit, and (4) System Dynamic Synthesis. |
 | **Dual-Loop Learning Container** | UI/UX Pattern | An architectural pattern separating unpenalized exploration and granular diagnostic practice (Outer Sandbox) from high-stakes deterministic evaluation (Inner Gate Exam). |
 
@@ -45,6 +49,8 @@ This section defines key pedagogical, domain, architectural, and security terms 
 | **Prerequisite** | Domain Model | A directed edge requiring verified completion and passing scores on upstream nodes before a downstream node becomes unlockable. |
 | **Corpus of Record** | Grounding | Authoritative regulatory, legal, or procedural source documentation ingested into chunks and cited as mandatory grounding for all evaluation criteria. |
 | **Diagnostic Step** | Assessment | An isolated sub-calculation or intermediate classification within a task allowing pinpoint failure analysis without confounding compound errors. |
+| **Multi-Observation Entrustment** | Assessment Policy | A certification policy requiring demonstrated passing capability across at least two distinct isomorphic scenario variants to prevent fluke passes. |
+| **Zero-Domain Hardcoding** | Architecture | The doctrine that the core application codebase contains zero hardcoded domain rules; all curricula are generated and certified via an autonomous CLI agent. |
 
 ---
 
@@ -60,14 +66,3 @@ This section defines key pedagogical, domain, architectural, and security terms 
 | **Merkle Audit Trail** | Security | A SHA-256 cryptographic hash tree anchoring attempt history, evaluation scores, and corpus citations to guarantee tamper-proof ledger integrity. |
 | **W3C Verifiable Credential (VC)** | Standard | An open cryptographic standard for tamper-evident credentials issued with Ed25519 digital signatures and resolvable decentralized identifiers (DIDs). |
 | **Zero-Mock Policy** | Engineering Doctrine | Strict invariant forbidding artificial latency, silent stubbing, or mock framework leakage in production execution paths. |
-
----
-
-## 12.4 Enterprise Procurement Reference Domain Terms
-
-| Term | Category | Definition |
-|---|---|---|
-| **Kraljic Matrix** | Procurement | Strategic portfolio tool segmenting spending into 4 quadrants: Routine, Bottleneck, Leverage, and Strategic items. |
-| **Total Cost of Ownership (TCO)** | Finance | Comprehensive financial estimate of direct and indirect costs across a product's entire operational lifecycle, incorporating NPV and salvage value. |
-| **Net Present Value (NPV)** | Finance | The discounted sum of future incoming and outgoing cash flows over a specified time horizon at a given discount rate. |
-| **Three-Way Matching** | Audit | The internal verification process comparing Purchase Orders (PO), Goods Received Notes (GRN), and Vendor Invoices before approving payment. |
