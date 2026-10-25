@@ -13,6 +13,8 @@ export class DrizzleMasteryRepository implements IMasteryRepository {
       competencyId: row.competencyId,
       status: row.status as MasteryStatus,
       verifiedAttemptId: row.verifiedAttemptId,
+      hasPassedUnaidedSandbox: row.hasPassedUnaidedSandbox,
+      passedVariantCodes: row.passedVariantCodes,
       masteredAt: row.masteredAt,
       retestDueAt: row.retestDueAt,
       difficulty: row.difficulty ? Number(row.difficulty) : 5.0,

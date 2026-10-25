@@ -115,6 +115,8 @@ export interface Task {
   title: string;
   scenario: string;
   taskType: TaskType;
+  scenarioVariantCode?: string;
+  isIsomorphicVariant?: boolean;
   oracleData: OracleData;
   adversarialSpec?: AdversarialDilemmaSpec;
   rubricCriteria: RubricCriterion[];
@@ -142,6 +144,9 @@ export interface Attempt {
   assessedBy: string;
   oracleClassUsed: OracleClass;
   passed: boolean;
+  isUnaided?: boolean;
+  aiHintsUsedCount?: number;
+  isPractice?: boolean;
   adversarialResult?: AdversarialEvaluationResult;
   conversationAudit?: LumisTranscriptBundle;
   conversationHash?: string;
@@ -159,6 +164,8 @@ export interface CreateTaskDto {
   title: string;
   scenario: string;
   taskType: TaskType;
+  scenarioVariantCode?: string;
+  isIsomorphicVariant?: boolean;
   oracleData: OracleData;
   adversarialSpec?: AdversarialDilemmaSpec;
   rubricCriteria: RubricCriterion[];
@@ -168,6 +175,9 @@ export interface CreateTaskDto {
 export interface EvaluateAttemptRequest {
   taskId: string;
   submission: Record<string, any>;
+  isUnaided?: boolean;
+  aiHintsUsedCount?: number;
+  isPractice?: boolean;
   conversationAudit?: LumisTranscriptBundle;
 }
 

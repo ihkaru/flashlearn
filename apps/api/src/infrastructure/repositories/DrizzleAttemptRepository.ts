@@ -17,6 +17,9 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
       assessedBy: row.assessedBy,
       oracleClassUsed: row.oracleClassUsed as OracleClass,
       passed: row.passed,
+      isUnaided: row.isUnaided,
+      aiHintsUsedCount: row.aiHintsUsedCount,
+      isPractice: row.isPractice,
       details: row.details as any,
       createdAt: row.createdAt,
     });
@@ -70,6 +73,9 @@ export class DrizzleAttemptRepository implements IAttemptRepository {
         assessedBy: data.assessedBy,
         oracleClassUsed: data.oracleClassUsed,
         passed: data.passed,
+        isUnaided: data.isUnaided ?? false,
+        aiHintsUsedCount: data.aiHintsUsedCount ?? 0,
+        isPractice: data.isPractice ?? false,
         details: data.details,
       })
       .returning();

@@ -19,6 +19,7 @@ export interface GateRequirement {
   gateId: string;
   competencyId: string;
   minimumScore: number;
+  requiredObservationsCount?: number;
   requiresHumanApproval: boolean;
   createdAt: string;
 }

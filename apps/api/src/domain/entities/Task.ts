@@ -6,6 +6,8 @@ export interface TaskProps {
   title: string;
   scenario: string;
   taskType: TaskType;
+  scenarioVariantCode?: string;
+  isIsomorphicVariant?: boolean;
   oracleData: OracleData;
   adversarialSpec?: AdversarialDilemmaSpec | null;
   rubricCriteria: RubricCriterion[];
@@ -35,6 +37,14 @@ export class TaskEntity {
 
   get taskType(): TaskType {
     return this.props.taskType;
+  }
+
+  get scenarioVariantCode(): string {
+    return this.props.scenarioVariantCode ?? 'variant_a';
+  }
+
+  get isIsomorphicVariant(): boolean {
+    return this.props.isIsomorphicVariant ?? false;
   }
 
   get oracleData(): OracleData {

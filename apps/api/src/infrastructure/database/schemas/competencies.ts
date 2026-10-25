@@ -71,6 +71,8 @@ export const masteryRecords = pgTable(
       .default('ready')
       .notNull(),
     verifiedAttemptId: uuid('verified_attempt_id'),
+    hasPassedUnaidedSandbox: boolean('has_passed_unaided_sandbox').default(false).notNull(),
+    passedVariantCodes: jsonb('passed_variant_codes').$type<string[]>().default([]).notNull(),
     masteredAt: timestamp('mastered_at', { withTimezone: true }),
     retestDueAt: timestamp('retest_due_at', { withTimezone: true }),
     difficulty: numeric('difficulty', { precision: 4, scale: 2 }).default('5.0').notNull(),
@@ -102,6 +104,8 @@ export const tasks = pgTable(
     taskType: text('task_type', {
       enum: ['calculation', 'case_study', 'document_draft', 'checklist', 'adversarial_dilemma'],
     }).notNull(),
+    scenarioVariantCode: text('scenario_variant_code').default('variant_a').notNull(),
+    isIsomorphicVariant: boolean('is_isomorphic_variant').default(false).notNull(),
     oracleData: jsonb('oracle_data').$type<Record<string, any>>().notNull(),
     adversarialSpec: jsonb('adversarial_spec').$type<AdversarialDilemmaSpec>(),
     rubricCriteria: jsonb('rubric_criteria').$type<any[]>().notNull(),
@@ -113,6 +117,7 @@ export const tasks = pgTable(
     uniqueIndex('idx_tasks_comp_title').on(table.competencyId, table.title),
     index('idx_tasks_competency_id').on(table.competencyId),
     index('idx_tasks_task_type').on(table.taskType),
+    index('idx_tasks_variant').on(table.scenarioVariantCode),
   ]
 );
 
@@ -128,6 +133,9 @@ export const attempts = pgTable(
     assessedBy: text('assessed_by').notNull(),
     oracleClassUsed: text('oracle_class_used', { enum: ['A', 'B', 'C'] }).notNull(),
     passed: boolean('passed').notNull(),
+    isUnaided: boolean('is_unaided').default(false).notNull(),
+    aiHintsUsedCount: integer('ai_hints_used_count').default(0).notNull(),
+    isPractice: boolean('is_practice').default(false).notNull(),
     details: jsonb('details'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -135,6 +143,7 @@ export const attempts = pgTable(
     index('idx_attempts_task_id').on(table.taskId),
     index('idx_attempts_user_id').on(table.userId),
     index('idx_attempts_passed').on(table.passed),
+    index('idx_attempts_unaided').on(table.isUnaided),
   ]
 );
 
@@ -165,6 +174,7 @@ export const gateRequirements = pgTable(
     gateId: uuid('gate_id').references(() => gates.id, { onDelete: 'cascade' }).notNull(),
     competencyId: uuid('competency_id').references(() => competencies.id, { onDelete: 'cascade' }).notNull(),
     minimumScore: integer('minimum_score').default(80).notNull(),
+    requiredObservationsCount: integer('required_observations_count').default(1).notNull(),
     requiresHumanApproval: boolean('requires_human_approval').default(false).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },

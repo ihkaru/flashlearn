@@ -120,6 +120,9 @@
       const res = await api.tasks.submitAttempt(task.id, {
         submissionData,
         studentAnswerText: studentAnswerText || undefined,
+        isUnaided: true,
+        aiHintsUsedCount: 0,
+        isPractice: false,
         conversationAudit: conversationAudit || undefined,
         conversationHash: conversationAudit?.merkleRootHash || undefined,
       });

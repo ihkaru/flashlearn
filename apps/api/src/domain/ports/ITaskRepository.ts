@@ -6,6 +6,8 @@ export interface CreateTaskData {
   title: string;
   scenario: string;
   taskType: TaskType;
+  scenarioVariantCode?: string;
+  isIsomorphicVariant?: boolean;
   oracleData: OracleData;
   adversarialSpec?: AdversarialDilemmaSpec | null;
   rubricCriteria: RubricCriterion[];

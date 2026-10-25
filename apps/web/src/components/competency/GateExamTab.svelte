@@ -24,6 +24,8 @@
   let showDowngradeConfirm = $state(false);
 
   let currentTask = $derived(tasks.find((t) => t.id === selectedTaskId) || tasks[0] || null);
+  let passedVariants = $derived<string[]>((competency as any)?.passedVariantCodes || []);
+  let variantCode = $derived(currentTask?.scenarioVariantCode || 'variant_a');
 
   function confirmDowngrade() {
     showDowngradeConfirm = false;
@@ -58,6 +60,27 @@
       <Icon name="question-circle" size={14} />
       <span>Buntu? Buka Panduan Langkah</span>
     </button>
+  </div>
+
+  <!-- Multi-Observation Entrustment Indicator -->
+  <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <Icon name="check-double" size={15} class="text-teal-700" />
+      <span style="font-size: 0.78rem; font-weight: 700; color: #115e59;">
+        Multi-Observation Entrustment:
+      </span>
+      <span style="font-size: 0.75rem; background: #ccfbf1; color: #0f766e; padding: 2px 8px; border-radius: 6px; font-weight: 800;">
+        {variantCode.toUpperCase()}
+      </span>
+      {#if currentTask?.isIsomorphicVariant}
+        <span style="font-size: 0.72rem; background: #e0e7ff; color: #4338ca; padding: 2px 6px; border-radius: 5px; font-weight: 600;">
+          Kasus Isomorfik
+        </span>
+      {/if}
+    </div>
+    <div style="font-size: 0.75rem; color: #047857; font-weight: 700;">
+      {passedVariants.length > 0 ? `Lulus ${passedVariants.length} Observasi (${passedVariants.join(', ')})` : 'Observasi Kasus (Wajib Mandiri 100%)'}
+    </div>
   </div>
 
   <!-- Task Selector if multiple tasks exist -->

@@ -82,8 +82,13 @@ export const spacedFlashcards = pgTable(
     userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
     competencyId: uuid('competency_id').references(() => competencies.id, { onDelete: 'cascade' }).notNull(),
     sourceChunkId: uuid('source_chunk_id').references(() => sourceChunks.id, { onDelete: 'set null' }),
+    cardType: text('card_type', {
+      enum: ['definition', 'causal_prediction', 'analogical_comparison', 'micro_debugging'],
+    }).default('definition').notNull(),
     front: text('front').notNull(),
     back: text('back').notNull(),
+    predictionOptions: jsonb('prediction_options').$type<string[]>(),
+    causalRationale: text('causal_rationale'),
     category: text('category').default('general').notNull(),
     repetitionIntervalDays: integer('repetition_interval_days').default(1).notNull(),
     easeFactor: integer('ease_factor').default(250).notNull(),
@@ -96,6 +101,7 @@ export const spacedFlashcards = pgTable(
     index('idx_spaced_fc_user').on(table.userId),
     index('idx_spaced_fc_due').on(table.nextReviewDue),
     index('idx_spaced_fc_comp').on(table.competencyId),
+    index('idx_spaced_fc_type').on(table.cardType),
   ]
 );
 

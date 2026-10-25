@@ -13,6 +13,8 @@ export class DrizzleTaskRepository implements ITaskRepository {
       title: row.title,
       scenario: row.scenario,
       taskType: row.taskType as TaskType,
+      scenarioVariantCode: row.scenarioVariantCode,
+      isIsomorphicVariant: row.isIsomorphicVariant,
       oracleData: row.oracleData as OracleData,
       adversarialSpec: (row.adversarialSpec as AdversarialDilemmaSpec) || null,
       rubricCriteria: row.rubricCriteria as RubricCriterion[],
@@ -45,6 +47,8 @@ export class DrizzleTaskRepository implements ITaskRepository {
         title: data.title,
         scenario: data.scenario,
         taskType: data.taskType,
+        scenarioVariantCode: data.scenarioVariantCode || 'variant_a',
+        isIsomorphicVariant: data.isIsomorphicVariant ?? false,
         oracleData: data.oracleData,
         adversarialSpec: data.adversarialSpec || null,
         rubricCriteria: data.rubricCriteria,
@@ -60,6 +64,8 @@ export class DrizzleTaskRepository implements ITaskRepository {
     if (data.title !== undefined) updatePayload.title = data.title;
     if (data.scenario !== undefined) updatePayload.scenario = data.scenario;
     if (data.taskType !== undefined) updatePayload.taskType = data.taskType;
+    if (data.scenarioVariantCode !== undefined) updatePayload.scenarioVariantCode = data.scenarioVariantCode;
+    if (data.isIsomorphicVariant !== undefined) updatePayload.isIsomorphicVariant = data.isIsomorphicVariant;
     if (data.oracleData !== undefined) updatePayload.oracleData = data.oracleData;
     if (data.adversarialSpec !== undefined) updatePayload.adversarialSpec = data.adversarialSpec;
     if (data.rubricCriteria !== undefined) updatePayload.rubricCriteria = data.rubricCriteria;

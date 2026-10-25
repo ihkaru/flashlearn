@@ -11,8 +11,11 @@ export class DrizzleSpacedFlashcardRepository implements ISpacedFlashcardReposit
       userId: row.userId,
       competencyId: row.competencyId,
       sourceChunkId: row.sourceChunkId,
+      cardType: row.cardType as any,
       front: row.front,
       back: row.back,
+      predictionOptions: row.predictionOptions ?? undefined,
+      causalRationale: row.causalRationale ?? undefined,
       category: row.category,
       repetitionIntervalDays: row.repetitionIntervalDays,
       easeFactor: row.easeFactor,
@@ -27,8 +30,11 @@ export class DrizzleSpacedFlashcardRepository implements ISpacedFlashcardReposit
     userId: string;
     competencyId: string;
     sourceChunkId?: string | null;
+    cardType?: any;
     front: string;
     back: string;
+    predictionOptions?: string[];
+    causalRationale?: string;
     category?: string;
   }): Promise<SpacedFlashcardEntity> {
     const [row] = await db
@@ -37,8 +43,11 @@ export class DrizzleSpacedFlashcardRepository implements ISpacedFlashcardReposit
         userId: card.userId,
         competencyId: card.competencyId,
         sourceChunkId: card.sourceChunkId || null,
+        cardType: card.cardType || 'definition',
         front: card.front,
         back: card.back,
+        predictionOptions: card.predictionOptions,
+        causalRationale: card.causalRationale,
         category: card.category || 'general',
       })
       .returning();

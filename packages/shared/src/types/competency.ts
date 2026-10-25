@@ -37,6 +37,8 @@ export interface MasteryRecord {
   competencyId: string;
   status: MasteryStatus;
   verifiedAttemptId?: string | null;
+  hasPassedUnaidedSandbox?: boolean;
+  passedVariantCodes?: string[];
   masteredAt?: string | null;
   retestDueAt?: string | null;
   createdAt: string;
@@ -46,6 +48,8 @@ export interface MasteryRecord {
 export interface LearnerCompetencyStatus extends CompetencyNode {
   userStatus: MasteryStatus;
   canAttempt: boolean;
+  hasPassedUnaidedSandbox?: boolean;
+  passedVariantCodes?: string[];
   blockingPrerequisites: Array<{ id: string; code: string; title: string }>;
   driftStatus?: string | null;
   cachedRetrievability?: number | null;
@@ -86,6 +90,18 @@ export interface LinkPrerequisiteDto {
   prerequisiteId: string;
 }
 
+export interface CausalProbe {
+  id: string;
+  type: 'causal_prediction' | 'analogical_comparison' | 'micro_debugging';
+  prompt: string;
+  predictionOptions?: string[];
+  causalRationale: string;
+  scenarioA?: string;
+  scenarioB?: string;
+  faultySnippet?: string;
+  faultyLine?: number;
+}
+
 export interface CompetencyLearningBundle {
   competency: CompetencyNode;
   readingMaterials: Array<{
@@ -96,6 +112,7 @@ export interface CompetencyLearningBundle {
     readingTimeMinutes?: number | null;
     type: 'materi' | 'quiz' | 'combined';
   }>;
+  causalProbes?: CausalProbe[];
   workedExamples?: Array<{
     id: string;
     title: string;
@@ -111,6 +128,7 @@ export interface CompetencyLearningBundle {
   microSandbox?: {
     title: string;
     scenario: string;
+    scaffoldingLevel?: 'high' | 'medium' | 'low' | 'unaided';
     checkpoints: Array<{ label: string; hint: string }>;
   };
 }

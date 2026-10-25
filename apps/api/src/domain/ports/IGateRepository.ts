@@ -13,6 +13,7 @@ export interface IGateRepository {
   addRequirements(gateId: string, requirements: Array<{
     competencyId: string;
     minimumScore: number;
+    requiredObservationsCount?: number;
     requiresHumanApproval: boolean;
   }>): Promise<GateRequirement[]>;
 

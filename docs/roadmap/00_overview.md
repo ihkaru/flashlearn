@@ -75,3 +75,5 @@ Dokumentasi detail setiap fase dipecah ke dalam file bernomor terpisah:
    *Audit deterministik pra-rilis untuk menjamin tidak ada ujian yang melompat tanpa contoh materi.*
 5. **[Fase 5: Validasi Empiris Lintas 2 Domain Kontras](05_phase5_contrasting_domains_validation.md)**  
    *Uji coba komprehensif pada domain Pengadaan Korporat vs Aviasi/Kedokteran membuktikan 100% domain-agnosticism.*
+6. **[Fase 6: Causal Priming, Unaided Sandbox, & Multi-Observation Entrustment](06_phase6_causal_priming_and_unaided_gate_enforcement.md)**  
+   *Penutupan celah AI Crutch via Unaided Sandbox, kartu What-If kausal, dan verifikasi wewenang multi-observasi.*

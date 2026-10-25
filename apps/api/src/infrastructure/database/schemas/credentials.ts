@@ -33,6 +33,7 @@ export const issuedCredentials = pgTable(
     gateId: uuid('gate_id').references(() => gates.id, { onDelete: 'cascade' }).notNull(),
     userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
     workspaceId: uuid('workspace_id').references(() => workspaces.id, { onDelete: 'cascade' }).notNull(),
+    executionArtifactHash: text('execution_artifact_hash'),
     vcPayload: jsonb('vc_payload').$type<W3CVerifiableCredential20>().notNull(),
     signatureProof: text('signature_proof').notNull(),
     status: text('status', { enum: ['active', 'revoked', 'drift_suspended'] }).default('active').notNull(),
@@ -42,5 +43,6 @@ export const issuedCredentials = pgTable(
     index('idx_issued_credentials_user').on(table.userId),
     index('idx_issued_credentials_gate').on(table.gateId),
     index('idx_issued_credentials_ws').on(table.workspaceId),
+    index('idx_issued_credentials_artifact_hash').on(table.executionArtifactHash),
   ]
 );

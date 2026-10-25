@@ -14,6 +14,7 @@ export class DrizzleGateRepository implements IGateRepository {
       gateId: r.gateId,
       competencyId: r.competencyId,
       minimumScore: r.minimumScore,
+      requiredObservationsCount: r.requiredObservationsCount,
       requiresHumanApproval: r.requiresHumanApproval,
       createdAt: r.createdAt.toISOString(),
     }));
@@ -50,6 +51,7 @@ export class DrizzleGateRepository implements IGateRepository {
   async addRequirements(gateId: string, reqs: Array<{
     competencyId: string;
     minimumScore: number;
+    requiredObservationsCount?: number;
     requiresHumanApproval: boolean;
   }>): Promise<GateRequirement[]> {
     if (reqs.length === 0) return [];
@@ -61,6 +63,7 @@ export class DrizzleGateRepository implements IGateRepository {
           gateId,
           competencyId: r.competencyId,
           minimumScore: r.minimumScore,
+          requiredObservationsCount: r.requiredObservationsCount ?? 1,
           requiresHumanApproval: r.requiresHumanApproval,
         }))
       )
@@ -71,6 +74,7 @@ export class DrizzleGateRepository implements IGateRepository {
       gateId: r.gateId,
       competencyId: r.competencyId,
       minimumScore: r.minimumScore,
+      requiredObservationsCount: r.requiredObservationsCount,
       requiresHumanApproval: r.requiresHumanApproval,
       createdAt: r.createdAt.toISOString(),
     }));

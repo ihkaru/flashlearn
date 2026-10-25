@@ -15,6 +15,7 @@ export interface IssuedCredentialRecord {
   gateId: string;
   userId: string;
   workspaceId: string;
+  executionArtifactHash?: string | null;
   vcPayload: W3CVerifiableCredential20;
   signatureProof: string;
   status: string;
@@ -29,6 +30,7 @@ export interface ICredentialRepository {
     gateId: string;
     userId: string;
     workspaceId: string;
+    executionArtifactHash?: string | null;
     vcPayload: W3CVerifiableCredential20;
     signatureProof: string;
     status?: string;

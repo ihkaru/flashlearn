@@ -10,6 +10,9 @@ export interface AttemptProps {
   assessedBy: string;
   oracleClassUsed: OracleClass;
   passed: boolean;
+  isUnaided?: boolean;
+  aiHintsUsedCount?: number;
+  isPractice?: boolean;
   details?: {
     breakdown?: AttemptDetail[];
     detectedTraps?: string[];
@@ -56,6 +59,18 @@ export class AttemptEntity {
 
   get passed(): boolean {
     return this.props.passed;
+  }
+
+  get isUnaided(): boolean {
+    return this.props.isUnaided ?? false;
+  }
+
+  get aiHintsUsedCount(): number {
+    return this.props.aiHintsUsedCount ?? 0;
+  }
+
+  get isPractice(): boolean {
+    return this.props.isPractice ?? false;
   }
 
   get details(): AttemptProps['details'] {

@@ -19,6 +19,25 @@
   let learningBundle = $state<CompetencyLearningBundle | null>(null);
   let selectedTaskId = $state<string | null>(null);
   let isLoading = $state(true);
+  let hasPassedUnaided = $state(false);
+  let lockedMessage = $state<string | null>(null);
+
+  $effect(() => {
+    if (competency) {
+      hasPassedUnaided = Boolean((competency as any)?.hasPassedUnaidedSandbox);
+    }
+  });
+
+  function handleTryOpenExam() {
+    if (!hasPassedUnaided) {
+      lockedMessage = 'Selesaikan Checkpoint Latihan Mandiri (Unaided Practice) di Tab 1 untuk membuka Ujian Resmi!';
+      setTimeout(() => {
+        lockedMessage = null;
+      }, 4000);
+      return;
+    }
+    activeTab = 'exam';
+  }
 
   $effect(() => {
     if (isOpen && competency) {
@@ -117,13 +136,25 @@
         </button>
         <button
           type="button"
-          onclick={() => (activeTab = 'exam')}
-          style="padding: 12px 18px; border: none; background: transparent; font-size: 0.85rem; font-weight: 800; color: {activeTab === 'exam' ? '#0f766e' : '#64748b'}; border-bottom: 3px solid {activeTab === 'exam' ? '#0f766e' : 'transparent'}; cursor: pointer; display: flex; align-items: center; gap: 8px;"
+          onclick={handleTryOpenExam}
+          style="padding: 12px 18px; border: none; background: transparent; font-size: 0.85rem; font-weight: 800; color: {activeTab === 'exam' ? '#0f766e' : hasPassedUnaided ? '#64748b' : '#94a3b8'}; border-bottom: 3px solid {activeTab === 'exam' ? '#0f766e' : 'transparent'}; cursor: {hasPassedUnaided ? 'pointer' : 'not-allowed'}; display: flex; align-items: center; gap: 8px;"
         >
-          <Icon name="shield-check" size={15} />
+          <Icon name={hasPassedUnaided ? 'shield-check' : 'lock'} size={15} />
           <span>Tab 2: Ujian Pembuktian (Resmi)</span>
+          {#if !hasPassedUnaided}
+            <span style="font-size: 0.7rem; background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+              Terkunci
+            </span>
+          {/if}
         </button>
       </div>
+
+      {#if lockedMessage}
+        <div style="background: #fffbeb; border-bottom: 1px solid #fde68a; padding: 8px 24px; font-size: 0.78rem; font-weight: 700; color: #b45309; display: flex; align-items: center; gap: 8px;">
+          <Icon name="exclamation-triangle" size={14} />
+          <span>{lockedMessage}</span>
+        </div>
+      {/if}
 
       <!-- Body / Tab Content -->
       <div style="padding: 20px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; flex: 1;">
@@ -135,6 +166,8 @@
           {#if learningBundle}
             <LearningSandboxTab
               bundle={learningBundle}
+              hasPassedUnaided={hasPassedUnaided}
+              onPassedUnaidedSandbox={() => (hasPassedUnaided = true)}
               onProceedToExam={() => (activeTab = 'exam')}
             />
           {:else}

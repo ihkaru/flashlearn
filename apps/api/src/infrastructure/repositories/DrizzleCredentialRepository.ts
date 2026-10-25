@@ -65,6 +65,7 @@ export class DrizzleCredentialRepository implements ICredentialRepository {
     gateId: string;
     userId: string;
     workspaceId: string;
+    executionArtifactHash?: string | null;
     vcPayload: W3CVerifiableCredential20;
     signatureProof: string;
     status?: string;
@@ -76,6 +77,7 @@ export class DrizzleCredentialRepository implements ICredentialRepository {
         gateId: credential.gateId,
         userId: credential.userId,
         workspaceId: credential.workspaceId,
+        executionArtifactHash: credential.executionArtifactHash || null,
         vcPayload: credential.vcPayload,
         signatureProof: credential.signatureProof,
         status: credential.status || 'active',
@@ -83,6 +85,7 @@ export class DrizzleCredentialRepository implements ICredentialRepository {
       .onConflictDoUpdate({
         target: issuedCredentials.id,
         set: {
+          executionArtifactHash: credential.executionArtifactHash || null,
           vcPayload: credential.vcPayload,
           signatureProof: credential.signatureProof,
           status: credential.status || 'active',
@@ -95,6 +98,7 @@ export class DrizzleCredentialRepository implements ICredentialRepository {
       gateId: row.gateId,
       userId: row.userId,
       workspaceId: row.workspaceId,
+      executionArtifactHash: row.executionArtifactHash,
       vcPayload: row.vcPayload,
       signatureProof: row.signatureProof,
       status: row.status,
@@ -115,6 +119,7 @@ export class DrizzleCredentialRepository implements ICredentialRepository {
       gateId: row.gateId,
       userId: row.userId,
       workspaceId: row.workspaceId,
+      executionArtifactHash: row.executionArtifactHash,
       vcPayload: row.vcPayload,
       signatureProof: row.signatureProof,
       status: row.status,

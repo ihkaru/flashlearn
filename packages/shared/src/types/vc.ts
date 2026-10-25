@@ -20,6 +20,7 @@ export interface W3CVerifiableCredential20 {
       workspaceName: string;
       verifiedScore: number;
       verifiedCompetencies: string[];
+      executionArtifactHash?: string;
     };
   };
   proof: {
@@ -39,5 +40,6 @@ export interface VerifyVcResult {
   subjectId?: string;
   issuedAt?: string;
   achievementTitle?: string;
+  executionArtifactHash?: string;
   error?: string;
 }

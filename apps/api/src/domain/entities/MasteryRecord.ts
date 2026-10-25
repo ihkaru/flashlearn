@@ -6,6 +6,8 @@ export interface MasteryRecordProps {
   competencyId: string;
   status: MasteryStatus;
   verifiedAttemptId?: string | null;
+  hasPassedUnaidedSandbox?: boolean;
+  passedVariantCodes?: string[];
   masteredAt?: Date | null;
   retestDueAt?: Date | null;
   difficulty?: number;
@@ -38,6 +40,14 @@ export class MasteryRecordEntity {
 
   get verifiedAttemptId(): string | null {
     return this.props.verifiedAttemptId ?? null;
+  }
+
+  get hasPassedUnaidedSandbox(): boolean {
+    return this.props.hasPassedUnaidedSandbox ?? false;
+  }
+
+  get passedVariantCodes(): string[] {
+    return this.props.passedVariantCodes ?? [];
   }
 
   get masteredAt(): Date | null {

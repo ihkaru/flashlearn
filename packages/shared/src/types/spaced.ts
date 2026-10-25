@@ -1,3 +1,9 @@
+export type FlashcardType =
+  | 'definition'
+  | 'causal_prediction'
+  | 'analogical_comparison'
+  | 'micro_debugging';
+
 export interface SpacedFlashcard {
   id: string;
   userId: string;
@@ -6,6 +12,9 @@ export interface SpacedFlashcard {
   front: string;
   back: string;
   category: string;
+  cardType?: FlashcardType;
+  predictionOptions?: string[];
+  causalRationale?: string;
   repetitionIntervalDays: number;
   easeFactor: number;
   repetitionCount: number;

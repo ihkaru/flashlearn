@@ -6,6 +6,11 @@ export interface SubmitTaskAttemptRequest {
   submissionData?: Record<string, any>;
   studentAnswerText?: string;
   sourceCitations?: { chunkId: string; quote: string }[];
+  isUnaided?: boolean;
+  aiHintsUsedCount?: number;
+  isPractice?: boolean;
+  conversationAudit?: any;
+  conversationHash?: string;
 }
 
 export const taskApi = {

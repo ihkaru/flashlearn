@@ -1,13 +1,21 @@
 <script lang="ts">
   import type { CompetencyLearningBundle } from '@flashlearn/shared';
   import Icon from '../ui/Icon.svelte';
+  import CausalProbeDeck from './CausalProbeDeck.svelte';
 
   interface Props {
     bundle: CompetencyLearningBundle;
+    hasPassedUnaided?: boolean;
     onProceedToExam: () => void;
+    onPassedUnaidedSandbox?: () => void;
   }
 
-  let { bundle, onProceedToExam }: Props = $props();
+  let {
+    bundle,
+    hasPassedUnaided = false,
+    onProceedToExam,
+    onPassedUnaidedSandbox,
+  }: Props = $props();
 
   let expandedMaterialId = $state<string | null>(null);
   let checkedAidItems = $state<Record<number, boolean>>({});
@@ -19,6 +27,10 @@
 
   function toggleHint(idx: number) {
     revealedHints[idx] = !revealedHints[idx];
+  }
+
+  function handlePassUnaided() {
+    onPassedUnaidedSandbox?.();
   }
 </script>
 
@@ -37,6 +49,11 @@
       </p>
     </div>
   </div>
+
+  <!-- Causal Schema Priming Section (ADR-06) -->
+  {#if bundle.causalProbes && bundle.causalProbes.length > 0}
+    <CausalProbeDeck probes={bundle.causalProbes} />
+  {/if}
 
   <!-- Job Aid & Checklist Section -->
   {#if bundle.jobAid}
@@ -225,16 +242,53 @@
     </div>
   {/if}
 
-  <!-- Tombol Maju ke Ujian -->
-  <div style="padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end;">
+  <!-- Mandatory Unaided Sandbox Step (ADR-06 Anti-AI-Crutch) -->
+  <div style="background: {hasPassedUnaided ? '#f0fdf4' : '#fffbeb'}; border: 1.5px solid {hasPassedUnaided ? '#86efac' : '#fde68a'}; border-radius: 14px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <Icon name={hasPassedUnaided ? 'check-double' : 'shield-check'} size={18} class={hasPassedUnaided ? 'text-green-600' : 'text-amber-600'} />
+        <h5 style="margin: 0; font-size: 0.9rem; font-weight: 800; color: {hasPassedUnaided ? '#14532d' : '#92400e'};">
+          Checkpoint Latihan Mandiri (Mandatory Unaided Practice)
+        </h5>
+      </div>
+      <span style="font-size: 0.72rem; font-weight: 800; background: {hasPassedUnaided ? '#dcfce7' : '#fef3c7'}; color: {hasPassedUnaided ? '#15803d' : '#b45309'}; padding: 2px 8px; border-radius: 9999px;">
+        {hasPassedUnaided ? 'Terverifikasi Mandiri ✓' : 'AI Dinonaktifkan ⛔'}
+      </span>
+    </div>
+    <p style="margin: 0 0 12px 0; font-size: 0.78rem; color: {hasPassedUnaided ? '#166534' : '#78350f'}; line-height: 1.45;">
+      {hasPassedUnaided
+        ? 'Anda telah berhasil mendemonstrasikan eksekusi mandiri tanpa bantuan AI. Izin menuju Ujian Pembuktian Gate telah terbuka!'
+        : 'Sesuai regulasi anti-AI Crutch (Bastani et al., 2025), pembelajar wajib menyelesaikan latihan mandiri tanpa petunjuk AI sebelum ujian resmi dibuka.'}
+    </p>
+
+    {#if !hasPassedUnaided}
+      <button
+        type="button"
+        onclick={handlePassUnaided}
+        class="fl-btn fl-btn-sm"
+        style="background: #0f766e; color: #ffffff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;"
+      >
+        <Icon name="check" size={14} />
+        <span>Konfirmasi Lulus Latihan Mandiri (Buka Kunci Ujian)</span>
+      </button>
+    {/if}
+  </div>
+
+  <!-- Tombol Maju ke Ujian (Gated by hasPassedUnaided) -->
+  <div style="padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+    <div style="font-size: 0.78rem; color: {hasPassedUnaided ? '#15803d' : '#64748b'}; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+      <Icon name={hasPassedUnaided ? 'check' : 'lock'} size={14} />
+      <span>{hasPassedUnaided ? 'Syarat mandiri terpenuhi: Siap masuk ujian' : 'Ujian terkunci: Selesaikan latihan mandiri di atas'}</span>
+    </div>
     <button
       type="button"
       onclick={onProceedToExam}
+      disabled={!hasPassedUnaided}
       class="fl-btn fl-btn-primary"
-      style="display: flex; align-items: center; gap: 8px; padding: 12px 20px; font-size: 0.88rem; font-weight: 800; border-radius: 10px; background: #0f766e; color: #ffffff; border: none; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.2);"
+      style="display: flex; align-items: center; gap: 8px; padding: 12px 20px; font-size: 0.88rem; font-weight: 800; border-radius: 10px; background: {hasPassedUnaided ? '#0f766e' : '#cbd5e1'}; color: #ffffff; border: none; cursor: {hasPassedUnaided ? 'pointer' : 'not-allowed'}; box-shadow: {hasPassedUnaided ? '0 4px 6px -1px rgba(15, 118, 110, 0.2)' : 'none'};"
     >
-      <span>Saya Sudah Paham & Siap Masuk Ujian Pembuktian</span>
-      <Icon name="arrow-right" size={16} />
+      <span>Masuk Ujian Pembuktian Gate</span>
+      <Icon name={hasPassedUnaided ? 'arrow-right' : 'lock'} size={16} />
     </button>
   </div>
 </div>
