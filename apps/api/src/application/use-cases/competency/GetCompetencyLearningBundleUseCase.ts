@@ -2,6 +2,7 @@ import type { ICompetencyRepository } from '../../../domain/ports/ICompetencyRep
 import type { IContentRepository } from '../../../domain/ports/IContentRepository';
 import type { ITaskRepository } from '../../../domain/ports/ITaskRepository';
 import type { ISourceRepository } from '../../../domain/ports/ISourceRepository';
+import type { ISpacedFlashcardRepository } from '../../../domain/ports/ISpacedFlashcardRepository';
 import type { BackwardScaffoldingGenerator } from '../../services/BackwardScaffoldingGenerator';
 import type { CompetencyLearningBundle } from '@flashlearn/shared';
 
@@ -11,7 +12,8 @@ export class GetCompetencyLearningBundleUseCase {
     private readonly contentRepo: IContentRepository,
     private readonly taskRepo: ITaskRepository,
     private readonly sourceRepo: ISourceRepository,
-    private readonly scaffoldingGenerator: BackwardScaffoldingGenerator
+    private readonly scaffoldingGenerator: BackwardScaffoldingGenerator,
+    private readonly flashcardRepo: ISpacedFlashcardRepository
   ) {}
 
   async execute(competencyId: string): Promise<CompetencyLearningBundle> {
@@ -48,6 +50,16 @@ export class GetCompetencyLearningBundleUseCase {
     // 4. Backward Scaffolding Generation
     const scaffolding = this.scaffoldingGenerator.generate(node, tasks, citations);
 
+    // 5. Fetch Causal Probes (Spaced Flashcards) for Cognitive Schema Priming
+    const flashcards = await this.flashcardRepo.listByCompetency(competencyId);
+    const causalProbes = flashcards.map((fc) => ({
+      id: fc.id,
+      type: (fc.cardType || 'causal_prediction') as any,
+      prompt: fc.front,
+      predictionOptions: fc.predictionOptions,
+      causalRationale: fc.causalRationale || fc.back,
+    }));
+
     const readingMaterials = contents.map((c) => ({
       id: c.id,
       title: c.title,
@@ -60,6 +72,7 @@ export class GetCompetencyLearningBundleUseCase {
     return {
       competency: node,
       readingMaterials,
+      causalProbes,
       workedExamples: scaffolding.workedExamples,
       jobAid: scaffolding.jobAid,
       microSandbox: scaffolding.microSandbox,

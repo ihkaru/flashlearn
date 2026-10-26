@@ -14,4 +14,5 @@ export interface ISpacedFlashcardRepository {
   findById(id: string): Promise<SpacedFlashcardEntity | null>;
   updateRepetition(cardId: string, intervalDays: number, easeFactor: number, repetitionCount: number, nextDue: Date): Promise<void>;
   listByUser(userId: string): Promise<SpacedFlashcardEntity[]>;
+  listByCompetency(competencyId: string): Promise<SpacedFlashcardEntity[]>;
 }

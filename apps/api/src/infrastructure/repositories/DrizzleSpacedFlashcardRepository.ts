@@ -100,4 +100,14 @@ export class DrizzleSpacedFlashcardRepository implements ISpacedFlashcardReposit
 
     return rows.map((r) => this.mapToEntity(r));
   }
+
+  async listByCompetency(competencyId: string): Promise<SpacedFlashcardEntity[]> {
+    const rows = await db
+      .select()
+      .from(spacedFlashcards)
+      .where(eq(spacedFlashcards.competencyId, competencyId))
+      .orderBy(desc(spacedFlashcards.createdAt));
+
+    return rows.map((r) => this.mapToEntity(r));
+  }
 }

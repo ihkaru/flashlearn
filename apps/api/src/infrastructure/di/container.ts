@@ -72,7 +72,8 @@ export class Container extends BaseContainer {
     this.contentRepository,
     this.taskRepository,
     this.sourceRepository,
-    this.backwardScaffoldingGenerator
+    this.backwardScaffoldingGenerator,
+    this.spacedFlashcardRepository
   );
 
   // Phase 03 & 06: Task Bank, Evaluation & Socratic Tutor
