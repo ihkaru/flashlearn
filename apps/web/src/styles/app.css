@@ -1,5 +1,9 @@
 /* FlashLearn Global Design System - Impeccable Standard */
 
+@import "katex/dist/katex.min.css";
+@import "highlight.js/styles/github-dark.css";
+@import "./markdown.css";
+
 :root {
   --f7-theme-color: #0f766e;
   --f7-theme-color-rgb: 15, 118, 110;

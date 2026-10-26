@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Content } from '@flashlearn/shared';
   import Icon from './ui/Icon.svelte';
+  import MarkdownRenderer from './ui/MarkdownRenderer.svelte';
 
   interface Props {
     content: Content;
@@ -42,9 +43,13 @@
   <!-- Body Content -->
   <div
     class="material-body"
-    style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); font-size: 1.05rem; line-height: 1.7; color: #334155; white-space: pre-wrap;"
+    style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);"
   >
-    {content.body || 'Materi sedang disiapkan oleh kreator.'}
+    {#if content.body}
+      <MarkdownRenderer content={content.body} />
+    {:else}
+      <p style="color: #64748b; font-style: italic;">Materi sedang disiapkan oleh kreator.</p>
+    {/if}
   </div>
 
   <!-- Official Corpus of Record Citations -->

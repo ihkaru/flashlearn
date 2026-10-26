@@ -1,7 +1,7 @@
 ---
 arc42_section: 9
-verified_commit: ca8fea2
-verified_timestamp: 2026-10-25T23:23:00+07:00
+verified_commit: 5fd1bec
+verified_timestamp: 2026-10-26T08:05:00+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 9. Architecture Decisions (ADRs)
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `2757f63` (branch: `main`)
-> - **Verified Timestamp**: `2026-10-25T22:34:00+07:00`
+> - **Verified Commit**: `5fd1bec` (branch: `main`)
+> - **Verified Timestamp**: `2026-10-26T08:05:00+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -84,3 +84,13 @@ This section documents architecturally significant decisions (ADRs) that shape t
 - **Decision**: Mandate that all domain curricula (Corpus of Record, DAG edges, causal flashcards, analogical quizzes, worked examples, adaptive scaffolding, and oracle tests) must be 100% generated and certified by an autonomous Coding Agent through the Headless CLI (`bun run cli domain import / generate / certify`). The application codebase remains strictly domain-agnostic.
 - **Consequences**: Enables zero-code onboarding of arbitrary regulatory and technical domains while enforcing automated invariant verification before database ingestion.
 - **Risks Created**: RISK-07
+
+---
+
+## ADR-08: High-Performance Client-Side Markdown Rendering Engine (Marked v18 + KaTeX + DOMPurify + Highlight.js)
+- **Status**: Accepted
+- **Context**: Displaying domain learning materials, SOP regulations, and corpus excerpts as unstyled plain text (`white-space: pre-wrap`) degrades readability, obscures mathematical formulas, prevents syntax highlighting for technical codes, and lacks standard GitHub alerts.
+- **Decision**: Adopt `marked@18` with client-side linear-time $O(N)$ HTML parsing, integrated with `katex` (via `marked-katex-extension`) for inline/block mathematical expressions, `highlight.js/lib/common` for lightweight syntax highlighting, a native `markedAlert` extension for GitHub callouts (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`), and strict HTML sanitization via `DOMPurify` whitelisting MathML and SVG elements.
+- **Consequences**: Rich, high-fidelity pedagogical materials with zero CPU layout overhead and full XSS immunity.
+- **Risks Created**: none
+

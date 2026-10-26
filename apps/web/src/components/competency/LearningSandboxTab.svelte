@@ -2,6 +2,7 @@
   import type { CompetencyLearningBundle } from '@flashlearn/shared';
   import Icon from '../ui/Icon.svelte';
   import CausalProbeDeck from './CausalProbeDeck.svelte';
+  import MarkdownRenderer from '../ui/MarkdownRenderer.svelte';
 
   interface Props {
     bundle: CompetencyLearningBundle;
@@ -233,7 +234,9 @@
                 {#if mat.summary}
                   <p style="margin: 0 0 8px 0; font-weight: 600; color: #0f766e;">{mat.summary}</p>
                 {/if}
-                <div style="white-space: pre-wrap;">{mat.body || 'Tidak ada teks panjang.'}</div>
+                <div style="font-size: 0.85rem; line-height: 1.6;">
+                  <MarkdownRenderer content={mat.body || 'Tidak ada teks panjang.'} />
+                </div>
               </div>
             {/if}
           </div>
