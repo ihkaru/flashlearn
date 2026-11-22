@@ -7,3 +7,4 @@ export * from './schemas/consensus';
 export * from './schemas/credentials';
 export * from './schemas/chat';
 export * from './schemas/interactive';
+export * from './schemas/media';

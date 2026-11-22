@@ -10,6 +10,7 @@
   import ErroneousExampleCard from './ErroneousExampleCard.svelte';
   import IllStructuredCaseCard from './IllStructuredCaseCard.svelte';
   import ExplainBackCard from './ExplainBackCard.svelte';
+  import ModuleFigureStrip from './ModuleFigureStrip.svelte';
 
   interface Props {
     step: GuidedLearningStep;
@@ -303,4 +304,6 @@
       </div>
     </div>
   {/if}
+
+  <ModuleFigureStrip {payload} stepKind={step.kind} />
 </div>

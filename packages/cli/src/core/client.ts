@@ -87,6 +87,47 @@ export class ApiClient {
     }
   }
 
+  public async uploadMultipart<T = any>(path: string, formData: FormData): Promise<T> {
+    if (this.config.dryRun) {
+      return {
+        dryRun: true,
+        id: 'dry-run-asset-id',
+        url: '/api/v1/assets/dry-run-asset-id',
+      } as unknown as T;
+    }
+
+    const url = new URL(path.startsWith('/') ? path : `/${path}`, this.config.apiUrl);
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (this.config.token) {
+      headers['Authorization'] = `Bearer ${this.config.token}`;
+    } else if (this.config.apiKey) {
+      headers['Authorization'] = `Bearer ${this.config.apiKey}`;
+    }
+
+    try {
+      const res = await fetch(url.toString(), {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+      const contentType = res.headers.get('content-type') || '';
+      const data = contentType.includes('application/json') ? await res.json() : await res.text();
+      if (!res.ok) {
+        this.handleHttpError(res.status, data, 'POST', path);
+      }
+      return data as T;
+    } catch (err: any) {
+      if (err instanceof CliError) throw err;
+      throw new CliError({
+        code: 'NETWORK_ERROR',
+        message: `Failed to upload multipart asset to ${this.config.apiUrl}: ${err.message}`,
+        exitCode: ExitCode.TRANSIENT_ERROR,
+        retryable: true,
+        suggestedFix: 'Check if the FlashLearn API server is reachable.',
+      });
+    }
+  }
+
   private handleHttpError(status: number, body: any, method: string, path: string): never {
     const message = body?.error || body?.message || `HTTP ${status} error on ${method} ${path}`;
 

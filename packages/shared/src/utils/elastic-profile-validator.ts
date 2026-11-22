@@ -143,6 +143,19 @@ export function validateElasticProfileExtensions(
     });
   }
 
+  if (payload.figures && payload.figures.length > 0) {
+    payload.figures.forEach((fig, idx) => {
+      if (!fig.id?.trim() || !fig.assetUrl?.trim() || !fig.caption?.trim() || !fig.altText?.trim()) {
+        issues.push({
+          code: 'INVALID_MODULE_FIGURE',
+          severity: 'error',
+          field: `figures[${idx}]`,
+          message: 'Each module figure requires non-empty id, assetUrl, caption, and altText.',
+        });
+      }
+    });
+  }
+
   auditUnexplainedAcronyms(payload, issues);
 }
 
@@ -246,6 +259,9 @@ function auditUnexplainedAcronyms(
   const fullText = collectModuleProse(payload);
   const glossaryBlob = [
     ...(payload.glossary || []).map((g) => `${g.term} ${g.definition}`),
+    ...(payload.figures || []).flatMap((f) =>
+      (f.annotations || []).map((a) => `${a.label} ${a.explanation}`)
+    ),
     ...(payload.uila?.block4_notationContract?.termsDeconstruction || []).map(
       (t) => `${t.symbol} ${t.physicalMeaning}`
     ),

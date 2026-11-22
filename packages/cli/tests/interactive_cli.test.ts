@@ -162,6 +162,52 @@ describe('Phase 08 Interactive CLI & Curriculum Package Importer', () => {
       expect(env.data.groundingMode).toBe('experiential_anchor_bridge');
       expect(env.data.deckSlideCount).toBe(2);
       expect(env.data.mediaUrls[0]).toContain('01-ripple.png');
+      expect(env.data.mediaUrls[0]).toStartWith('/api/v1/assets/');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('auto-resolves local module figures[].assetUrl via FlashLearn native asset API in --dry-run', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'fl-cli-fig-'));
+    try {
+      mkdirSync(join(dir, 'assets'), { recursive: true });
+      writeFileSync(join(dir, 'assets', 'fig-04-taps.webp'), Buffer.from('RIFF....WEBP'));
+      const manifestWithFigure = {
+        ...structuredClone(VALID_UILA_MANIFEST),
+        figures: [
+          {
+            id: 'fig-04',
+            assetUrl: './assets/fig-04-taps.webp',
+            caption: 'Tabel 6 Tangga TAPs',
+            altText: 'Diagram alokasi 6 tangga omzet',
+            stepKind: 'mechanics',
+            sourcePage: 71,
+          },
+        ],
+      };
+      const manifestPath = join(dir, 'with-fig.json');
+      writeFileSync(manifestPath, JSON.stringify(manifestWithFigure));
+
+      let stdout = '';
+      const outSpy = spyOn(process.stdout, 'write').mockImplementation((c: any) => {
+        stdout += String(c);
+        return true;
+      });
+      const code = await runCli([
+        'content',
+        'import-interactive',
+        '--workspace-id=ws-demo',
+        '--title=Modul Bergambar',
+        `--manifest=${manifestPath}`,
+        '--dry-run',
+      ]);
+      outSpy.mockRestore();
+
+      expect(code).toBe(ExitCode.SUCCESS);
+      const env = JSON.parse(stdout);
+      expect(env.data.figuresCount).toBe(1);
+      expect(env.data.mediaUrls).toContain('/api/v1/assets/<dry-run:fig-04-taps.webp>');
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

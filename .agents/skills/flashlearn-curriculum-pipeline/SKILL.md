@@ -61,7 +61,8 @@ flashlearn plan init \
 flashlearn plan status --dir "./work/nama-kursus"
 ```
 
-- Jika ada halaman PDF bertanda `needsVlmTriage: true` (halaman scan/diagram padat), jalankan ekstraktor VLM opsional hanya pada halaman tersebut agar presisi tabel & rumus tetap terjaga tanpa memindai 600 halaman mentah.
+- Jika ada halaman PDF bertanda `needsVlmTriage: true` (halaman scan/diagram padat) atau diagram/grafik/formulir penting di PDF/EPUB/PPTX, gunakan skill pendamping **`flashlearn-figure-extractor`** (Layer 1.5) untuk mengekstrak gambar tertanam secara *lossless* maupun *auto-crop* diagram vektor ke format WebP di `./assets/`, lalu tempelkan ke `payload.figures[]` lengkap dengan `caption`, `altText`, `sourcePage`, dan `annotations` (penjelasan istilah asing pada gambar).
+- Saat menjalankan `flashlearn plan push --upload-media` (atau `flashlearn asset upload`), gambar lokal otomatis diunggah ke **endpoint persisten bawaan FlashLearn** (`/api/v1/workspaces/:id/assets`, deduplikasi `sha256`, tanpa perlu server MediaVault eksternal; MediaVault eksternal bersifat opsional via `--mediavault-url`).
 - Untuk melanjutkan pengerjaan dari **PC lain** atas workspace yang sudah ada di produksi:
   ```bash
   flashlearn plan pull --workspace-id "<workspace-id-atau-slug>" --dir "./work/nama-kursus"

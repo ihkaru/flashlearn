@@ -78,6 +78,13 @@
       "when": 1795322000000,
       "tag": "0010_interactive_learning_modules",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795380000000,
+      "tag": "0011_persistent_media_assets",
+      "breakpoints": true
     }
   ]
 }

@@ -16,6 +16,8 @@ import { DrizzleCredentialRepository } from '../repositories/DrizzleCredentialRe
 import { DrizzleDomainRepository } from '../repositories/DrizzleDomainRepository';
 import { DrizzleSocraticChatRepository } from '../repositories/DrizzleSocraticChatRepository';
 import { DrizzleInteractiveRepository } from '../repositories/DrizzleInteractiveRepository';
+import { DrizzleMediaAssetRepository } from '../repositories/DrizzleMediaAssetRepository';
+import { PluggableMediaBlobStoreRegistry } from '../storage/MediaBlobStores';
 
 import { JwtTokenService } from '../services/JwtTokenService';
 import { GoogleAuthVerifier } from '../services/GoogleAuthVerifier';
@@ -67,6 +69,12 @@ import { GetContentArtifactUseCase } from '../../application/use-cases/interacti
 import { DeleteContentArtifactUseCase } from '../../application/use-cases/interactive/DeleteContentArtifactUseCase';
 import { SaveLearnerProgressUseCase } from '../../application/use-cases/interactive/SaveLearnerProgressUseCase';
 import { GetLearnerProgressUseCase } from '../../application/use-cases/interactive/GetLearnerProgressUseCase';
+import {
+  DeleteMediaAssetUseCase,
+  GetMediaAssetUseCase,
+  ListMediaAssetsUseCase,
+  UploadMediaAssetUseCase,
+} from '../../application/use-cases/media/MediaAssetUseCases';
 
 export class BaseContainer {
   // Repositories
@@ -88,6 +96,8 @@ export class BaseContainer {
   public readonly domainRepository = new DrizzleDomainRepository();
   public readonly socraticChatRepository = new DrizzleSocraticChatRepository();
   public readonly interactiveRepository = new DrizzleInteractiveRepository();
+  public readonly mediaAssetRepository = new DrizzleMediaAssetRepository();
+  public readonly mediaBlobStoreRegistry = new PluggableMediaBlobStoreRegistry();
 
   // Services
   public readonly tokenService = new JwtTokenService();
@@ -217,5 +227,26 @@ export class BaseContainer {
   );
   public readonly getLearnerProgressUseCase = new GetLearnerProgressUseCase(
     this.interactiveRepository
+  );
+
+  // Phase 19: Persistent Content-Addressed Media Assets (Pluggable Storage)
+  public readonly uploadMediaAssetUseCase = new UploadMediaAssetUseCase(
+    this.mediaAssetRepository,
+    this.workspaceRepository,
+    this.mediaBlobStoreRegistry
+  );
+  public readonly getMediaAssetUseCase = new GetMediaAssetUseCase(
+    this.mediaAssetRepository,
+    this.workspaceRepository,
+    this.mediaBlobStoreRegistry
+  );
+  public readonly listMediaAssetsUseCase = new ListMediaAssetsUseCase(
+    this.mediaAssetRepository,
+    this.workspaceRepository
+  );
+  public readonly deleteMediaAssetUseCase = new DeleteMediaAssetUseCase(
+    this.mediaAssetRepository,
+    this.workspaceRepository,
+    this.mediaBlobStoreRegistry
   );
 }

@@ -11,6 +11,7 @@ import type {
   QuickPredictionSpec,
   UnitLectureMetadata,
 } from './elastic-pedagogy';
+import type { ModuleFigure } from './media';
 
 export type GroundingMode =
   | 'experiential_anchor_bridge'
@@ -246,6 +247,8 @@ export interface InteractiveModulePayload {
   explainBack?: ExplainBackSpec;
   summarySlideIndex?: number;
   uila: UilaV2BlockSet;
+  /** Optional relevant figures/diagrams extracted from source PDF/EPUB/PPTX for Dual Coding */
+  figures?: ModuleFigure[];
   slideNotes?: SlideNoteItem[];
   glossary?: GlossaryTerm[];
   sourceCitations?: Array<{

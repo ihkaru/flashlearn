@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, basename, resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import {
   auditHtmlArtifactSafety,
   validateInteractiveModulePayload,
@@ -8,14 +8,13 @@ import {
 } from '@flashlearn/shared';
 import type { ApiClient } from './client';
 import { CliError, ExitCode } from './envelope';
+import {
+  rewriteLocalHtmlImages,
+  rewriteModuleFigureAssets,
+  type MediaUploadOptions,
+} from './media-uploader';
 
-export interface MediaVaultUploadOptions {
-  enabled: boolean;
-  dryRun?: boolean;
-  vaultUrl?: string;
-  apiKey?: string;
-  appId?: string;
-}
+export type MediaVaultUploadOptions = MediaUploadOptions;
 
 export interface PreparedHtmlArtifact {
   htmlContent: string;
@@ -26,86 +25,7 @@ export interface PreparedHtmlArtifact {
   extractedNotes: any[];
 }
 
-export async function rewriteLocalImagesViaMediaVault(
-  rawHtml: string,
-  baseDir: string,
-  opts: MediaVaultUploadOptions
-): Promise<{ html: string; mediaUrls: string[] }> {
-  if (!opts.enabled) {
-    return { html: rawHtml, mediaUrls: [] };
-  }
-
-  const imgRegex = /(<img\b[^>]*\bsrc\s*=\s*["'])((?:\.\/)?images\/[^"']+)(["'])/gi;
-  const matches = Array.from(rawHtml.matchAll(imgRegex));
-  if (matches.length === 0) {
-    return { html: rawHtml, mediaUrls: [] };
-  }
-
-  const vaultUrl = (opts.vaultUrl || process.env.MEDIAVAULT_URL || 'https://media.dvlpid.my.id').replace(/\/$/, '');
-  const apiKey = opts.apiKey || process.env.MEDIAVAULT_API_KEY || '';
-  const appId = opts.appId || 'flashlearn';
-  const uploadedCache = new Map<string, string>();
-  const mediaUrls: string[] = [];
-  let html = rawHtml;
-
-  for (const m of matches) {
-    const relPath = m[2];
-    const absPath = resolve(baseDir, relPath);
-    if (!existsSync(absPath)) {
-      throw new CliError({
-        code: 'MISSING_MEDIA_ASSET',
-        message: `Referenced slide image "${relPath}" not found at ${absPath}`,
-        exitCode: ExitCode.VALIDATION_ERROR,
-      });
-    }
-
-    let remoteUrl = uploadedCache.get(absPath);
-    if (!remoteUrl) {
-      let resolvedUrl: string;
-      if (opts.dryRun) {
-        resolvedUrl = `${vaultUrl}/api/v1/files/<dry-run:${basename(absPath)}>/raw`;
-      } else {
-        const bytes = readFileSync(absPath);
-        const form = new FormData();
-        form.append('file', new Blob([bytes]), basename(absPath));
-        form.append('tags', 'flashlearn,slide-deck');
-        const headers: Record<string, string> = { 'X-App-ID': appId };
-        if (apiKey) headers['X-API-Key'] = apiKey;
-
-        const res = await fetch(`${vaultUrl}/api/v1/files/upload`, {
-          method: 'POST',
-          headers,
-          body: form,
-        });
-        if (!res.ok) {
-          throw new CliError({
-            code: 'MEDIAVAULT_UPLOAD_FAILED',
-            message: `MediaVault upload failed for ${relPath}: HTTP ${res.status}`,
-            exitCode: ExitCode.TRANSIENT_ERROR,
-            retryable: true,
-          });
-        }
-        const json: any = await res.json();
-        const dlPath: unknown = json?.data?.download_url;
-        if (typeof dlPath !== 'string' || !dlPath) {
-          throw new CliError({
-            code: 'MEDIAVAULT_INVALID_RESPONSE',
-            message: `MediaVault response missing data.download_url for ${relPath}`,
-            exitCode: ExitCode.GENERAL_ERROR,
-          });
-        }
-        resolvedUrl = dlPath.startsWith('http') ? dlPath : `${vaultUrl}${dlPath}`;
-      }
-      remoteUrl = resolvedUrl;
-      uploadedCache.set(absPath, resolvedUrl);
-      mediaUrls.push(resolvedUrl);
-    }
-
-    html = html.replaceAll(relPath, remoteUrl);
-  }
-
-  return { html, mediaUrls };
-}
+export const rewriteLocalImagesViaMediaVault = rewriteLocalHtmlImages;
 
 export function loadValidatedInteractiveManifest(manifestPath: string): InteractiveModulePayload {
   let raw: any;
@@ -135,7 +55,7 @@ export function loadValidatedInteractiveManifest(manifestPath: string): Interact
 
 export async function prepareValidatedHtmlArtifact(
   filePath: string,
-  mediaOpts: MediaVaultUploadOptions
+  mediaOpts: MediaUploadOptions
 ): Promise<PreparedHtmlArtifact> {
   let rawHtml: string;
   try {
@@ -148,7 +68,7 @@ export async function prepareValidatedHtmlArtifact(
     });
   }
 
-  const rewritten = await rewriteLocalImagesViaMediaVault(rawHtml, dirname(resolve(filePath)), mediaOpts);
+  const rewritten = await rewriteLocalHtmlImages(rawHtml, dirname(resolve(filePath)), mediaOpts);
   const audit = auditHtmlArtifactSafety(rewritten.html);
   if (!audit.safe) {
     throw new CliError({
@@ -181,7 +101,7 @@ export interface ImportInteractiveModuleOptions {
   deckPath?: string;
   simPath?: string;
   dryRun?: boolean;
-  mediaOpts: MediaVaultUploadOptions;
+  mediaOpts: MediaUploadOptions;
 }
 
 export async function importInteractiveModule(
@@ -189,19 +109,37 @@ export async function importInteractiveModule(
   opts: ImportInteractiveModuleOptions
 ): Promise<Record<string, any>> {
   const payload = loadValidatedInteractiveManifest(opts.manifestPath);
+  const enrichedMediaOpts: MediaUploadOptions = {
+    ...opts.mediaOpts,
+    dryRun: opts.dryRun ?? opts.mediaOpts.dryRun,
+    workspaceId: opts.workspaceId,
+    client,
+  };
+
+  const figureMediaUrls = await rewriteModuleFigureAssets(
+    payload,
+    dirname(resolve(opts.manifestPath)),
+    enrichedMediaOpts
+  );
 
   let deckArtifact: PreparedHtmlArtifact | null = null;
   let simArtifact: PreparedHtmlArtifact | null = null;
 
   if (opts.deckPath) {
-    deckArtifact = await prepareValidatedHtmlArtifact(opts.deckPath, opts.mediaOpts);
+    deckArtifact = await prepareValidatedHtmlArtifact(opts.deckPath, enrichedMediaOpts);
     if ((!payload.slideNotes || payload.slideNotes.length === 0) && deckArtifact.extractedNotes.length > 0) {
       payload.slideNotes = deckArtifact.extractedNotes;
     }
   }
   if (opts.simPath) {
-    simArtifact = await prepareValidatedHtmlArtifact(opts.simPath, opts.mediaOpts);
+    simArtifact = await prepareValidatedHtmlArtifact(opts.simPath, enrichedMediaOpts);
   }
+
+  const allMediaUrls = [
+    ...figureMediaUrls,
+    ...(deckArtifact?.mediaUrls || []),
+    ...(simArtifact?.mediaUrls || []),
+  ];
 
   if (opts.dryRun) {
     return {
@@ -212,8 +150,9 @@ export async function importInteractiveModule(
       hasDeckArtifact: Boolean(deckArtifact),
       deckSlideCount: deckArtifact?.slideCount ?? 0,
       hasSimArtifact: Boolean(simArtifact),
+      figuresCount: payload.figures?.length ?? 0,
       warnings: [...(deckArtifact?.warnings || []), ...(simArtifact?.warnings || [])],
-      mediaUrls: [...(deckArtifact?.mediaUrls || []), ...(simArtifact?.mediaUrls || [])],
+      mediaUrls: allMediaUrls,
     };
   }
 
@@ -268,6 +207,8 @@ export async function importInteractiveModule(
     slug: savedContent.slug,
     title: savedContent.title,
     groundingMode: payload.uila.groundingDecision.mode,
+    figuresCount: payload.figures?.length ?? 0,
+    mediaUrls: allMediaUrls,
     artifacts: uploadedArtifacts,
   };
 }

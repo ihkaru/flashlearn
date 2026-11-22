@@ -27,6 +27,7 @@ import { handleAuthCommand } from './commands/auth';
 import { handleConfigCommand } from './commands/config';
 import { handleCorpusCommand } from './commands/corpus';
 import { handlePlanCommand } from './commands/plan';
+import { handleAssetCommand } from './commands/asset';
 import { handleSchemaCommand } from './commands/schema';
 import { handleDiagnosticCommand } from './commands/diagnostic';
 
@@ -131,6 +132,10 @@ export async function runCli(rawArgv: string[]): Promise<number> {
       case 'plan':
       case 'plans':
         result = await handlePlanCommand(action, args, parsed.flags, client);
+        break;
+      case 'asset':
+      case 'assets':
+        result = await handleAssetCommand(action, args, parsed.flags, client);
         break;
       default:
         throw new CliError({

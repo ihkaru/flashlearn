@@ -298,4 +298,37 @@ describe('Phase 13 Elastic Pedagogy Profiles & Confidence Calibration', () => {
     const report2 = validateInteractiveModulePayload(payload);
     expect(report2.issues.find((i) => i.code === 'UNEXPLAINED_ACRONYM_WARNING')).toBeUndefined();
   });
+
+  it('validates module figures[] contract and treats figure annotations as valid acronym glosses', () => {
+    const payload = createMicroKnowPayload();
+    payload.microKnow!.coreIdea = 'Lihat pembagian persentase alokasi target (TAPS) pada grafik sumber.';
+    payload.figures = [
+      {
+        id: 'fig-04',
+        assetUrl: './assets/fig-04.webp',
+        caption: 'Tabel 6 Tangga TAPS',
+        altText: 'Tabel alokasi target 6 kolom A sampai F.',
+        stepKind: 'micro_core',
+        sourcePage: 71,
+        annotations: [
+          { label: 'TAPS', explanation: 'Target Allocation Percentages — persentase target ideal.' },
+        ],
+      },
+    ];
+    const ok = validateInteractiveModulePayload(payload);
+    expect(ok.valid).toBe(true);
+    expect(ok.issues.find((i) => i.code === 'UNEXPLAINED_ACRONYM_WARNING')).toBeUndefined();
+
+    // Missing caption/altText triggers INVALID_MODULE_FIGURE error
+    payload.figures.push({
+      id: 'fig-bad',
+      assetUrl: './assets/bad.webp',
+      caption: '',
+      altText: '',
+      stepKind: 'micro_core',
+    });
+    const bad = validateInteractiveModulePayload(payload);
+    expect(bad.valid).toBe(false);
+    expect(bad.issues.some((i) => i.code === 'INVALID_MODULE_FIGURE')).toBe(true);
+  });
 });
