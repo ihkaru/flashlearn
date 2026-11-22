@@ -39,21 +39,59 @@
 }
 
 html,
-body {
+body,
+#app {
   margin: 0;
   padding: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--fl-bg);
   color: var(--fl-text-main);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
-/* Guard Framework7 page containers against horizontal blowout */
-.page,
+/* Framework7 root flex shell: prevents sticky global navbar (~61px) from pushing .view/.page-content past 100dvh */
+.framework7-root {
+  display: flex !important;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.framework7-root > .global-top-navbar {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+.framework7-root > .views,
+.framework7-root > .view {
+  flex: 1 1 0%;
+  min-height: 0;
+  height: auto !important;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Guard Framework7 page containers against horizontal blowout & clipped bottom scroll */
+.page {
+  background-color: var(--fl-bg);
+  overflow: hidden;
+}
+
 .page-content {
   background-color: var(--fl-bg);
+  height: 100%;
   overflow-x: hidden;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
 h1,

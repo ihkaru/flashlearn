@@ -10,9 +10,9 @@
     isTrash: boolean;
     isRestoring: boolean;
     copiedLinkId: string | null;
-    onNavigate: (id: string) => void;
-    onCopyLink: (id: string, e: Event) => void;
-    onOpenReview: (c: Content, tab: 'results' | 'analytics', e: Event) => void;
+    onNavigate: (c: Content) => void;
+    onCopyLink: (c: Content, e: Event) => void;
+    onOpenReview: (c: Content, e: Event, tab: 'analysis' | 'participants') => void;
     onOpenEdit: (c: Content, e: Event) => void;
     onRollback: (c: Content, e: Event) => void;
     onDelete: (c: Content, e: Event) => void;
@@ -119,7 +119,7 @@
       </div>
       <button
         type="button"
-        onclick={() => onNavigate(nextSession.content.id)}
+        onclick={() => onNavigate(nextSession.content)}
         class="fl-btn fl-btn-md"
         style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
       >

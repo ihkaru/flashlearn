@@ -192,7 +192,7 @@
 </script>
 
 <Page name="workspace">
-<div class="workspace-page" style="max-width: 900px; margin: 0 auto; padding: 20px 16px;">
+<div class="workspace-page" style="max-width: 900px; margin: 0 auto; padding: 20px 16px 32px;">
   {#if isLoading}
     <div style="text-align: center; padding: 48px; color: #94a3b8; font-weight: 500;">
       Memuat detail workspace...
