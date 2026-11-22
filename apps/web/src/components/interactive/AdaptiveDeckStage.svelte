@@ -20,8 +20,14 @@
     onToggleFullscreen,
   }: Props = $props();
 
+  const STAGE_W = 1280;
+  const STAGE_H = 720;
+
+  let stageWrapEl = $state<HTMLDivElement | null>(null);
   let iframeEl = $state<HTMLIFrameElement | null>(null);
+  let stageScale = $state(0.5);
   let totalSlides = $state(slideNotes.length || 1);
+  let bridgeNotes = $state<SlideNoteItem[]>([]);
   let showNotes = $state(false);
   let lowPower = $state(typeof window !== 'undefined' ? window.innerWidth <= 900 : true);
   let lastPushedSlide = -1;
@@ -36,9 +42,26 @@
     })
   );
 
+  const effectiveNotes = $derived(bridgeNotes.length > 0 ? bridgeNotes : slideNotes);
   const activeNote = $derived(
-    slideNotes.find((n) => n.index === slideIndex) || slideNotes[slideIndex] || null
+    effectiveNotes.find((n) => n.index === slideIndex) || effectiveNotes[slideIndex] || null
   );
+
+  // Measure responsive stage container and scale 1280x720 deck cleanly with zero reflow/overflow
+  $effect(() => {
+    if (!stageWrapEl || typeof ResizeObserver === 'undefined') return;
+    const recalc = () => {
+      if (!stageWrapEl) return;
+      const rect = stageWrapEl.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        stageScale = Math.min(rect.width / STAGE_W, rect.height / STAGE_H);
+      }
+    };
+    recalc();
+    const ro = new ResizeObserver(recalc);
+    ro.observe(stageWrapEl);
+    return () => ro.disconnect();
+  });
 
   $effect(() => {
     function handleDeckMessage(e: MessageEvent) {
@@ -46,6 +69,17 @@
       const d = e.data;
       if (!d || d.__flashlearnDeck !== 1 || d.type !== 'state') return;
       if (typeof d.total === 'number' && d.total > 0) totalSlides = d.total;
+      if (Array.isArray(d.notes) && d.notes.length > 0 && bridgeNotes.length === 0) {
+        bridgeNotes = d.notes.map((n: any, idx: number) => ({
+          id: String(n.id || `slide-${idx + 1}`),
+          index: idx,
+          title: String(n.title || `Slide ${idx + 1}`),
+          section: n.section ? String(n.section) : undefined,
+          purpose: n.purpose ? String(n.purpose) : undefined,
+          talk: Array.isArray(n.talk) ? n.talk.map(String) : [],
+          transition: n.transition ? String(n.transition) : undefined,
+        }));
+      }
       if (typeof d.index === 'number' && d.index !== slideIndex) {
         lastPushedSlide = d.index;
         onSlideChange(d.index, totalSlides);
@@ -77,19 +111,22 @@
     : 'background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden;'}
 >
   <div
+    bind:this={stageWrapEl}
     style={isFullscreen
-      ? 'flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; background: #0f172a;'
-      : 'width: 100%; aspect-ratio: 16 / 9; background: #0f172a; position: relative;'}
+      ? 'flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; background: #0f172a; overflow: hidden;'
+      : 'width: 100%; aspect-ratio: 16 / 9; background: #0f172a; display: flex; align-items: center; justify-content: center; overflow: hidden;'}
   >
-    <iframe
-      bind:this={iframeEl}
-      title="Slide visual pembelajaran"
-      {srcdoc}
-      sandbox="allow-scripts"
-      style={isFullscreen
-        ? 'width: 100%; height: 100%; max-width: calc(100dvh * 16 / 9); aspect-ratio: 16 / 9; border: 0;'
-        : 'width: 100%; height: 100%; border: 0; display: block;'}
-    ></iframe>
+    <div
+      style="width: {Math.round(STAGE_W * stageScale)}px; height: {Math.round(STAGE_H * stageScale)}px; position: relative; overflow: hidden; flex-shrink: 0;"
+    >
+      <iframe
+        bind:this={iframeEl}
+        title="Slide visual pembelajaran"
+        {srcdoc}
+        sandbox="allow-scripts"
+        style="width: {STAGE_W}px; height: {STAGE_H}px; border: 0; display: block; transform-origin: top left; transform: scale({stageScale});"
+      ></iframe>
+    </div>
   </div>
 
   <!-- Minimal, calm controls bar -->

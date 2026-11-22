@@ -9,6 +9,8 @@ Skill ini digunakan oleh Coding Agent untuk **membangun (mensintesis) domain kur
 
 Seluruh kurikulum yang dibangun wajib mengimplementasikan temuan meta-analisis dan arsitektur kognitif FlashLearn v2.0 (*Bastani et al., 2025; Anderson, 1982; Borders et al., 2024; Mazzone et al., 2020*).
 
+> **Ingin membangun materi interaktif dari PDF dengan Bridging Analogies (Clement & Brown), Anchoring Micro-Lab, dan Slide Deck Guizang eksternal?** Gunakan skill pendamping [flashlearn-curriculum-pipeline](../flashlearn-curriculum-pipeline/SKILL.md) yang memetakan alur 4-layer lengkap hingga `flashlearn content import-interactive` dan `flashlearn domain import-curriculum`.
+
 ---
 
 ## 🎯 6 Invarian Inti Kurikulum Domain (Quality Pillars)

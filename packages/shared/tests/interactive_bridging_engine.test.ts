@@ -241,6 +241,8 @@ describe('Interactive Bridging Analogies & Guided Flow Engine (Phase 07)', () =>
     const wrapped = buildSandboxedDeckHtml(safeDeck, { initialSlide: 1, forceLowPower: true });
     expect(wrapped).toContain('data-flashlearn-bridge="1"');
     expect(wrapped).toContain('__flashlearnDeck');
+    expect(wrapped).toContain('window.__currentSlideIndex');
+    expect(wrapped).toContain('window.__SPEAKER_NOTES__');
     expect(wrapped).toContain("window.localStorage.setItem('guizang-ppt-low-power', '1')");
   });
 });

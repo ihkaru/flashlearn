@@ -161,7 +161,7 @@ export function buildSandboxedDeckHtml(
 })();
 </script>${
     hideChrome
-      ? '<style data-flashlearn-bridge-css="1">#hint,.ppt-hint,#nav-dots{opacity:0.45!important}</style>'
+      ? '<style data-flashlearn-bridge-css="1">#hint,.ppt-hint,#ppt-presenter-trigger{display:none!important}</style>'
       : ''
   }`;
 
@@ -169,6 +169,9 @@ export function buildSandboxedDeckHtml(
 (function(){
   function getSlides(){ return Array.prototype.slice.call(document.querySelectorAll('section.slide')); }
   function detectIndex(slides){
+    if (typeof window.__currentSlideIndex === 'number' && !isNaN(window.__currentSlideIndex)) {
+      return Math.max(0, Math.min(slides.length - 1, Math.floor(window.__currentSlideIndex)));
+    }
     for (var i = 0; i < slides.length; i++) {
       if (slides[i].classList.contains('active') || slides[i].classList.contains('is-active')) return i;
     }
