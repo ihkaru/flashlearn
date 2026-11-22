@@ -257,21 +257,17 @@
 
   <!-- Guest Callout Banner -->
   {#if !auth.isLoggedIn}
-    <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-      <div style="display: flex; align-items: center; gap: 10px; font-size: 0.84rem; color: #1e40af; line-height: 1.45;">
-        <span style="color: #2563eb; display: flex; flex-shrink: 0;">
-          <Icon name="sparkles" size={18} />
-        </span>
-        <span>Anda sedang membuka tugas ini sebagai <strong>Tamu</strong>. Anda bebas mempelajari skenario & rujukan resmi. Untuk mengirimkan solusi ke Oracle dan memperoleh bukti kredensial kelulusan:</span>
+    <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+      <div style="font-size: 0.84rem; color: #1e40af; line-height: 1.45; flex: 1 1 240px;">
+        Anda membuka tugas ini sebagai <strong>Tamu</strong>. Masuk untuk mengirim solusi ke Oracle dan menyimpan bukti kelulusan.
       </div>
       <button
         type="button"
         onclick={() => auth.loginAsDemo()}
         class="fl-btn fl-btn-sm"
-        style="background: #1d4ed8; color: #ffffff; border: none; font-weight: 700; font-size: 0.8rem; box-shadow: 0 2px 6px rgba(29, 78, 216, 0.25);"
+        style="background: #1d4ed8; color: #ffffff; border: none; font-weight: 700;"
       >
-        <Icon name="bolt" size={13} />
-        <span>Masuk Demo Pembelajar (1-Klik)</span>
+        <span>Masuk Demo Pembelajar</span>
       </button>
     </div>
   {/if}
@@ -280,9 +276,8 @@
     disabled={isSubmitting}
     onclick={handleSubmit}
     class="fl-btn fl-btn-lg"
-    style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.95rem; width: 100%; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
+    style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; width: 100%;"
   >
-    <Icon name="check-circle" size={18} />
     <span>{isSubmitting ? 'Mengevaluasi via Oracle...' : 'Kirim Solusi untuk Dinilai'}</span>
   </button>
 
@@ -291,22 +286,21 @@
     <div
       style="border-radius: 12px; padding: 14px; margin-top: 4px; border: 1px solid {lastAttempt.passed ? '#bbf7d0' : '#fecaca'}; background: {lastAttempt.passed ? '#f0fdf4' : '#fef2f2'};"
     >
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <span style="font-weight: 800; font-size: 0.9rem; color: {lastAttempt.passed ? '#166534' : '#991b1b'}; display: flex; align-items: center; gap: 6px;">
-          <Icon name={lastAttempt.passed ? 'check-circle' : 'alert-triangle'} size={15} />
-          {lastAttempt.passed ? 'Lulus Evaluasi Oracle!' : 'Belum Memenuhi Passing Score'}
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+        <span style="font-weight: 800; font-size: 0.9rem; color: {lastAttempt.passed ? '#166534' : '#991b1b'};">
+          {lastAttempt.passed ? 'Lulus Evaluasi Oracle' : 'Belum Memenuhi Passing Score'}
         </span>
         <span style="font-weight: 800; font-size: 0.95rem; color: #0f766e;">
           Skor: {lastAttempt.score}%
         </span>
       </div>
-      <p style="margin: 0; font-size: 0.85rem; color: #334155; line-height: 1.45;">
+      <p style="margin: 0; font-size: 0.85rem; color: #334155; line-height: 1.5;">
         {lastAttempt.feedback}
       </p>
 
       {#if lastAttempt.conversationHash || (lastAttempt as any).merkleRootHash}
-        <div style="margin-top: 8px; padding: 6px 10px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.72rem; font-family: monospace; color: #475569; display: flex; align-items: center; justify-content: space-between;">
-          <span>🔒 Bukti Kriptografis FIPS 180-4:</span>
+        <div style="margin-top: 8px; padding: 6px 10px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.74rem; font-family: monospace; color: #475569; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+          <span>Bukti Kriptografis FIPS 180-4:</span>
           <span style="font-weight: 700;">{((lastAttempt as any).merkleRootHash || lastAttempt.conversationHash || '').slice(0, 24)}...</span>
         </div>
       {/if}
@@ -322,10 +316,9 @@
               learnerChoice: selectedDisposition,
             })}
           class="fl-btn fl-btn-sm"
-          style="background: #ffffff; border: 1px solid #cbd5e1; font-size: 0.8rem; font-weight: 700; color: #0f766e;"
+          style="background: #ffffff; border: 1px solid #cbd5e1; font-weight: 700; color: #0f766e;"
         >
-          <Icon name="chat" size={13} />
-          <span>Debrief & Refleksi Integritas (AI)</span>
+          <span>Debrief &amp; Refleksi Integritas</span>
         </button>
       </div>
     </div>

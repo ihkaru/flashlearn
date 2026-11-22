@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { PendingReviewItem } from '../../stores/api/reviewer';
-  import Icon from '../ui/Icon.svelte';
 
   interface Props {
     item: PendingReviewItem;
@@ -71,19 +70,18 @@
   <!-- Phase 18: Conversational Audit Inspector -->
   {#if conversationAudit}
     <div style="border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; background: #fafafa;">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <Icon name="chat_bubble_text" size={14} color="#4f46e5" />
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
           <span style="font-size: 0.8rem; font-weight: 700; color: #1e293b;">
-            Audit Percakapan AI Lumis
+            Audit Percakapan AI
           </span>
           {#if conversationAudit.isFlaggedForExtraction}
-            <span style="font-size: 0.7rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 4px;">
-              ⚠️ Indikasi Ekstraksi Jawaban
+            <span style="font-size: 0.72rem; font-weight: 700; background: #fee2e2; color: #b91c1c; padding: 2px 7px; border-radius: 5px; white-space: nowrap;">
+              Indikasi Ekstraksi Jawaban
             </span>
           {:else}
-            <span style="font-size: 0.7rem; font-weight: 700; background: #ecfdf5; color: #047857; padding: 2px 6px; border-radius: 4px;">
-              ✓ Merkle Verified
+            <span style="font-size: 0.72rem; font-weight: 700; background: #ecfdf5; color: #047857; padding: 2px 7px; border-radius: 5px; white-space: nowrap;">
+              Merkle Verified
             </span>
           {/if}
         </div>
@@ -167,9 +165,8 @@
       disabled={isSubmitting}
       onclick={handleSubmit}
       class="fl-btn fl-btn-sm"
-      style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.85rem;"
+      style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
     >
-      <Icon name="check-circle" size={14} />
       <span>{isSubmitting ? 'Menyimpan...' : 'Tandatangani Verifikasi'}</span>
     </button>
   </div>

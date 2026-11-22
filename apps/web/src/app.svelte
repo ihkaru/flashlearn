@@ -55,23 +55,22 @@
         style="text-decoration: none; display: flex; align-items: center; gap: 9px; flex-shrink: 0;"
       >
         <div
-          style="width: 32px; height: 32px; background: #0f766e; border-radius: 9px; display: flex; align-items: center; justify-content: center; color: #ffffff; box-shadow: 0 4px 10px rgba(15, 118, 110, 0.25);"
+          style="width: 32px; height: 32px; background: #0f766e; border-radius: 9px; display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 800; font-size: 0.85rem; letter-spacing: -0.03em;"
+          aria-hidden="true"
         >
-          <Icon name="bolt" size={17} strokeWidth={2.2} />
+          FL
         </div>
-        <div>
-          <span style="font-size: 1.25rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em;">
-            FlashLearn
-          </span>
-        </div>
+        <span style="font-size: 1.2rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; white-space: nowrap;">
+          FlashLearn
+        </span>
       </a>
 
       <!-- Middle Navigation Links (Desktop only) -->
-      <nav class="desktop-nav-links" style="display: flex; align-items: center; gap: 16px;">
+      <nav class="desktop-nav-links" aria-label="Navigasi utama" style="display: flex; align-items: center; gap: 18px;">
         <a
           href="#/"
           onclick={(e) => navigateTo('/', e)}
-          style="color: #334155; text-decoration: none; font-weight: 600; font-size: 0.9rem;"
+          style="color: #334155; text-decoration: none; font-weight: 600; font-size: 0.88rem; white-space: nowrap;"
         >
           Eksplorasi
         </a>
@@ -79,20 +78,18 @@
         <a
           href="#/practice"
           onclick={(e) => navigateTo('/practice', e)}
-          style="color: #0369a1; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 4px;"
+          style="color: #0369a1; text-decoration: none; font-weight: 600; font-size: 0.88rem; white-space: nowrap;"
         >
-          <Icon name="bolt" size={14} />
-          <span>Latihan SM-2</span>
+          Latihan SM-2
         </a>
 
         {#if auth.isCreator || auth.isSuperadmin}
           <a
             href="#/reviewer"
             onclick={(e) => navigateTo('/reviewer', e)}
-            style="color: #7e22ce; text-decoration: none; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 4px;"
+            style="color: #7e22ce; text-decoration: none; font-weight: 700; font-size: 0.88rem; white-space: nowrap;"
           >
-            <Icon name="award" size={14} />
-            <span>Penilai Pakar</span>
+            Penilai Pakar
           </a>
         {/if}
 
@@ -100,7 +97,7 @@
           <a
             href="#/creator"
             onclick={(e) => navigateTo('/creator', e)}
-            style="color: #0f766e; text-decoration: none; font-weight: 700; font-size: 0.9rem;"
+            style="color: #0f766e; text-decoration: none; font-weight: 700; font-size: 0.88rem; white-space: nowrap;"
           >
             Studio Kreator
           </a>
@@ -110,10 +107,9 @@
           <a
             href="#/admin"
             onclick={(e) => navigateTo('/admin', e)}
-            style="color: #b91c1c; text-decoration: none; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;"
+            style="color: #b91c1c; text-decoration: none; font-weight: 700; font-size: 0.88rem; white-space: nowrap;"
           >
-            <Icon name="shield-check" size={15} />
-            <span>Superadmin</span>
+            Superadmin
           </a>
         {/if}
 
@@ -121,10 +117,9 @@
           href="/docs"
           target="_blank"
           rel="noreferrer"
-          style="color: #64748b; text-decoration: none; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;"
+          style="color: #475569; text-decoration: none; font-weight: 600; font-size: 0.84rem; white-space: nowrap;"
         >
-          <span>OpenAPI Docs</span>
-          <span style="font-size: 0.75rem;">↗</span>
+          API Docs
         </a>
       </nav>
 
@@ -182,11 +177,10 @@
           <!-- Highlight Mobile API Key Button -->
           <button
             onclick={() => { closeMobileMenu(); auth.openApiKeyModal(); }}
-            class="fl-btn fl-btn-lg"
-            style="width: 100%; background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
+            class="fl-btn fl-btn-md"
+            style="width: 100%; background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.9rem;"
           >
-            <Icon name="key" size={16} />
-            <span>Manajemen API Key (Coding Agent)</span>
+            <span>Manajemen API Key</span>
           </button>
         {/if}
 
@@ -195,29 +189,26 @@
           <a
             href="#/"
             onclick={(e) => navigateTo('/', e)}
-            style="padding: 10px 14px; border-radius: 10px; text-decoration: none; color: #1e293b; font-weight: 600; font-size: 0.95rem; background: #f8fafc; display: flex; align-items: center; gap: 10px;"
+            style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #1e293b; font-weight: 600; font-size: 0.95rem; background: #f8fafc; min-height: 44px; display: flex; align-items: center;"
           >
-            <Icon name="book-open" size={17} style="color: #64748b;" />
-            <span>Eksplorasi Modul & Kuis</span>
+            Eksplorasi Modul & Kuis
           </a>
 
           <a
             href="#/practice"
             onclick={(e) => navigateTo('/practice', e)}
-            style="padding: 10px 14px; border-radius: 10px; text-decoration: none; color: #0369a1; font-weight: 600; font-size: 0.95rem; background: #f0f9ff; display: flex; align-items: center; gap: 10px;"
+            style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #0369a1; font-weight: 600; font-size: 0.95rem; background: #f0f9ff; min-height: 44px; display: flex; align-items: center;"
           >
-            <Icon name="bolt" size={17} style="color: #0284c7;" />
-            <span>Latihan SM-2 Spaced Retrieval</span>
+            Latihan SM-2 Spaced Retrieval
           </a>
 
           {#if auth.isCreator || auth.isSuperadmin}
             <a
               href="#/reviewer"
               onclick={(e) => navigateTo('/reviewer', e)}
-              style="padding: 10px 14px; border-radius: 10px; text-decoration: none; color: #7e22ce; font-weight: 700; font-size: 0.95rem; background: #faf5ff; border: 1px solid #f3e8ff; display: flex; align-items: center; gap: 10px;"
+              style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #7e22ce; font-weight: 700; font-size: 0.95rem; background: #faf5ff; border: 1px solid #f3e8ff; min-height: 44px; display: flex; align-items: center;"
             >
-              <Icon name="award" size={17} style="color: #7e22ce;" />
-              <span>Antrean Penilai Pakar (Kelas C)</span>
+              Antrean Penilai Pakar (Kelas C)
             </a>
           {/if}
 
@@ -225,10 +216,9 @@
             <a
               href="#/creator"
               onclick={(e) => navigateTo('/creator', e)}
-              style="padding: 10px 14px; border-radius: 10px; text-decoration: none; color: #0f766e; font-weight: 700; font-size: 0.95rem; background: #f0fdfa; border: 1px solid #ccfbf1; display: flex; align-items: center; gap: 10px;"
+              style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #0f766e; font-weight: 700; font-size: 0.95rem; background: #f0fdfa; border: 1px solid #ccfbf1; min-height: 44px; display: flex; align-items: center;"
             >
-              <Icon name="pencil" size={17} style="color: #0f766e;" />
-              <span>Studio Kreator</span>
+              Studio Kreator
             </a>
           {/if}
 
@@ -236,10 +226,9 @@
             <a
               href="#/admin"
               onclick={(e) => navigateTo('/admin', e)}
-              style="padding: 10px 14px; border-radius: 10px; text-decoration: none; color: #b91c1c; font-weight: 700; font-size: 0.95rem; background: #fef2f2; border: 1px solid #fecaca; display: flex; align-items: center; gap: 10px;"
+              style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #b91c1c; font-weight: 700; font-size: 0.95rem; background: #fef2f2; border: 1px solid #fecaca; min-height: 44px; display: flex; align-items: center;"
             >
-              <Icon name="shield-check" size={17} style="color: #b91c1c;" />
-              <span>Superadmin Control Panel</span>
+              Superadmin Control Panel
             </a>
           {/if}
 
@@ -248,13 +237,10 @@
             target="_blank"
             rel="noreferrer"
             onclick={closeMobileMenu}
-            style="padding: 10px 14px; border-radius: 10px; text-decoration: none; color: #475569; font-weight: 600; font-size: 0.9rem; background: #f8fafc; display: flex; align-items: center; justify-content: space-between;"
+            style="padding: 12px 14px; border-radius: 10px; text-decoration: none; color: #475569; font-weight: 600; font-size: 0.9rem; background: #f8fafc; min-height: 44px; display: flex; align-items: center; justify-content: space-between;"
           >
-            <span style="display: flex; align-items: center; gap: 10px;">
-              <Icon name="link" size={16} style="color: #64748b;" />
-              <span>OpenAPI Scalar Docs</span>
-            </span>
-            <span style="color: #94a3b8; font-size: 0.8rem;">↗</span>
+            <span>OpenAPI Docs</span>
+            <span style="color: #64748b; font-size: 0.8rem;">Eksternal</span>
           </a>
         </div>
 
@@ -265,7 +251,6 @@
               class="fl-btn fl-btn-md"
               style="width: 100%; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 700; font-size: 0.9rem;"
             >
-              <Icon name="xmark" size={16} />
               <span>Keluar ({auth.user?.name.split(' ')[0]})</span>
             </button>
           </div>

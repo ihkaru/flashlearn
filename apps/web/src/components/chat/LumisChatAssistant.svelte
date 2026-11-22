@@ -67,78 +67,66 @@
       <div
         style="padding: 12px 16px; background: #0f766e; color: #ffffff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.15);"
       >
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">
-            <Icon name="bolt" size={16} />
-          </div>
-          <div>
-            <div style="font-size: 0.88rem; font-weight: 800; line-height: 1.2;">FlashLearn Socratic AI</div>
-            <div style="font-size: 0.72rem; opacity: 0.9; display: flex; align-items: center; gap: 4px;">
-              <span style="display: inline-block; width: 6px; height: 6px; border-radius: 3px; background: #34d399;"></span>
-              <span>Terisolasi & Terverifikasi (Anti-Bocoran)</span>
-            </div>
+        <div>
+          <div style="font-size: 0.9rem; font-weight: 800; line-height: 1.2;">FlashLearn Socratic AI</div>
+          <div style="font-size: 0.74rem; color: #ccfbf1;">
+            Terisolasi &amp; Anti-Bocoran
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <button
-            onclick={() => lumisChat.close()}
-            aria-label="Tutup Chat"
-            style="border: none; background: rgba(255,255,255,0.2); width: 28px; height: 28px; border-radius: 6px; color: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer;"
-          >
-            <Icon name="xmark" size={14} />
-          </button>
-        </div>
+        <button
+          onclick={() => lumisChat.close()}
+          aria-label="Tutup Chat"
+          style="border: none; background: rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 8px; color: #ffffff; display: flex; align-items: center; justify-content: center;"
+        >
+          <Icon name="xmark" size={15} />
+        </button>
       </div>
 
       <!-- Context Subheader & Suggested Action Pills -->
       <div style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 6px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 0.72rem; font-weight: 700; color: {phaseBadge.color}; background: {phaseBadge.bg}; padding: 2px 8px; border-radius: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+          <span style="font-size: 0.74rem; font-weight: 700; color: {phaseBadge.color}; background: {phaseBadge.bg}; padding: 2px 8px; border-radius: 6px;">
             {phaseBadge.label}
           </span>
           {#if lumisChat.context.competencyCode}
-            <span style="font-family: monospace; font-size: 0.72rem; font-weight: 700; color: #64748b;">
+            <span style="font-family: monospace; font-size: 0.72rem; font-weight: 700; color: #475569;">
               {lumisChat.context.competencyCode}
             </span>
           {/if}
         </div>
 
         <!-- Quick Action Prompt Pills -->
-        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch;">
+        <div class="fl-scroll-row" style="gap: 6px;">
           {#if lumisChat.lastAdoptedDraft}
             <button
               onclick={() => lumisChat.adoptDraft(lumisChat.lastAdoptedDraft)}
               class="fl-btn fl-btn-sm fl-pill-btn"
-              style="font-size: 0.72rem; font-weight: 700; background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1;"
+              style="font-size: 0.74rem; font-weight: 700; background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1; min-height: 32px; padding: 4px 10px;"
             >
-              <Icon name="arrow-down-tray" size={12} />
-              <span>Terapkan ke Form Tugas</span>
+              Terapkan ke Form Tugas
             </button>
           {/if}
           <button
             onclick={() => lumisChat.sendMessage('Berikan pertanyaan pemantik sokratik tanpa membocorkan kunci jawaban.')}
             class="fl-btn fl-btn-sm fl-pill-btn"
-            style="font-size: 0.72rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155;"
+            style="font-size: 0.74rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; min-height: 32px; padding: 4px 10px;"
           >
-            <Icon name="sparkles" size={12} />
-            <span>Hint Sokratik</span>
+            Hint Sokratik
           </button>
           <button
             onclick={() => lumisChat.sendMessage('Apa rujukan pasal atau dokumen standar resmi untuk skenario ini?')}
             class="fl-btn fl-btn-sm fl-pill-btn"
-            style="font-size: 0.72rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155;"
+            style="font-size: 0.74rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; min-height: 32px; padding: 4px 10px;"
           >
-            <Icon name="book-open" size={12} />
-            <span>Rujukan Regulasi</span>
+            Rujukan Regulasi
           </button>
           <button
             onclick={() => lumisChat.sendMessage('Mengapa kompromi terhadap syarat ini berisiko fatal?')}
             class="fl-btn fl-btn-sm fl-pill-btn"
-            style="font-size: 0.72rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155;"
+            style="font-size: 0.74rem; font-weight: 600; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; min-height: 32px; padding: 4px 10px;"
           >
-            <Icon name="exclamation-circle" size={12} />
-            <span>Analisis Risiko</span>
+            Analisis Risiko
           </button>
         </div>
       </div>
@@ -149,13 +137,10 @@
         style="flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; background: #fdfdfd;"
       >
         {#if lumisChat.messages.length === 0}
-          <div style="text-align: center; padding: 32px 16px; color: #64748b; font-size: 0.85rem;">
-            <div style="width: 44px; height: 44px; border-radius: 12px; background: #ccfbf1; color: #0f766e; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
-              <Icon name="bolt" size={24} />
-            </div>
-            <div style="font-weight: 800; color: #0f172a; margin-bottom: 4px;">Tutor Sokratik Siap Membimbing</div>
-            <div style="font-size: 0.78rem; line-height: 1.5; max-width: 300px; margin: 0 auto;">
-              Ajukan pertanyaan mengenai skenario atau rujukan regulasi. Tutor memandu proses penalaran Anda tanpa mengungkap kunci jawaban.
+          <div style="text-align: center; padding: 36px 16px; color: #475569; font-size: 0.85rem;">
+            <div style="font-weight: 800; color: #0f172a; margin-bottom: 6px; font-size: 0.95rem;">Tutor Sokratik Siap Membimbing</div>
+            <div style="font-size: 0.82rem; line-height: 1.55; max-width: 300px; margin: 0 auto;">
+              Ajukan pertanyaan mengenai skenario atau rujukan regulasi. Tutor memandu penalaran Anda tanpa mengungkap kunci jawaban.
             </div>
           </div>
         {:else}
@@ -164,11 +149,12 @@
               style="display: flex; flex-direction: column; align-items: {m.role === 'user' ? 'flex-end' : 'flex-start'}; max-width: 100%;"
             >
               <div
-                style="max-width: 86%; border-radius: {m.role === 'user' ? '14px 14px 2px 14px' : '14px 14px 14px 2px'}; padding: 10px 14px; font-size: 0.84rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; background: {m.role === 'user' ? '#0f766e' : '#ffffff'}; color: {m.role === 'user' ? '#ffffff' : '#1e293b'}; border: {m.role === 'user' ? 'none' : '1px solid #e2e8f0'}; box-shadow: 0 1px 3px rgba(0,0,0,0.04);"
+                class="fl-prose"
+                style="max-width: 86%; border-radius: {m.role === 'user' ? '14px 14px 2px 14px' : '14px 14px 14px 2px'}; padding: 10px 14px; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; background: {m.role === 'user' ? '#0f766e' : '#ffffff'}; color: {m.role === 'user' ? '#ffffff' : '#1e293b'}; border: {m.role === 'user' ? 'none' : '1px solid #e2e8f0'};"
               >
                 {m.content}
               </div>
-              <span style="font-size: 0.65rem; color: #94a3b8; margin-top: 3px; padding: 0 4px;">
+              <span style="font-size: 0.7rem; color: #64748b; margin-top: 3px; padding: 0 4px;">
                 {m.role === 'user' ? 'Anda' : 'Tutor Sokratik'}
               </span>
             </div>
@@ -176,13 +162,8 @@
         {/if}
 
         {#if lumisChat.isThinking}
-          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #f1f5f9; border-radius: 10px; width: fit-content; font-size: 0.78rem; color: #64748b;">
-            <div style="display: flex; gap: 4px;">
-              <span style="width: 6px; height: 6px; border-radius: 3px; background: #0f766e; animation: pulse 1s infinite alternate;"></span>
-              <span style="width: 6px; height: 6px; border-radius: 3px; background: #0f766e; animation: pulse 1s infinite alternate; animation-delay: 0.2s;"></span>
-              <span style="width: 6px; height: 6px; border-radius: 3px; background: #0f766e; animation: pulse 1s infinite alternate; animation-delay: 0.4s;"></span>
-            </div>
-            <span>Menelaah klausul naskah rujukan...</span>
+          <div style="padding: 8px 12px; background: #f1f5f9; border-radius: 10px; width: fit-content; font-size: 0.8rem; color: #475569; font-weight: 600;">
+            Menelaah klausul naskah rujukan...
           </div>
         {/if}
       </div>
@@ -196,19 +177,20 @@
             bind:value={inputPrompt}
             onkeydown={handleKeyDown}
             disabled={lumisChat.isThinking}
-            style="flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.85rem; outline: none; background: #f8fafc;"
+            style="flex: 1; min-width: 0; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.86rem; background: #f8fafc; min-height: 40px;"
           />
           <button
             onclick={handleSend}
             disabled={lumisChat.isThinking || !inputPrompt.trim()}
             aria-label="Kirim Pesan"
-            style="width: 38px; height: 38px; border-radius: 10px; border: none; background: #0f766e; color: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;"
+            class="fl-btn fl-btn-sm"
+            style="background: #0f766e; color: #ffffff; border: none; min-height: 40px; padding: 0 14px;"
           >
-            <Icon name="check-circle" size={16} />
+            Kirim
           </button>
         </div>
-        <div style="font-size: 0.68rem; color: #94a3b8; text-align: center;">
-          Kerahasiaan terisolasi ke sesi FlashLearn Anda · Anti-Bocoran Kunci Jawaban
+        <div style="font-size: 0.7rem; color: #64748b; text-align: center;">
+          Terisolasi ke sesi FlashLearn Anda · Anti-Bocoran Kunci Jawaban
         </div>
       </div>
     </div>

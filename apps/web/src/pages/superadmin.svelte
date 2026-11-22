@@ -3,7 +3,7 @@
   import { api } from '../stores/api';
   import { auth } from '../stores/auth.svelte';
   import type { Workspace } from '@flashlearn/shared';
-  import Icon from '../components/ui/Icon.svelte';
+  import { getMonogram } from '../lib/monogram';
 
   interface Props {
     f7router?: any;
@@ -48,54 +48,53 @@
 <Page name="superadmin">
 <div class="superadmin-panel" style="max-width: 960px; margin: 0 auto; padding: 24px 16px;">
   <!-- Header -->
-  <div style="background: #ffffff; border: 1px solid #fee2e2; border-left: 6px solid #b91c1c; border-radius: 16px; padding: 24px; margin-bottom: 28px; box-shadow: 0 4px 14px rgba(0,0,0,0.03);">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <div style="font-size: 0.8rem; font-weight: 800; color: #b91c1c; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
-          🛡️ Superadmin Control Center
+  <div style="background: #ffffff; border: 1px solid #fecaca; border-left: 5px solid #b91c1c; border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap;">
+      <div style="min-width: 0; flex: 1 1 260px;">
+        <div style="font-size: 0.78rem; font-weight: 800; color: #b91c1c; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">
+          Superadmin Control Center
         </div>
-        <h1 style="margin: 0 0 6px 0; font-size: 1.6rem; color: #0f172a; font-weight: 800;">
+        <h1 style="margin: 0 0 6px 0; font-size: clamp(1.3rem, 3vw, 1.55rem); color: #0f172a; font-weight: 800;">
           Universal Workspace Governance
         </h1>
-        <p style="margin: 0; color: #64748b; font-size: 0.95rem;">
-          Kamu memiliki akses membaca, mengubah, dan menghapus seluruh workspace & konten di seluruh sistem.
+        <p style="margin: 0; color: #475569; font-size: 0.92rem;">
+          Akses membaca, mengubah, dan menghapus seluruh workspace dan konten di seluruh sistem.
         </p>
       </div>
 
       <a
-        href="http://localhost:3001/docs"
+        href="/docs"
         target="_blank"
         rel="noreferrer"
-        style="background: #0f172a; color: #38bdf8; text-decoration: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;"
+        style="background: #0f172a; color: #f8fafc; text-decoration: none; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; white-space: nowrap; flex-shrink: 0;"
       >
-        📖 Scalar API Playground ↗
+        API Playground
       </a>
     </div>
   </div>
 
   {#if !auth.isSuperadmin}
-    <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: 16px; padding: 40px; text-align: center; color: #991b1b;">
-      <h3>Akses Ditolak</h3>
-      <p>Halaman ini hanya dapat diakses oleh akun dengan role Superadmin.</p>
+    <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: 14px; padding: 36px 20px; text-align: center; color: #991b1b;">
+      <h3 style="margin: 0 0 8px 0;">Akses Ditolak</h3>
+      <p style="margin: 0;">Halaman ini hanya dapat diakses oleh akun dengan role Superadmin.</p>
     </div>
   {:else if isLoading}
-    <div style="text-align: center; padding: 48px; color: #94a3b8;">
+    <div style="text-align: center; padding: 48px; color: #475569;">
       Mengambil seluruh data workspace global...
     </div>
   {:else}
-    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
-      <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #0f172a; display: flex; justify-content: space-between; align-items: center;">
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden;">
+      <div style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #0f172a; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
         <span>Semua Workspace Terdaftar ({allWorkspaces.length})</span>
-        <button onclick={loadAll} class="fl-btn fl-btn-sm" style="background: none; border: none; color: #0f766e; font-weight: 700;">
-          <Icon name="refresh" size={13} />
-          <span>Refresh</span>
+        <button onclick={loadAll} class="fl-btn fl-btn-sm" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #0f766e; font-weight: 700;">
+          Segarkan
         </button>
       </div>
 
       <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
           <thead>
-            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 0.8rem; text-transform: uppercase;">
+            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #475569; font-size: 0.78rem; text-transform: uppercase;">
               <th style="padding: 12px 20px;">Workspace</th>
               <th style="padding: 12px 20px;">Kreator</th>
               <th style="padding: 12px 20px;">Visibilitas</th>
@@ -107,8 +106,12 @@
             {#each allWorkspaces as ws}
               <tr style="border-bottom: 1px solid #f1f5f9;">
                 <td style="padding: 14px 20px; font-weight: 700; color: #0f172a;">
-                  <span style="margin-right: 8px;">{ws.icon || '📚'}</span>
-                  {ws.name}
+                  <span style="display: inline-flex; align-items: center; gap: 10px;">
+                    <span class="fl-monogram" style="width: 28px; height: 28px; border-radius: 6px; font-size: 0.72rem;" aria-hidden="true">
+                      {getMonogram(ws.name, ws.icon)}
+                    </span>
+                    <span>{ws.name}</span>
+                  </span>
                 </td>
                 <td style="padding: 14px 20px; color: #475569;">
                   <div>{ws.creatorName || 'Unknown'}</div>

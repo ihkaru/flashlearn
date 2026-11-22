@@ -138,24 +138,25 @@
       </div>
 
       <!-- Dual-Loop Navigation Tabs -->
-      <div style="display: flex; border-bottom: 1px solid #e2e8f0; background: #f8fafc; padding: 0 24px;">
+      <div class="fl-scroll-row" style="border-bottom: 1px solid #e2e8f0; background: #f8fafc; padding: 0 20px; gap: 4px;">
         <button
           type="button"
           onclick={() => (activeTab = 'sandbox')}
-          style="padding: 12px 18px; border: none; background: transparent; font-size: 0.85rem; font-weight: 800; color: {activeTab === 'sandbox' ? '#0f766e' : '#64748b'}; border-bottom: 3px solid {activeTab === 'sandbox' ? '#0f766e' : 'transparent'}; cursor: pointer; display: flex; align-items: center; gap: 8px;"
+          style="padding: 12px 14px; border: none; background: transparent; font-size: 0.85rem; font-weight: 700; color: {activeTab === 'sandbox' ? '#0f766e' : '#475569'}; border-bottom: 2.5px solid {activeTab === 'sandbox' ? '#0f766e' : 'transparent'}; white-space: nowrap; flex-shrink: 0; border-radius: 0;"
         >
-          <Icon name="book" size={15} />
-          <span>Tab 1: Belajar & Latihan (Sandbox)</span>
+          1. Belajar &amp; Latihan (Sandbox)
         </button>
         <button
           type="button"
           onclick={handleTryOpenExam}
-          style="padding: 12px 18px; border: none; background: transparent; font-size: 0.85rem; font-weight: 800; color: {activeTab === 'exam' ? '#0f766e' : hasPassedUnaided ? '#64748b' : '#94a3b8'}; border-bottom: 3px solid {activeTab === 'exam' ? '#0f766e' : 'transparent'}; cursor: {hasPassedUnaided ? 'pointer' : 'not-allowed'}; display: flex; align-items: center; gap: 8px;"
+          style="padding: 12px 14px; border: none; background: transparent; font-size: 0.85rem; font-weight: 700; color: {activeTab === 'exam' ? '#0f766e' : hasPassedUnaided ? '#475569' : '#64748b'}; border-bottom: 2.5px solid {activeTab === 'exam' ? '#0f766e' : 'transparent'}; cursor: {hasPassedUnaided ? 'pointer' : 'not-allowed'}; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; border-radius: 0;"
         >
-          <Icon name={hasPassedUnaided ? 'shield-check' : 'lock'} size={15} />
-          <span>Tab 2: Ujian Pembuktian (Resmi)</span>
           {#if !hasPassedUnaided}
-            <span style="font-size: 0.7rem; background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+            <Icon name="lock" size={14} />
+          {/if}
+          <span>2. Ujian Resmi</span>
+          {#if !hasPassedUnaided}
+            <span style="font-size: 0.7rem; background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
               Terkunci
             </span>
           {/if}
@@ -163,9 +164,8 @@
       </div>
 
       {#if lockedMessage}
-        <div style="background: #fffbeb; border-bottom: 1px solid #fde68a; padding: 8px 24px; font-size: 0.78rem; font-weight: 700; color: #b45309; display: flex; align-items: center; gap: 8px;">
-          <Icon name="exclamation-triangle" size={14} />
-          <span>{lockedMessage}</span>
+        <div style="background: #fffbeb; border-bottom: 1px solid #fde68a; padding: 8px 20px; font-size: 0.8rem; font-weight: 600; color: #92400e;">
+          {lockedMessage}
         </div>
       {/if}
 

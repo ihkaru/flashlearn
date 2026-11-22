@@ -3,6 +3,7 @@
   import { api } from '../stores/api';
   import { auth } from '../stores/auth.svelte';
   import type { Workspace } from '@flashlearn/shared';
+  import { getMonogram } from '../lib/monogram';
   import DomainSynthesizerModal from '../components/workspace/DomainSynthesizerModal.svelte';
   import Icon from '../components/ui/Icon.svelte';
 
@@ -19,7 +20,7 @@
   let showSynthesizerModal = $state(false);
   let name = $state('');
   let description = $state('');
-  let icon = $state('📚');
+  let icon = $state('');
   let isPublic = $state(true);
   let isCreating = $state(false);
 
@@ -49,13 +50,14 @@
       const ws = await api.workspaces.create({
         name: name.trim(),
         description: description.trim() || undefined,
-        icon: icon.trim() || '📚',
+        icon: getMonogram(name.trim(), icon.trim()),
         isPublic,
       });
 
       showCreateModal = false;
       name = '';
       description = '';
+      icon = '';
       await loadMyWorkspaces();
 
       if (f7router) {
@@ -72,97 +74,99 @@
 <Page name="creator">
 <div class="creator-dashboard" style="max-width: 900px; margin: 0 auto; padding: 24px 16px;">
   <!-- Header -->
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-    <div>
-      <h1 style="margin: 0 0 6px 0; font-size: 1.7rem; font-weight: 800; color: #0f172a;">
-        🛠️ Creator Studio
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 24px;">
+    <div style="min-width: 0; flex: 1 1 260px;">
+      <h1 style="margin: 0 0 6px 0; font-size: clamp(1.35rem, 3vw, 1.65rem); font-weight: 800; color: #0f172a;">
+        Studio Kreator
       </h1>
-      <p style="margin: 0; color: #64748b; font-size: 0.95rem;">
+      <p style="margin: 0; color: #475569; font-size: 0.92rem;">
         Kelola workspace, terbitkan modul pembelajaran, dan pantau materi kuis milikmu.
       </p>
     </div>
 
-    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
       <button
         onclick={() => (showSynthesizerModal = true)}
         class="fl-btn fl-btn-md"
-        style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);"
+        style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
       >
-        <Icon name="bolt" size={15} />
-        <span>Impor Blueprint Domain</span>
+        Impor Blueprint
       </button>
       <button
         onclick={() => auth.openApiKeyModal()}
         class="fl-btn fl-btn-md"
-        style="background: #ffffff; color: #0f766e; border: 1.5px solid #0f766e; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.03);"
+        style="background: #ffffff; color: #0f766e; border: 1px solid #0f766e; font-weight: 700;"
       >
-        <Icon name="key" size={15} />
-        <span>API Key AI</span>
+        API Key
       </button>
       <button
         onclick={() => (showCreateModal = true)}
         class="fl-btn fl-btn-md"
         style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 700;"
       >
-        <Icon name="plus" size={15} />
-        <span>Workspace Manual</span>
+        Workspace Baru
       </button>
     </div>
   </div>
 
   {#if !auth.isLoggedIn}
-    <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 16px; padding: 48px; text-align: center;">
-      <h3>Silakan Masuk Terlebih Dahulu</h3>
-      <p style="color: #64748b;">Gunakan tombol login Google di kanan atas untuk masuk sebagai Creator.</p>
+    <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 40px 20px; text-align: center;">
+      <h3 style="margin: 0 0 8px 0; color: #0f172a;">Silakan Masuk Terlebih Dahulu</h3>
+      <p style="color: #475569; margin: 0;">Gunakan tombol login di pojok kanan atas untuk mengakses Studio Kreator.</p>
     </div>
   {:else if isLoading}
-    <div style="text-align: center; padding: 48px; color: #94a3b8;">
+    <div style="text-align: center; padding: 48px; color: #475569;">
       Memuat daftar workspace milikmu...
     </div>
   {:else if myWorkspaces.length === 0}
-    <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 20px; padding: 48px 24px; text-align: center;">
-      <div style="font-size: 3rem; margin-bottom: 12px;">📁</div>
+    <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 16px; padding: 40px 24px; text-align: center;">
       <h3 style="margin: 0 0 8px 0; color: #0f172a;">Belum Ada Workspace</h3>
-      <p style="color: #64748b; margin: 0 0 20px 0; font-size: 0.95rem;">
-        Buat ruang kerja (workspace) pertamamu untuk mulai menyusun materi, kuis, atau modul gabungan.
+      <p style="color: #475569; margin: 0 0 20px 0; font-size: 0.94rem;">
+        Buat workspace pertamamu untuk mulai menyusun materi, kuis, atau modul gabungan.
       </p>
       <button
         onclick={() => (showCreateModal = true)}
         class="fl-btn fl-btn-lg"
-        style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
+        style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
       >
-        <Icon name="plus" size={16} />
-        <span>Buat Workspace Sekarang</span>
+        Buat Workspace Sekarang
       </button>
     </div>
   {:else}
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px;">
+    <div class="fl-grid-cards">
       {#each myWorkspaces as ws}
         <div
+          class="fl-card-hover"
           onclick={() => f7router?.navigate(`/workspace/${ws.id}`)}
           role="button"
           tabindex="0"
-          onkeydown={(e) => e.key === 'Enter' && f7router?.navigate(`/workspace/${ws.id}`)}
-          style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,0.03);"
+          onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && f7router?.navigate(`/workspace/${ws.id}`)}
+          style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; min-width: 0;"
         >
           <div>
-            <div style="font-size: 2rem; margin-bottom: 8px;">{ws.icon || '📚'}</div>
-            <h3 style="margin: 0 0 6px 0; font-size: 1.15rem; color: #0f172a; font-weight: 700;">
+            <span
+              class="fl-monogram"
+              style="width: 40px; height: 40px; border-radius: 10px; font-size: 0.9rem; margin-bottom: 12px;"
+              aria-hidden="true"
+            >
+              {getMonogram(ws.name, ws.icon)}
+            </span>
+            <h3 style="margin: 0 0 6px 0; font-size: 1.08rem; color: #0f172a; font-weight: 700; overflow-wrap: break-word;">
               {ws.name}
             </h3>
             {#if ws.description}
-              <p style="color: #64748b; font-size: 0.875rem; margin: 0 0 12px 0; line-height: 1.4;">
+              <p style="color: #475569; font-size: 0.86rem; margin: 0 0 14px 0; line-height: 1.45; overflow-wrap: break-word;">
                 {ws.description}
               </p>
             {/if}
           </div>
 
-          <div style="border-top: 1px solid #f1f5f9; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 0.75rem; font-weight: 700; color: {ws.isPublic ? '#16a34a' : '#94a3b8'};">
-              {ws.isPublic ? '🌐 Publik' : '🔒 Privat'}
+          <div style="border-top: 1px solid #f1f5f9; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <span style="font-size: 0.78rem; font-weight: 700; color: {ws.isPublic ? '#15803d' : '#475569'};">
+              {ws.isPublic ? 'Publik' : 'Privat'}
             </span>
-            <span style="color: #0f766e; font-size: 0.85rem; font-weight: 700;">
-              Buka Studio →
+            <span style="color: #0f766e; font-size: 0.85rem; font-weight: 700; white-space: nowrap;">
+              Buka Studio
             </span>
           </div>
         </div>
@@ -176,84 +180,94 @@
   <div
     style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px;"
     onclick={() => (showCreateModal = false)}
-    role="button"
-    tabindex="0"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1"
     onkeydown={(e) => e.key === 'Escape' && (showCreateModal = false)}
   >
     <div
-      style="background: #ffffff; width: 100%; max-width: 520px; border-radius: 20px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);"
+      style="background: #ffffff; width: 100%; max-width: 520px; border-radius: 18px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);"
       onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
       role="document"
     >
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="margin: 0; font-size: 1.35rem; font-weight: 800; color: #0f172a;">
-          🏛️ Buat Workspace Baru
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h2 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #0f172a;">
+          Buat Workspace Baru
         </h2>
         <button
+          type="button"
           onclick={() => (showCreateModal = false)}
-          style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;"
+          aria-label="Tutup modal"
+          style="background: #f1f5f9; border: none; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #475569;"
         >
-          ✕
+          <Icon name="xmark" size={16} />
         </button>
       </div>
 
-      <form onsubmit={handleCreateWorkspace} style="display: flex; flex-direction: column; gap: 16px;">
+      <form onsubmit={handleCreateWorkspace} style="display: flex; flex-direction: column; gap: 14px;">
         <div>
-          <label style="display: block; font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 6px;">
-            Ikon / Emoji
+          <label for="ws-code" style="display: block; font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 6px;">
+            Kode Singkat (Opsional, 2-3 huruf)
           </label>
           <input
+            id="ws-code"
             type="text"
-            maxlength="4"
+            maxlength="3"
+            placeholder="FL"
             bind:value={icon}
-            style="width: 80px; text-align: center; font-size: 1.5rem; padding: 6px; border: 1px solid #cbd5e1; border-radius: 8px;"
+            style="width: 96px; text-align: center; font-weight: 700; text-transform: uppercase; font-size: 0.95rem; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px;"
           />
         </div>
 
         <div>
-          <label style="display: block; font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 6px;">
+          <label for="ws-name" style="display: block; font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 6px;">
             Nama Workspace
           </label>
           <input
+            id="ws-name"
             type="text"
             required
-            placeholder="Contoh: Belajar Svelte 5 & Bun..."
+            placeholder="Contoh: Arsitektur Sistem Terdistribusi"
             bind:value={name}
-            style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;"
+            style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;"
           />
         </div>
 
         <div>
-          <label style="display: block; font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 6px;">
+          <label for="ws-desc" style="display: block; font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 6px;">
             Deskripsi Workspace
           </label>
           <textarea
+            id="ws-desc"
             rows="3"
             placeholder="Jelaskan tujuan dan kurikulum pembelajaran di workspace ini..."
             bind:value={description}
-            style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; box-sizing: border-box; font-family: inherit;"
+            style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; font-family: inherit;"
           ></textarea>
         </div>
 
         <div style="display: flex; align-items: center; gap: 8px;">
           <input type="checkbox" id="isPublic" bind:checked={isPublic} />
-          <label for="isPublic" style="font-size: 0.9rem; color: #334155; font-weight: 600; cursor: pointer;">
-            Jadikan Publik (Dapat diakses oleh Guest tanpa login)
+          <label for="isPublic" style="font-size: 0.88rem; color: #334155; font-weight: 600;">
+            Jadikan Publik (Dapat diakses tanpa login)
           </label>
         </div>
 
-        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 10px;">
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px;">
           <button
             type="button"
             onclick={() => (showCreateModal = false)}
-            style="background: #f1f5f9; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer;"
+            class="fl-btn fl-btn-md"
+            style="background: #f1f5f9; border: 1px solid #e2e8f0; color: #334155;"
           >
             Batal
           </button>
           <button
             type="submit"
             disabled={isCreating}
-            style="background: #0f766e; color: #ffffff; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 700; cursor: pointer;"
+            class="fl-btn fl-btn-md"
+            style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
           >
             {isCreating ? 'Membuat...' : 'Buat Sekarang'}
           </button>

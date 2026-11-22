@@ -343,8 +343,8 @@
       <div
         style="padding: 14px 24px; border-top: 1px solid #e2e8f0; background: #ffffff; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-shrink: 0;"
       >
-        <span style="font-size: 0.8rem; color: #64748b;">
-          💡 Tip: Gunakan mode ini di layar proyektor untuk membahas butir soal yang paling membingungkan bersama peserta.
+        <span style="font-size: 0.8rem; color: #475569;">
+          Tip: Gunakan mode ini di layar proyektor untuk membahas butir soal yang paling membingungkan bersama peserta.
         </span>
         <button
           type="button"

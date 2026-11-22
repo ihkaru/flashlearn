@@ -204,89 +204,74 @@
     {/if}
 
     <!-- Workspace Main Views Switcher -->
-    <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+    <div class="fl-scroll-row" style="margin-bottom: 20px; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 10px;">
       <button
         onclick={() => (activeViewTab = 'competencies')}
         class="fl-btn fl-btn-md fl-pill-btn"
-        style="border: none; font-weight: 700; font-size: 0.88rem; background: {activeViewTab === 'competencies' ? '#0f766e' : '#f8fafc'}; color: {activeViewTab === 'competencies' ? '#ffffff' : '#64748b'};"
+        style="border: none; font-weight: 700; background: {activeViewTab === 'competencies' ? '#0f766e' : '#f1f5f9'}; color: {activeViewTab === 'competencies' ? '#ffffff' : '#475569'};"
       >
-        <Icon name="bolt" size={14} />
-        <span>Peta Kompetensi (DAG)</span>
+        <span>Peta Kompetensi</span>
       </button>
 
       <button
         onclick={() => (activeViewTab = 'gates')}
         class="fl-btn fl-btn-md fl-pill-btn"
-        style="border: none; font-weight: 700; font-size: 0.88rem; background: {activeViewTab === 'gates' ? '#0f766e' : '#f8fafc'}; color: {activeViewTab === 'gates' ? '#ffffff' : '#64748b'};"
+        style="border: none; font-weight: 700; background: {activeViewTab === 'gates' ? '#0f766e' : '#f1f5f9'}; color: {activeViewTab === 'gates' ? '#ffffff' : '#475569'};"
       >
-        <Icon name="shield-check" size={14} />
         <span>Paspor Gerbang</span>
       </button>
 
       <button
         onclick={() => (activeViewTab = 'modules')}
         class="fl-btn fl-btn-md fl-pill-btn"
-        style="border: none; font-weight: 700; font-size: 0.88rem; background: {activeViewTab === 'modules' ? '#0f766e' : '#f8fafc'}; color: {activeViewTab === 'modules' ? '#ffffff' : '#64748b'};"
+        style="border: none; font-weight: 700; background: {activeViewTab === 'modules' ? '#0f766e' : '#f1f5f9'}; color: {activeViewTab === 'modules' ? '#ffffff' : '#475569'};"
       >
-        <Icon name="book-open" size={14} />
-        <span>Modul & Kuis</span>
+        <span>Modul &amp; Kuis</span>
       </button>
     </div>
 
     {#if activeViewTab === 'modules'}
       <!-- Filters Bar (Horizontal Scrollable with Zero-Wrap Pills) -->
-    <div
-      style="display: flex; gap: 8px; margin-bottom: 18px; overflow-x: auto; padding-bottom: 4px; align-items: center; -webkit-overflow-scrolling: touch;"
-    >
+    <div class="fl-scroll-row" style="margin-bottom: 18px;">
       <button
         onclick={() => (activeFilter = 'all')}
-        class="fl-pill-btn"
-        style="width: auto !important; padding: 7px 14px; border-radius: 8px; font-size: 0.825rem; font-weight: 700; border: none; cursor: pointer; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; background: {activeFilter === 'all' ? '#0f766e' : '#ffffff'}; color: {activeFilter === 'all' ? '#ffffff' : '#64748b'}; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
+        class="fl-btn fl-btn-sm fl-pill-btn"
+        style="border: 1px solid {activeFilter === 'all' ? '#0f766e' : '#e2e8f0'}; background: {activeFilter === 'all' ? '#0f766e' : '#ffffff'}; color: {activeFilter === 'all' ? '#ffffff' : '#475569'};"
       >
-        <span>Semua</span>
-        <span style="font-size: 0.75rem; opacity: 0.85;">({activeContents.length})</span>
+        <span>Semua ({activeContents.length})</span>
       </button>
 
       <button
         onclick={() => (activeFilter = 'materi')}
-        class="fl-pill-btn"
-        style="width: auto !important; padding: 7px 14px; border-radius: 8px; font-size: 0.825rem; font-weight: 700; border: none; cursor: pointer; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; background: {activeFilter === 'materi' ? '#0f766e' : '#ffffff'}; color: {activeFilter === 'materi' ? '#ffffff' : '#64748b'}; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
+        class="fl-btn fl-btn-sm fl-pill-btn"
+        style="border: 1px solid {activeFilter === 'materi' ? '#0f766e' : '#e2e8f0'}; background: {activeFilter === 'materi' ? '#0f766e' : '#ffffff'}; color: {activeFilter === 'materi' ? '#ffffff' : '#475569'};"
       >
-        <Icon name="book-open" size={13} />
-        <span>Materi</span>
-        <span style="font-size: 0.75rem; opacity: 0.85;">({activeContents.filter(c => c.type === 'materi').length})</span>
+        <span>Materi ({activeContents.filter(c => c.type === 'materi').length})</span>
       </button>
 
       <button
         onclick={() => (activeFilter = 'quiz')}
-        class="fl-pill-btn"
-        style="width: auto !important; padding: 7px 14px; border-radius: 8px; font-size: 0.825rem; font-weight: 700; border: none; cursor: pointer; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; background: {activeFilter === 'quiz' ? '#0f766e' : '#ffffff'}; color: {activeFilter === 'quiz' ? '#ffffff' : '#64748b'}; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
+        class="fl-btn fl-btn-sm fl-pill-btn"
+        style="border: 1px solid {activeFilter === 'quiz' ? '#0f766e' : '#e2e8f0'}; background: {activeFilter === 'quiz' ? '#0f766e' : '#ffffff'}; color: {activeFilter === 'quiz' ? '#ffffff' : '#475569'};"
       >
-        <Icon name="check-circle" size={13} />
-        <span>Kuis</span>
-        <span style="font-size: 0.75rem; opacity: 0.85;">({activeContents.filter(c => c.type === 'quiz').length})</span>
+        <span>Kuis ({activeContents.filter(c => c.type === 'quiz').length})</span>
       </button>
 
       {#if isOwner && deletedContents.length > 0}
         <button
           onclick={() => (activeFilter = 'trash')}
-          class="fl-pill-btn"
-          style="width: auto !important; padding: 7px 14px; border-radius: 8px; font-size: 0.825rem; font-weight: 700; border: none; cursor: pointer; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; background: {activeFilter === 'trash' ? '#e11d48' : '#fef2f2'}; color: {activeFilter === 'trash' ? '#ffffff' : '#be123c'}; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-left: auto;"
+          class="fl-btn fl-btn-sm fl-pill-btn"
+          style="border: 1px solid {activeFilter === 'trash' ? '#e11d48' : '#fecdd3'}; background: {activeFilter === 'trash' ? '#e11d48' : '#fff1f2'}; color: {activeFilter === 'trash' ? '#ffffff' : '#be123c'}; margin-left: auto;"
         >
-          <Icon name="trash" size={13} />
-          <span>Arsip</span>
-          <span style="font-size: 0.75rem; opacity: 0.85;">({deletedContents.length})</span>
+          <span>Arsip ({deletedContents.length})</span>
         </button>
       {/if}
     </div>
 
     <!-- Contents List -->
     {#if filteredContents.length === 0}
-      <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 16px; padding: 48px 20px; text-align: center;">
-        <div style="color: #94a3b8; margin-bottom: 8px;">
-          <Icon name={activeFilter === 'trash' ? 'trash' : 'book-open'} size={32} />
-        </div>
-        <p style="color: #64748b; margin: 0 0 14px 0; font-weight: 600; font-size: 0.95rem;">
+      <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 40px 20px; text-align: center;">
+        <p style="color: #475569; margin: 0 0 14px 0; font-weight: 600; font-size: 0.95rem;">
           {activeFilter === 'trash'
             ? 'Tidak ada modul di arsip terhapus.'
             : 'Belum ada konten pada kategori ini.'}
@@ -295,9 +280,8 @@
           <button
             onclick={openCreateModal}
             class="fl-btn fl-btn-md"
-            style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.875rem; box-shadow: 0 2px 8px rgba(15, 118, 110, 0.2);"
+            style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
           >
-            <Icon name="plus" size={14} />
             <span>Buat Modul Sekarang</span>
           </button>
         {/if}

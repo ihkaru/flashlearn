@@ -223,7 +223,7 @@
 
           {#if lastProbeResult}
             <div style="padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; background: {lastProbeResult.passed ? '#f0fdf4' : '#fef2f2'}; color: {lastProbeResult.passed ? '#166534' : '#991b1b'}; border: 1px solid {lastProbeResult.passed ? '#bbf7d0' : '#fecaca'};">
-              {lastProbeResult.passed ? '✓ Jawaban Tepat! Melakukan inferensi Bayesian ke node turunan...' : '✕ Deviasi terdeteksi. Mengarahkan probe ke node prasyarat dasar...'}
+              {lastProbeResult.passed ? 'Jawaban tepat. Melakukan inferensi Bayesian ke node turunan...' : 'Deviasi terdeteksi. Mengarahkan probe ke node prasyarat dasar...'}
             </div>
           {/if}
 
@@ -231,9 +231,8 @@
             disabled={isSubmitting}
             onclick={handleSubmitProbe}
             class="fl-btn fl-btn-lg"
-            style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.92rem; width: 100%; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);"
+            style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; width: 100%;"
           >
-            <Icon name="check" size={16} />
             <span>{isSubmitting ? 'Memproses Inferensi...' : 'Kirim Jawaban Probe'}</span>
           </button>
         {/if}

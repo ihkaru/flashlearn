@@ -1,6 +1,5 @@
 <script lang="ts">
   import { auth } from '../stores/auth.svelte';
-  import Icon from './ui/Icon.svelte';
 
   let googleButtonContainer: HTMLDivElement | undefined = $state();
 
@@ -84,9 +83,8 @@
       onclick={() => auth.openApiKeyModal()}
       title="Manajemen API Key"
       class="fl-btn fl-btn-sm"
-      style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #0f766e; font-weight: 700; white-space: nowrap; flex-shrink: 0;"
+      style="background: #f8fafc; border: 1px solid #cbd5e1; color: #0f766e; font-weight: 700;"
     >
-      <Icon name="key" size={14} />
       <span class="desktop-apikey-label">API Key</span>
     </button>
 
@@ -94,7 +92,7 @@
     <button
       class="desktop-logout-button fl-btn fl-btn-sm"
       onclick={() => auth.logout()}
-      style="background: none; border: none; color: #ef4444; font-size: 0.85rem; font-weight: 600; padding: 4px; white-space: nowrap; flex-shrink: 0;"
+      style="background: none; border: none; color: #dc2626; font-size: 0.85rem; font-weight: 600; padding: 6px 8px;"
     >
       Keluar
     </button>
@@ -104,9 +102,8 @@
       onclick={() => auth.loginAsDemo()}
       title="Masuk Instan sebagai Pembelajar Terverifikasi"
       class="fl-btn fl-btn-sm"
-      style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; white-space: nowrap; flex-shrink: 0;"
+      style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
     >
-      <Icon name="bolt" size={13} />
       <span>Demo Pembelajar</span>
     </button>
     <!-- Guest Google Login Button -->

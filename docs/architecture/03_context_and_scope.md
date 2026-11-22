@@ -1,7 +1,7 @@
 ---
 arc42_section: 3
-verified_commit: 0002072
-verified_timestamp: 2026-11-22T07:58:58+07:00
+verified_commit: 8e3fad0
+verified_timestamp: 2026-11-22T09:28:30+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 3. Context and Scope
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `9f770ab` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-22T07:30:00+07:00`
+> - **Verified Commit**: `8e3fad0` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-22T09:28:30+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 

@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { CausalProbe } from '@flashlearn/shared';
-  import Icon from '../ui/Icon.svelte';
 
   interface Props {
     probes: CausalProbe[];
@@ -44,24 +43,19 @@
   }
 </script>
 
-<div class="causal-probe-deck" style="background: #ffffff; border: 1.5px solid #0d9488; border-radius: 14px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.1);">
+<div class="causal-probe-deck" style="background: #ffffff; border: 1.5px solid #0d9488; border-radius: 12px; padding: 16px;">
   <!-- Header Section -->
-  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <div style="background: #0f766e; color: #ffffff; width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-        <Icon name="bolt" size={14} />
-      </div>
-      <div>
-        <h5 style="margin: 0; font-size: 0.9rem; font-weight: 800; color: #0f172a;">
-          Causal Schema Priming (Aktivasi Nalar Sebab-Akibat)
-        </h5>
-        <span style="font-size: 0.72rem; color: #64748b;">
-          Pilih hipotesis prediksi sebelum melihat mekanisme sebab-akibat operasional.
-        </span>
-      </div>
+  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+    <div style="min-width: 0; flex: 1 1 200px;">
+      <h5 style="margin: 0; font-size: 0.92rem; font-weight: 800; color: #0f172a;">
+        Causal Schema Priming (Nalar Sebab-Akibat)
+      </h5>
+      <span style="font-size: 0.78rem; color: #475569;">
+        Pilih hipotesis prediksi sebelum melihat mekanisme sebab-akibat operasional.
+      </span>
     </div>
-    <span style="font-size: 0.72rem; background: #ccfbf1; color: #0f766e; padding: 3px 8px; border-radius: 9999px; font-weight: 700;">
-      {Object.keys(revealedAnswers).length}/{probes.length} Diselesaikan
+    <span style="font-size: 0.74rem; background: #ccfbf1; color: #0f766e; padding: 3px 8px; border-radius: 6px; font-weight: 700; white-space: nowrap;">
+      {Object.keys(revealedAnswers).length}/{probes.length} Selesai
     </span>
   </div>
 
@@ -72,30 +66,30 @@
       {@const isRevealed = revealedAnswers[probe.id]}
       <div style="border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; background: #f8fafc;">
         <!-- Probe Badge & Title -->
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-          <span style="font-size: 0.72rem; font-weight: 800; color: {meta.color}; background: {meta.bg}; padding: 2px 8px; border-radius: 6px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+          <span style="font-size: 0.74rem; font-weight: 700; color: {meta.color}; background: {meta.bg}; padding: 2px 8px; border-radius: 6px;">
             Kasus {pIdx + 1}: {meta.label}
           </span>
           {#if isRevealed}
-            <span style="font-size: 0.7rem; font-weight: 700; color: #16a34a; display: flex; align-items: center; gap: 4px;">
-              <Icon name="check" size={12} /> Terverifikasi
+            <span style="font-size: 0.74rem; font-weight: 700; color: #15803d;">
+              Terverifikasi
             </span>
           {/if}
         </div>
 
         <!-- Problem Prompt -->
-        <p style="margin: 0 0 10px 0; font-size: 0.82rem; font-weight: 700; color: #1e293b; line-height: 1.45;">
+        <p style="margin: 0 0 10px 0; font-size: 0.85rem; font-weight: 700; color: #1e293b; line-height: 1.5;">
           {probe.prompt}
         </p>
 
         <!-- Analogical comparison view if present -->
         {#if probe.scenarioA && probe.scenarioB}
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
-            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; font-size: 0.75rem; color: #334155;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 8px; margin-bottom: 10px;">
+            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 0.8rem; color: #334155;">
               <strong style="color: #0f766e; display: block; margin-bottom: 4px;">Skenario A:</strong>
               {probe.scenarioA}
             </div>
-            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; font-size: 0.75rem; color: #334155;">
+            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 0.8rem; color: #334155;">
               <strong style="color: #4338ca; display: block; margin-bottom: 4px;">Skenario B:</strong>
               {probe.scenarioB}
             </div>
@@ -104,8 +98,8 @@
 
         <!-- Micro-debugging code snippet if present -->
         {#if probe.faultySnippet}
-          <div style="background: #1e293b; color: #f8fafc; border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 0.75rem; margin-bottom: 10px; overflow-x: auto;">
-            <div style="color: #94a3b8; font-size: 0.68rem; margin-bottom: 4px;">Snippet Analisis Cacat:</div>
+          <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 0.78rem; margin-bottom: 10px; overflow-x: auto;">
+            <div style="color: #94a3b8; font-size: 0.72rem; margin-bottom: 4px;">Snippet Analisis Cacat:</div>
             <pre style="margin: 0; white-space: pre-wrap;">{probe.faultySnippet}</pre>
           </div>
         {/if}
@@ -118,14 +112,15 @@
               <button
                 type="button"
                 onclick={() => handleSelectOption(probe.id, optIdx)}
-                style="display: flex; align-items: center; gap: 8px; text-align: left; background: {isSelected ? '#e0f2fe' : '#ffffff'}; border: 1.5px solid {isSelected ? '#0284c7' : '#cbd5e1'}; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: all 0.15s ease;"
+                class="fl-btn-wrap"
+                style="width: 100%; display: flex; align-items: flex-start; gap: 10px; text-align: left; background: {isSelected ? '#e0f2fe' : '#ffffff'}; border: 1.5px solid {isSelected ? '#0284c7' : '#cbd5e1'}; padding: 10px 12px; border-radius: 8px;"
               >
-                <span style="width: 18px; height: 18px; border-radius: 50%; border: 2px solid {isSelected ? '#0284c7' : '#94a3b8'}; background: {isSelected ? '#0284c7' : '#ffffff'}; display: flex; align-items: center; justify-content: center; shrink: 0;">
+                <span style="width: 18px; height: 18px; border-radius: 50%; border: 2px solid {isSelected ? '#0284c7' : '#94a3b8'}; background: {isSelected ? '#0284c7' : '#ffffff'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;">
                   {#if isSelected}
                     <span style="width: 6px; height: 6px; border-radius: 50%; background: #ffffff;"></span>
                   {/if}
                 </span>
-                <span style="font-size: 0.78rem; font-weight: {isSelected ? '700' : '500'}; color: {isSelected ? '#0369a1' : '#334155'};">
+                <span style="font-size: 0.82rem; font-weight: {isSelected ? '700' : '500'}; color: {isSelected ? '#0369a1' : '#334155'}; line-height: 1.45;">
                   {option}
                 </span>
               </button>
@@ -135,8 +130,8 @@
           <button
             type="button"
             onclick={() => handleManualReveal(probe.id)}
-            class="fl-btn fl-btn-sm"
-            style="background: #ffffff; border: 1px solid #cbd5e1; color: #475569; font-size: 0.75rem; font-weight: 700; border-radius: 6px; padding: 6px 12px; cursor: pointer;"
+            class="fl-btn fl-btn-sm fl-btn-wrap"
+            style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155;"
           >
             Pikirkan Jawaban Lalu Buka Analisis Kausal
           </button>
@@ -144,9 +139,9 @@
 
         <!-- Revealed Causal Rationale -->
         {#if isRevealed}
-          <div style="margin-top: 8px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px 12px; font-size: 0.78rem; color: #166534; line-height: 1.45;">
-            <div style="font-weight: 800; color: #14532d; margin-bottom: 2px; display: flex; align-items: center; gap: 6px;">
-              <span>🔍 Mekanisme & Alasan Sebab-Akibat:</span>
+          <div style="margin-top: 8px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px 12px; font-size: 0.82rem; color: #166534; line-height: 1.5;">
+            <div style="font-weight: 800; color: #14532d; margin-bottom: 3px;">
+              Mekanisme &amp; Alasan Sebab-Akibat:
             </div>
             {probe.causalRationale}
           </div>

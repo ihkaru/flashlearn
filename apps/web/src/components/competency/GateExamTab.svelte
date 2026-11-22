@@ -38,17 +38,12 @@
 <div class="gate-exam-tab" style="display: flex; flex-direction: column; gap: 16px;">
   <!-- Official Verification Header Badge -->
   <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <div style="background: #0f766e; color: #ffffff; border-radius: 8px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; shrink: 0;">
-        <Icon name="shield-check" size={16} />
+    <div style="min-width: 0; flex: 1 1 220px;">
+      <div style="font-size: 0.88rem; font-weight: 800; color: #0f172a;">
+        Mode Ujian Pembuktian Wewenang (Resmi)
       </div>
-      <div>
-        <div style="font-size: 0.85rem; font-weight: 800; color: #0f172a;">
-          Mode Ujian Pembuktian Wewenang (Resmi)
-        </div>
-        <div style="font-size: 0.75rem; color: #64748b;">
-          Evaluasi Oracle Kelas {competency.oracleClass} • Syarat Kelulusan Skor ≥ {currentTask?.passingScore || 80}%
-        </div>
+      <div style="font-size: 0.78rem; color: #475569;">
+        Evaluasi Oracle Kelas {competency.oracleClass} · Syarat Kelulusan Skor &ge; {currentTask?.passingScore || 80}%
       </div>
     </div>
 
@@ -57,45 +52,43 @@
       type="button"
       onclick={() => (showDowngradeConfirm = true)}
       class="fl-btn fl-btn-sm"
-      style="background: #fffbeb; border: 1px solid #fde68a; color: #b45309; font-size: 0.75rem; font-weight: 700; border-radius: 6px; padding: 6px 10px; cursor: pointer;"
+      style="background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-weight: 700;"
     >
-      <Icon name="question-circle" size={14} />
-      <span>Buntu? Buka Panduan Langkah</span>
+      Buntu? Kembali ke Panduan
     </button>
   </div>
 
   <!-- Multi-Observation Entrustment Indicator -->
   <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <Icon name="check-double" size={15} class="text-teal-700" />
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
       <span style="font-size: 0.78rem; font-weight: 700; color: #115e59;">
         Multi-Observation Entrustment:
       </span>
-      <span style="font-size: 0.75rem; background: #ccfbf1; color: #0f766e; padding: 2px 8px; border-radius: 6px; font-weight: 800;">
+      <span style="font-size: 0.74rem; background: #ccfbf1; color: #0f766e; padding: 2px 8px; border-radius: 6px; font-weight: 800; white-space: nowrap;">
         {variantCode.toUpperCase()}
       </span>
       {#if currentTask?.isIsomorphicVariant}
-        <span style="font-size: 0.72rem; background: #e0e7ff; color: #4338ca; padding: 2px 6px; border-radius: 5px; font-weight: 600;">
+        <span style="font-size: 0.72rem; background: #e0e7ff; color: #4338ca; padding: 2px 6px; border-radius: 5px; font-weight: 600; white-space: nowrap;">
           Kasus Isomorfik
         </span>
       {/if}
     </div>
-    <div style="font-size: 0.75rem; color: #047857; font-weight: 700;">
-      {passedVariants.length > 0 ? `Lulus ${passedVariants.length} Observasi (${passedVariants.join(', ')})` : 'Observasi Kasus (Wajib Mandiri 100%)'}
+    <div style="font-size: 0.76rem; color: #047857; font-weight: 700;">
+      {passedVariants.length > 0 ? `Lulus ${passedVariants.length} Observasi (${passedVariants.join(', ')})` : 'Observasi Kasus (Mandiri 100%)'}
     </div>
   </div>
 
   <!-- Task Selector if multiple tasks exist -->
   {#if tasks.length > 1}
-    <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px;">
+    <div class="fl-scroll-row">
       {#each tasks as t, idx}
         <button
           type="button"
           onclick={() => onSelectTask(t.id)}
           class="fl-btn fl-btn-sm fl-pill-btn"
-          style="border: none; font-size: 0.78rem; font-weight: 700; background: {selectedTaskId === t.id ? '#0f766e' : '#f1f5f9'}; color: {selectedTaskId === t.id ? '#ffffff' : '#64748b'}; cursor: pointer;"
+          style="border: 1px solid {selectedTaskId === t.id ? '#0f766e' : '#e2e8f0'}; background: {selectedTaskId === t.id ? '#0f766e' : '#ffffff'}; color: {selectedTaskId === t.id ? '#ffffff' : '#475569'};"
         >
-          <span>Tugas {idx + 1}: {t.title.slice(0, 28)}...</span>
+          <span>Tugas {idx + 1}: {t.title.slice(0, 28)}{t.title.length > 28 ? '...' : ''}</span>
         </button>
       {/each}
     </div>

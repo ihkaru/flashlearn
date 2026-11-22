@@ -127,9 +127,8 @@
     <button
       onclick={loadGates}
       class="fl-btn fl-btn-sm"
-      style="border: 1px solid #cbd5e1; background: #ffffff; font-size: 0.8rem; font-weight: 600; color: #475569;"
+      style="border: 1px solid #cbd5e1; background: #ffffff; font-weight: 600; color: #334155;"
     >
-      <Icon name="refresh" size={13} />
       <span>Segarkan</span>
     </button>
   </div>
@@ -172,8 +171,7 @@
             <div>
               {#if isActive}
                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                  <span style="background: #dcfce7; color: #15803d; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                    <Icon name="check" size={12} />
+                  <span style="background: #dcfce7; color: #15803d; font-size: 0.76rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; white-space: nowrap;">
                     Paspor Aktif
                   </span>
 
@@ -181,9 +179,8 @@
                     disabled={issuingGateId === gate.id}
                     onclick={() => handleExportVc(gate.id)}
                     class="fl-btn fl-btn-sm"
-                    style="background: #0f766e; color: #ffffff; border: none; font-size: 0.75rem; font-weight: 700;"
+                    style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
                   >
-                    <Icon name="shield-check" size={12} />
                     <span>{issuingGateId === gate.id ? 'Menerbitkan...' : 'Ekspor W3C VC 2.0'}</span>
                   </button>
 
@@ -191,16 +188,14 @@
                     <a
                       href="/#/verify/{grant.id}"
                       target="_blank"
-                      style="color: #0284c7; background: #f0f9ff; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;"
+                      style="color: #0284c7; background: #f0f9ff; border: 1px solid #bae6fd; padding: 6px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; text-decoration: none; white-space: nowrap;"
                     >
-                      <span>Publik</span>
-                      <Icon name="arrow-right" size={10} />
+                      Verifikasi Publik
                     </a>
                   {/if}
                 </div>
               {:else if isSuspended}
-                <span style="background: #fee2e2; color: #b91c1c; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                  <Icon name="alert-triangle" size={12} />
+                <span style="background: #fee2e2; color: #b91c1c; font-size: 0.76rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; white-space: nowrap;">
                   Ditangguhkan (Materi Kedaluwarsa)
                 </span>
               {:else}
@@ -208,7 +203,7 @@
                   disabled={evaluatingGateId === gate.id}
                   onclick={() => handleEvaluateGate(gate.id)}
                   class="fl-btn fl-btn-sm"
-                  style="background: #0f766e; color: #ffffff; border: none; font-size: 0.8rem; font-weight: 700;"
+                  style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
                 >
                   {evaluatingGateId === gate.id ? 'Mengevaluasi...' : 'Klaim / Evaluasi Gerbang'}
                 </button>
@@ -283,17 +278,15 @@
             <button
               onclick={copyVcJson}
               class="fl-btn fl-btn-md"
-              style="border: 1px solid #cbd5e1; background: #ffffff; font-weight: 700; font-size: 0.85rem; color: #334155;"
+              style="border: 1px solid #cbd5e1; background: #ffffff; font-weight: 700; color: #334155;"
             >
-              <Icon name="clipboard" size={14} />
-              <span>{copiedVcJson ? 'Tersalin!' : 'Salin JSON'}</span>
+              <span>{copiedVcJson ? 'Tersalin' : 'Salin JSON'}</span>
             </button>
             <button
               onclick={downloadVcJson}
               class="fl-btn fl-btn-md"
-              style="border: none; background: #0f766e; font-weight: 700; font-size: 0.85rem; color: #ffffff;"
+              style="border: none; background: #0f766e; font-weight: 700; color: #ffffff;"
             >
-              <Icon name="download" size={14} />
               <span>Unduh Berkas .json</span>
             </button>
           </div>

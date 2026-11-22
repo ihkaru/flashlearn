@@ -77,22 +77,22 @@
     if (!driftStatus || driftStatus === 'none') return null;
     const rPct = retrievability !== null && retrievability !== undefined ? Math.round(retrievability * 100) : 100;
     if (driftStatus === 'drift_warning') {
-      return { label: `⚠️ Peluruhan (${rPct}%)`, bg: '#fffbeb', text: '#b45309', border: '#fde68a' };
+      return { label: `Peluruhan (${rPct}%)`, bg: '#fffbeb', text: '#b45309', border: '#fde68a' };
     }
     if (driftStatus === 'provisionally_expired') {
-      return { label: `🔴 Kedaluwarsa (${rPct}%)`, bg: '#fef2f2', text: '#991b1b', border: '#fca5a5' };
+      return { label: `Kedaluwarsa (${rPct}%)`, bg: '#fef2f2', text: '#991b1b', border: '#fca5a5' };
     }
     return { label: `Segar (${rPct}%)`, bg: '#f0fdf4', text: '#166534', border: '#bbf7d0' };
   }
 </script>
 
 <div class="competency-dag-container" style="display: flex; flex-direction: column; gap: 16px;">
-  <div style="display: flex; justify-content: space-between; align-items: center;">
-    <div>
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+    <div style="min-width: 0; flex: 1 1 240px;">
       <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #0f172a;">
-        Peta Kompetensi & Prasyarat
+        Peta Kompetensi &amp; Prasyarat
       </h3>
-      <p style="margin: 4px 0 0; font-size: 0.85rem; color: #64748b;">
+      <p style="margin: 4px 0 0; font-size: 0.85rem; color: #475569;">
         Graf prasyarat kompetensi berjenjang yang diverifikasi oleh Oracle multi-tier.
       </p>
     </div>
@@ -100,25 +100,23 @@
       <button
         onclick={() => (showDiagnosticModal = true)}
         class="fl-btn fl-btn-sm"
-        style="border: none; background: #0f766e; font-size: 0.8rem; font-weight: 700; color: #ffffff;"
+        style="border: none; background: #0f766e; font-weight: 700; color: #ffffff;"
       >
-        <Icon name="bolt" size={13} />
         <span>Uji Diagnostik (KST)</span>
       </button>
 
       <button
         onclick={loadGraph}
         class="fl-btn fl-btn-sm"
-        style="border: 1px solid #cbd5e1; background: #ffffff; font-size: 0.8rem; font-weight: 600; color: #475569;"
+        style="border: 1px solid #cbd5e1; background: #ffffff; font-weight: 600; color: #334155;"
       >
-        <Icon name="refresh" size={13} />
         <span>Segarkan</span>
       </button>
     </div>
   </div>
 
   {#if isLoading}
-    <div style="text-align: center; padding: 40px; color: #94a3b8; font-weight: 500;">
+    <div style="text-align: center; padding: 40px; color: #475569; font-weight: 500;">
       Memuat graf kompetensi...
     </div>
   {:else if errorMessage}
@@ -126,35 +124,37 @@
       {errorMessage}
     </div>
   {:else if !graphData || graphData.nodes.length === 0}
-    <div style="text-align: center; padding: 40px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 16px;">
-      <p style="margin: 0; color: #64748b; font-weight: 600;">Belum ada node kompetensi pada workspace ini.</p>
+    <div style="text-align: center; padding: 40px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 14px;">
+      <p style="margin: 0; color: #475569; font-weight: 600;">Belum ada node kompetensi pada workspace ini.</p>
     </div>
   {:else}
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
+    <div class="fl-grid-cards">
       {#each graphData.nodes as node}
         {@const status = getStatusBadge(node.userStatus)}
         {@const oracle = getOracleClassBadge(node.oracleClass)}
         {@const drift = getDriftBadge(node.driftStatus, node.cachedRetrievability)}
         <div
-          class="competency-card"
+          class="competency-card fl-card-hover"
           role="button"
           tabindex="0"
           onclick={() => handleNodeClick(node)}
-          onkeydown={(e) => e.key === 'Enter' && handleNodeClick(node)}
-          style="background: #ffffff; border: 1px solid {drift?.border || '#e2e8f0'}; border-radius: 14px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;"
+          onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && handleNodeClick(node)}
+          style="background: #ffffff; border: 1px solid {drift?.border || '#e2e8f0'}; border-radius: 14px; padding: 16px; cursor: pointer; display: flex; flex-direction: column; min-width: 0;"
         >
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
-            <span style="font-family: monospace; font-size: 0.75rem; font-weight: 700; color: #0f766e; background: #ccfbf1; padding: 2px 7px; border-radius: 6px;">
+            <span style="font-family: monospace; font-size: 0.75rem; font-weight: 700; color: #0f766e; background: #ccfbf1; padding: 2px 7px; border-radius: 6px; white-space: nowrap;">
               {node.code}
             </span>
             <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: flex-end;">
               {#if drift}
-                <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: {drift.bg}; color: {drift.text};">
+                <span style="font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: {drift.bg}; color: {drift.text}; white-space: nowrap;">
                   {drift.label}
                 </span>
               {/if}
-              <span style="font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: {status.bg}; color: {status.text}; display: inline-flex; align-items: center; gap: 4px;">
-                <Icon name={status.icon} size={11} />
+              <span style="font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: {status.bg}; color: {status.text}; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
+                {#if node.userStatus === 'locked'}
+                  <Icon name="lock" size={11} />
+                {/if}
                 {status.label}
               </span>
             </div>

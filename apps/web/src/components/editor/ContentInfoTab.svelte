@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { ContentType } from '@flashlearn/shared';
-  import Icon from '../ui/Icon.svelte';
 
   interface Props {
     title: string;
@@ -27,31 +26,31 @@
     <label for="fl-content-type" style="display: block; font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 8px;">
       Tipe Modul Pembelajaran
     </label>
-    <div id="fl-content-type" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+    <div id="fl-content-type" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 10px;">
       <button
         type="button"
         onclick={() => (type = 'quiz')}
-        style="text-align: left; padding: 12px; border-radius: 10px; border: 2px solid {type === 'quiz' ? '#0f766e' : '#e2e8f0'}; background: {type === 'quiz' ? '#f0fdfa' : '#ffffff'}; cursor: pointer; min-height: 84px; display: flex; flex-direction: column; justify-content: flex-start; text-wrap: balance;"
+        class="fl-btn-wrap"
+        style="text-align: left; padding: 12px; border-radius: 10px; border: 2px solid {type === 'quiz' ? '#0f766e' : '#e2e8f0'}; background: {type === 'quiz' ? '#f0fdfa' : '#ffffff'}; min-height: 84px; display: flex; flex-direction: column; justify-content: flex-start;"
       >
-        <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.9rem; color: #0f172a; margin-bottom: 2px;">
-          <Icon name="check-circle" size={15} style="color: #0f766e;" />
-          <span>Kuis Saja</span>
+        <div style="font-weight: 700; font-size: 0.9rem; color: #0f172a; margin-bottom: 4px;">
+          Kuis Saja
         </div>
-        <div style="font-size: 0.775rem; color: #64748b; line-height: 1.3;">
-          Asesmen interaktif, skor otomatis & 3D flashcards.
+        <div style="font-size: 0.78rem; color: #475569; line-height: 1.4;">
+          Asesmen interaktif, skor otomatis &amp; 3D flashcards.
         </div>
       </button>
 
       <button
         type="button"
         onclick={() => (type = 'materi')}
-        style="text-align: left; padding: 12px; border-radius: 10px; border: 2px solid {type === 'materi' ? '#0f766e' : '#e2e8f0'}; background: {type === 'materi' ? '#f0fdfa' : '#ffffff'}; cursor: pointer; min-height: 84px; display: flex; flex-direction: column; justify-content: flex-start; text-wrap: balance;"
+        class="fl-btn-wrap"
+        style="text-align: left; padding: 12px; border-radius: 10px; border: 2px solid {type === 'materi' ? '#0f766e' : '#e2e8f0'}; background: {type === 'materi' ? '#f0fdfa' : '#ffffff'}; min-height: 84px; display: flex; flex-direction: column; justify-content: flex-start;"
       >
-        <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.9rem; color: #0f172a; margin-bottom: 2px;">
-          <Icon name="book-open" size={15} style="color: #1d4ed8;" />
-          <span>Materi Saja</span>
+        <div style="font-weight: 700; font-size: 0.9rem; color: #0f172a; margin-bottom: 4px;">
+          Materi Saja
         </div>
-        <div style="font-size: 0.775rem; color: #64748b; line-height: 1.3;">
+        <div style="font-size: 0.78rem; color: #475569; line-height: 1.4;">
           Bahan bacaan artikel / teori dengan format Markdown.
         </div>
       </button>
@@ -59,13 +58,13 @@
       <button
         type="button"
         onclick={() => (type = 'combined')}
-        style="text-align: left; padding: 12px; border-radius: 10px; border: 2px solid {type === 'combined' ? '#0f766e' : '#e2e8f0'}; background: {type === 'combined' ? '#f0fdfa' : '#ffffff'}; cursor: pointer; min-height: 84px; display: flex; flex-direction: column; justify-content: flex-start; text-wrap: balance;"
+        class="fl-btn-wrap"
+        style="text-align: left; padding: 12px; border-radius: 10px; border: 2px solid {type === 'combined' ? '#0f766e' : '#e2e8f0'}; background: {type === 'combined' ? '#f0fdfa' : '#ffffff'}; min-height: 84px; display: flex; flex-direction: column; justify-content: flex-start;"
       >
-        <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.9rem; color: #0f172a; margin-bottom: 2px;">
-          <Icon name="layers" size={15} style="color: #0f766e;" />
-          <span>Materi + Kuis</span>
+        <div style="font-weight: 700; font-size: 0.9rem; color: #0f172a; margin-bottom: 4px;">
+          Materi + Kuis
         </div>
-        <div style="font-size: 0.775rem; color: #64748b; line-height: 1.3;">
+        <div style="font-size: 0.78rem; color: #475569; line-height: 1.4;">
           Bahan teori di awal dilanjutkan evaluasi pemahaman.
         </div>
       </button>

@@ -1,7 +1,7 @@
 ---
 arc42_section: 8
-verified_commit: 0002072
-verified_timestamp: 2026-11-22T07:58:58+07:00
+verified_commit: 8e3fad0
+verified_timestamp: 2026-11-22T09:28:30+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 8. Cross-Cutting Concepts
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `9f770ab` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-22T07:30:00+07:00`
+> - **Verified Commit**: `8e3fad0` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-22T09:28:30+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -77,6 +77,6 @@ FlashLearn enforces strict **Fail-Fast & Zero Silent Fallback** semantics:
 
 1. **Framework & Reactivity**: Svelte 5 Runes (`$state`, `$derived`, `$effect`, `$props`) + Framework7 v9.1.3.
 2. **Typography**: Loaded from Google Fonts in `apps/web/index.html` and configured in `apps/web/src/styles/app.css` using **`Inter`** (body) and **`Plus Jakarta Sans`** (headings/brand).
-3. **Vector Icon System**: Lightweight custom SVG registry (`apps/web/src/components/ui/Icon.svelte` + `iconPaths.ts`, 45 typed icons) alongside Framework7 icons—no external `lucide-svelte` dependency. *(Legacy Unicode emojis remaining in 18 components are tracked under `DEBT-02`.)*
+3. **Restrained Vector Iconography & Zero-Emoticon Monograms**: Lightweight custom SVG registry (`apps/web/src/components/ui/Icon.svelte` + `iconPaths.ts`, 45 typed icons) applied selectively to icon-only controls and critical lock/verification states (zero decorative icon overload). Zero Unicode emoticons across all frontend source files, backed by `apps/web/src/lib/monogram.ts` (`getMonogram`) so legacy emoji `icon` fields stored in PostgreSQL render as clean 2-3 letter typographic monograms.
 4. **XSS-Hardened Markdown Rendering (`MarkdownRenderer.svelte`)**: `marked@18` + `marked-katex-extension` + `highlight.js/lib/common` + custom `markedAlert` callouts, sanitized via `DOMPurify` with **zero inline `onclick` attributes** (code copy handled via delegated Svelte click listener reading `data-code`).
-5. **Responsive Ergonomics**: Text-wrap resilient button tokens (`.fl-btn`, `overflow-wrap: anywhere`, `touch-action: manipulation`) and 3D Y-axis CSS flashcard flip animations (`perspective: 1000px`, `transform-style: preserve-3d`).
+5. **Wrap-Safe & Accessible Mobile Ergonomics (`apps/web/src/styles/app.css`)**: Single-line flex-safe buttons (`.fl-btn` with `white-space: nowrap; flex-shrink: 0`), opt-in multi-line option wrapping (`.fl-btn-wrap`), horizontal scroll bars (`.fl-scroll-row`), safe fluid grids (`.fl-grid-cards` using `minmax(min(100%, 280px), 1fr)`), prose-only wrapping (`.fl-prose`), WCAG `:focus-visible` rings, `min-height: 44px` mobile touch targets, `prefers-reduced-motion` support, and user-triggered 3D Y-axis CSS flashcard flip animations without idle looping animations.

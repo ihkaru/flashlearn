@@ -16,7 +16,7 @@
   let responsibilityScope = $state('');
   let legalAuthorityLevel = $state<number>(1);
   let minPassingScore = $state<number>(85);
-  let icon = $state('🎯');
+  let icon = $state('');
   let description = $state('');
   let isSubmitting = $state(false);
 
@@ -71,12 +71,11 @@
     tabindex="-1"
   >
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h2 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
-        <Icon name="shield-check" size={18} />
-        Tambah Domain Kualifikasi Wewenang SDM
+      <h2 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #0f172a;">
+        Tambah Domain Kualifikasi Wewenang
       </h2>
-      <button onclick={onClose} class="fl-btn fl-btn-sm" style="background: transparent; border: none; font-size: 1.1rem; color: #64748b;">
-        ✕
+      <button type="button" onclick={onClose} aria-label="Tutup modal" class="fl-btn fl-btn-sm" style="background: #f1f5f9; border: none; color: #475569; padding: 6px 8px;">
+        <Icon name="xmark" size={16} />
       </button>
     </div>
 

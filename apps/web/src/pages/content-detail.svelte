@@ -70,7 +70,7 @@
       <button
         onclick={goBack}
         class="fl-btn fl-btn-sm"
-        style="background: none; border: none; font-size: 0.9rem; font-weight: 700; color: #0f766e; white-space: nowrap;"
+        style="background: none; border: none; font-size: 0.88rem; font-weight: 700; color: #0f766e;"
       >
         <Icon name="arrow-left" size={15} />
         <span>Kembali ke Workspace</span>
@@ -80,7 +80,6 @@
         <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap;">
           <ChipBadge
             variant={content.type === 'quiz' ? 'quiz' : content.type === 'materi' ? 'materi' : 'combined'}
-            icon={content.type === 'quiz' ? 'check-circle' : content.type === 'materi' ? 'book-open' : 'layers'}
             label={content.type.toUpperCase()}
           />
 
@@ -91,20 +90,18 @@
                 class="fl-btn fl-btn-sm fl-pill-btn"
                 onclick={() => (showReviewModal = true)}
                 title="Bahas butir soal kuis & analisis kesalahan peserta"
-                style="background: #f0fdfa; color: #0f766e; border: 1.5px solid #99f6e4; font-weight: 700; font-size: 0.8rem;"
+                style="background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; font-weight: 700;"
               >
-                <Icon name="sparkles" size={13} />
-                <span>Bahas Kuis</span>
+                Bahas Kuis
               </button>
             {/if}
             <button
               type="button"
               class="fl-btn fl-btn-sm fl-pill-btn"
               onclick={() => (showEditModal = true)}
-              style="background: #0f766e; color: #ffffff; border: none; font-weight: 700; font-size: 0.8rem; box-shadow: 0 2px 6px rgba(15,118,110,0.25);"
+              style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
             >
-              <Icon name="pencil" size={13} />
-              <span>Edit Modul</span>
+              Edit Modul
             </button>
           {/if}
         </div>

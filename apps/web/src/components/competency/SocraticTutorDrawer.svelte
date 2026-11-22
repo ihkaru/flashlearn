@@ -2,7 +2,6 @@
   import type { SocraticTutorResponse } from '@flashlearn/shared';
   import { api } from '../../stores/api';
   import { lumisChat } from '../../stores/lumisChat.svelte';
-  import Icon from '../ui/Icon.svelte';
 
   interface Props {
     taskId: string;
@@ -35,30 +34,24 @@
   }
 </script>
 
-<div style="border-radius: 12px; border: 1px solid #e0e7ff; background: #f5f7ff; padding: 12px 14px; margin-top: 4px;">
-  <div style="display: flex; justify-content: space-between; align-items: center;">
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <span style="background: #4f46e5; color: #ffffff; width: 24px; height: 24px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">
-        <Icon name="chat" size={13} />
-      </span>
-      <div>
-        <div style="font-weight: 700; font-size: 0.85rem; color: #1e1b4b;">Tutor Sokratik (Anti-Bocoran)</div>
-        <div style="font-size: 0.72rem; color: #6366f1;">Panduan reflektif berbasis pasal resmi tanpa spoiler kunci jawaban</div>
-      </div>
+<div style="border-radius: 12px; border: 1px solid #c7d2fe; background: #f5f7ff; padding: 12px 14px; margin-top: 4px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+    <div style="min-width: 0; flex: 1 1 200px;">
+      <div style="font-weight: 700; font-size: 0.86rem; color: #1e1b4b;">Tutor Sokratik (Anti-Bocoran)</div>
+      <div style="font-size: 0.76rem; color: #4338ca;">Panduan reflektif berbasis dokumen resmi tanpa spoiler kunci jawaban</div>
     </div>
     <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
       <button
         onclick={() => lumisChat.askSocraticTutor({ taskId, taskTitle, scenario })}
         class="fl-btn fl-btn-sm"
-        style="border: none; background: #4f46e5; color: #ffffff; font-size: 0.75rem; font-weight: 700;"
+        style="border: none; background: #4f46e5; color: #ffffff; font-weight: 700;"
       >
-        <Icon name="chat" size={12} />
-        <span>Chat Interaktif (AI Tutor)</span>
+        <span>Chat AI Tutor</span>
       </button>
       <button
         onclick={() => (isOpen = !isOpen)}
         class="fl-btn fl-btn-sm"
-        style="border: none; background: #e0e7ff; color: #3730a3; font-size: 0.75rem; font-weight: 700;"
+        style="border: none; background: #e0e7ff; color: #3730a3; font-weight: 700;"
       >
         <span>{isOpen ? 'Tutup' : 'Hint Cepat'}</span>
       </button>
@@ -101,8 +94,8 @@
 
           <!-- Reflective Question -->
           {#if tutorResponse.reflectiveQuestion}
-            <div style="background: #eef2ff; border-left: 3px solid #6366f1; padding: 8px 10px; border-radius: 4px; font-size: 0.82rem; color: #3730a3; font-weight: 600;">
-              💡 <em>{tutorResponse.reflectiveQuestion}</em>
+            <div style="background: #eef2ff; border-left: 3px solid #6366f1; padding: 8px 10px; border-radius: 4px; font-size: 0.84rem; color: #3730a3; font-weight: 600;">
+              <strong>Pertanyaan Reflektif:</strong> <em>{tutorResponse.reflectiveQuestion}</em>
             </div>
           {/if}
 

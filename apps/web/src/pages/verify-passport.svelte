@@ -203,8 +203,8 @@
               </div>
               <div style="display: flex; flex-wrap: wrap; gap: 6px;">
                 {#each passport.evidenceSnapshot.verifiedCompetencyIds as compId}
-                  <span style="font-family: monospace; font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 2px 7px; border-radius: 5px; font-weight: 700;">
-                    ✓ {compId.slice(0, 8)}...
+                  <span style="font-family: monospace; font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 5px; font-weight: 700;">
+                    {compId.slice(0, 8)}...
                   </span>
                 {/each}
               </div>
