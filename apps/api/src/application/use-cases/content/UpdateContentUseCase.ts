@@ -1,6 +1,11 @@
 import type { IContentRepository } from '../../../domain/ports/IContentRepository';
 import type { IWorkspaceRepository } from '../../../domain/ports/IWorkspaceRepository';
-import type { Content, UpdateContentRequest, UserRole } from '@flashlearn/shared';
+import {
+  validateInteractiveModulePayload,
+  type Content,
+  type UpdateContentRequest,
+  type UserRole,
+} from '@flashlearn/shared';
 
 export class UpdateContentUseCase {
   constructor(
@@ -28,6 +33,18 @@ export class UpdateContentUseCase {
 
     if (!workspace.canBeModifiedBy(currentUserId, isSuperadmin)) {
       throw new Error('Forbidden: You can only edit contents in workspaces you created');
+    }
+
+    const effectiveType = input.type ?? content.type;
+    if (effectiveType === 'interactive_module' && input.interactivePayload !== undefined) {
+      const report = validateInteractiveModulePayload(input.interactivePayload);
+      if (!report.valid) {
+        const msg = report.issues
+          .filter((i) => i.severity === 'error')
+          .map((i) => `${i.code}: ${i.message}`)
+          .join('; ');
+        throw new Error(`Invalid interactive_module payload: ${msg}`);
+      }
     }
 
     const updated = await this.contentRepository.update(contentId, input);

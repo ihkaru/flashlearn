@@ -19,6 +19,7 @@ import { driftController } from './infrastructure/http/controllers/drift.control
 import { credentialController } from './infrastructure/http/controllers/credential.controller';
 import { domainController } from './infrastructure/http/controllers/domain.controller';
 import { socraticChatController } from './infrastructure/http/controllers/socratic-chat.controller';
+import { interactiveController } from './infrastructure/http/controllers/interactive.controller';
 import { container } from './infrastructure/di/container';
 import { BackgroundWorkerDaemon } from './worker';
 
@@ -34,7 +35,7 @@ const app = new Elysia()
       origin: true,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'x-api-key'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'x-api-key', 'x-learner-session'],
     })
   )
   .use(
@@ -96,6 +97,7 @@ const app = new Elysia()
   .use(authController)
   .use(workspaceController)
   .use(contentController)
+  .use(interactiveController)
   .use(quizController)
   .use(apiKeyController)
   .use(sourceController)

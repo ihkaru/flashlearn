@@ -1,5 +1,6 @@
 import type { IContentRepository } from '../../../domain/ports/IContentRepository';
 import type { IWorkspaceRepository } from '../../../domain/ports/IWorkspaceRepository';
+import type { IInteractiveRepository } from '../../../domain/ports/IInteractiveRepository';
 import type { Content, UserRole } from '@flashlearn/shared';
 
 export interface ListContentsInput {
@@ -11,7 +12,8 @@ export interface ListContentsInput {
 export class ListContentsUseCase {
   constructor(
     private readonly contentRepository: IContentRepository,
-    private readonly workspaceRepository: IWorkspaceRepository
+    private readonly workspaceRepository: IWorkspaceRepository,
+    private readonly interactiveRepository?: IInteractiveRepository
   ) {}
 
   async execute(input: ListContentsInput): Promise<Content[]> {
@@ -29,10 +31,23 @@ export class ListContentsUseCase {
     const isOwner = workspace.canBeModifiedBy(input.userId || '', isSuperadmin);
     const contents = await this.contentRepository.listByWorkspace(
       input.workspaceId,
-      !isOwner, // If not owner/superadmin, only published contents
-      isOwner   // If owner/superadmin, include soft-deleted contents for restoration
+      !isOwner,
+      isOwner
     );
 
-    return contents.map((c) => c.toJSON(isOwner));
+    const kindsMap = this.interactiveRepository
+      ? await this.interactiveRepository.listArtifactKindsByContentIds(contents.map((c) => c.id))
+      : null;
+
+    return contents.map((c) => {
+      const dto = c.toJSON(isOwner);
+      if (!kindsMap) return dto;
+      const kinds = kindsMap.get(c.id) || [];
+      return {
+        ...dto,
+        hasSlideDeck: kinds.includes('slide_deck_html'),
+        hasAnchoringSim: kinds.includes('anchoring_sim_html'),
+      };
+    });
   }
 }

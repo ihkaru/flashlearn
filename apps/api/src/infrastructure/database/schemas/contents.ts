@@ -10,7 +10,7 @@ import {
   index,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import type { QuizQuestion } from '@flashlearn/shared';
+import type { InteractiveModulePayload, QuizQuestion } from '@flashlearn/shared';
 import { users, workspaces } from './core';
 import { domains } from './domains';
 import { sources, sourceChunks } from './sources';
@@ -25,11 +25,12 @@ export const contents = pgTable(
     competencyId: uuid('competency_id').references(() => competencies.id, { onDelete: 'set null' }),
     title: text('title').notNull(),
     slug: text('slug').notNull(),
-    type: text('type', { enum: ['materi', 'quiz', 'combined'] }).notNull(),
+    type: text('type', { enum: ['materi', 'quiz', 'combined', 'interactive_module'] }).notNull(),
     summary: text('summary'),
     readingTimeMinutes: integer('reading_time_minutes').default(5),
     body: text('body'),
     questions: jsonb('questions').$type<QuizQuestion[]>(),
+    interactivePayload: jsonb('interactive_payload').$type<InteractiveModulePayload>(),
     isPublished: boolean('is_published').default(true).notNull(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

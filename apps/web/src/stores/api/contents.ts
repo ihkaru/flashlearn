@@ -2,12 +2,23 @@ import { fetchWithAuth, API_URL } from './core';
 import { auth } from '../auth.svelte';
 import type {
   Content,
+  ContentArtifact,
+  ContentArtifactKind,
   CreateContentRequest,
   UpdateContentRequest,
   QuizSubmissionRequest,
   QuizResultResponse,
   FlashcardItem,
+  LearnerContentProgress,
+  SaveLearnerProgressRequest,
 } from '@flashlearn/shared';
+
+export interface ResumableSessionSummary extends LearnerContentProgress {
+  contentTitle: string;
+  contentType: string;
+  workspaceId: string;
+  workspaceName: string;
+}
 
 export const contentApi = {
   listByWorkspace: (workspaceId: string): Promise<Content[]> =>
@@ -62,4 +73,17 @@ export const contentApi = {
     }),
   getFlashcards: (id: string): Promise<FlashcardItem[]> =>
     fetchWithAuth(`/api/v1/contents/${id}/flashcards`),
+  getArtifact: (id: string, kind: ContentArtifactKind): Promise<ContentArtifact> =>
+    fetchWithAuth(`/api/v1/contents/${id}/artifacts/${kind}`),
+  getProgress: (id: string): Promise<LearnerContentProgress | { contentId: string; notStarted: true }> =>
+    fetchWithAuth(`/api/v1/contents/${id}/progress`),
+  saveProgress: (id: string, payload: SaveLearnerProgressRequest): Promise<LearnerContentProgress> =>
+    fetchWithAuth(`/api/v1/contents/${id}/progress`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+  listWorkspaceProgress: (workspaceId: string): Promise<LearnerContentProgress[]> =>
+    fetchWithAuth(`/api/v1/contents/workspace/${workspaceId}/progress`),
+  listRecentResumable: (limit = 6): Promise<ResumableSessionSummary[]> =>
+    fetchWithAuth(`/api/v1/contents/resume/recent?limit=${limit}`),
 };

@@ -7,7 +7,7 @@ import type {
   CreateContentData,
   UpdateContentData,
 } from '../../domain/ports/IContentRepository';
-import type { ContentType, QuizQuestion } from '@flashlearn/shared';
+import type { ContentType, InteractiveModulePayload, QuizQuestion } from '@flashlearn/shared';
 
 export class DrizzleContentRepository implements IContentRepository {
   private mapToEntity(row: typeof contents.$inferSelect): ContentEntity {
@@ -23,6 +23,7 @@ export class DrizzleContentRepository implements IContentRepository {
       readingTimeMinutes: row.readingTimeMinutes,
       body: row.body,
       questions: row.questions as QuizQuestion[] | null,
+      interactivePayload: (row.interactivePayload as InteractiveModulePayload | null) ?? null,
       isPublished: row.isPublished,
       deletedAt: row.deletedAt,
       createdAt: row.createdAt,
@@ -89,6 +90,7 @@ export class DrizzleContentRepository implements IContentRepository {
         readingTimeMinutes: data.readingTimeMinutes,
         body: data.body,
         questions: data.questions,
+        interactivePayload: data.interactivePayload ?? null,
         isPublished: data.isPublished,
       })
       .returning();

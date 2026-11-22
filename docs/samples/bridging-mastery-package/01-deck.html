@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Enkripsi Asimetris · Bridging Deck</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,system-ui,sans-serif;background:#0f172a}
+#deck{display:flex;width:300vw;height:100vh;transition:transform .28s ease}
+.slide{width:100vw;height:100vh;flex:0 0 100vw;display:flex;align-items:center;padding:8vh 8vw}
+.slide.dark{background:#0f172a;color:#f8fafc}
+.slide.accent{background:#0f766e;color:#ffffff}
+.slide.light{background:#f8fafc;color:#0f172a}
+.inner{max-width:80vw;display:flex;flex-direction:column;gap:2.2vh}
+.kicker{font-size:clamp(12px,1.4vw,15px);font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.8}
+h1{font-size:clamp(24px,4.6vw,56px);font-weight:800;line-height:1.12}
+p{font-size:clamp(14px,2vw,24px);line-height:1.45;opacity:.92;max-width:60ch}
+</style>
+</head>
+<body>
+<div id="deck">
+  <section class="slide dark active" data-slide-id="anomali"><div class="inner"><div class="kicker">01 · Masalah Nyata</div><h1>Satu Kunci Gagal di Jalur Terbuka</h1><p>Mengirim kunci rahasia lewat kurir umum membuka peluang penyadap menggandakannya sebelum pesan pertama tiba.</p></div></section>
+  <section class="slide accent" data-slide-id="jembatan"><div class="inner"><div class="kicker">02 · Anchoring ke Bridging</div><h1>Gembok = Public Key, Anak Kunci = Private Key</h1><p>Siapa saja boleh menekan gembok klik, tetapi hanya pemegang anak kunci pribadi yang bisa membukanya.</p></div></section>
+  <section class="slide light" data-slide-id="kontrak"><div class="inner"><div class="kicker">03 · Kontrak Simbol</div><h1>C = Enc(M, K_pub) | M = Dec(C, K_priv)</h1><p>Versi digital mengganti mekanik gembok dengan fungsi matematika satu arah yang jauh lebih kuat.</p></div></section>
+</div>
+<script type="application/json" id="flashlearn-slide-notes">
+[
+  {"id":"anomali","index":0,"title":"Satu Kunci Gagal","purpose":"Memantik anomali tanpa jargon","talk":["Mulai dari kurir umum, belum perlu istilah kriptografi."]},
+  {"id":"jembatan","index":1,"title":"Jembatan Analogi","purpose":"Memetakan kotak gembok ke kunci publik/privat","talk":["Tekankan batas analogi setelah pemetaan dipahami."]},
+  {"id":"kontrak","index":2,"title":"Kontrak Simbol","purpose":"Memperkenalkan rumus sebagai singkatan","talk":["Tunjukkan hubungan langsung simbol ke percobaan tadi."]}
+]
+</script>
+<script>
+(function(){var d=document.getElementById('deck'),s=[].slice.call(document.querySelectorAll('section.slide')),c=0;window.go=function(n){c=Math.max(0,Math.min(s.length-1,Number(n)||0));d.style.transform='translate3d(-'+(c*100)+'vw,0,0)';s.forEach(function(e,i){e.classList.toggle('active',i===c);});};})();
+</script>
+</body>
+</html>

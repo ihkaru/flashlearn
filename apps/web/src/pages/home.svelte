@@ -3,9 +3,11 @@
   import { api } from '../stores/api';
   import { auth } from '../stores/auth.svelte';
   import type { Workspace } from '@flashlearn/shared';
+  import type { ResumableSessionSummary } from '../stores/api/contents';
   import { getMonogram } from '../lib/monogram';
   import Icon from '../components/ui/Icon.svelte';
   import ChipBadge from '../components/ui/ChipBadge.svelte';
+  import ResumeLearningStrip from '../components/workspace/ResumeLearningStrip.svelte';
 
   interface Props {
     f7router?: any;
@@ -14,6 +16,7 @@
   let { f7router }: Props = $props();
 
   let workspaces = $state<Workspace[]>([]);
+  let recentSessions = $state<ResumableSessionSummary[]>([]);
   let isLoading = $state(true);
   let loadError = $state<string | null>(null);
   let searchQuery = $state('');
@@ -47,7 +50,12 @@
     isLoading = true;
     loadError = null;
     try {
-      workspaces = await api.workspaces.list('public');
+      const [wsList, recent] = await Promise.all([
+        api.workspaces.list('public'),
+        api.contents.listRecentResumable(4).catch(() => []),
+      ]);
+      workspaces = wsList;
+      recentSessions = Array.isArray(recent) ? recent : [];
     } catch (err: any) {
       loadError = err?.message || 'Gagal memuat daftar workspace.';
     } finally {
@@ -71,6 +79,14 @@
     }
   }
 
+  function navigateToContent(contentId: string) {
+    if (f7router) {
+      f7router.navigate(`/content/${contentId}`);
+    } else {
+      window.location.hash = `/content/${contentId}`;
+    }
+  }
+
   function toggleHeroCard() {
     isHeroFlipped = !isHeroFlipped;
   }
@@ -90,7 +106,7 @@
             Kuasai Kompetensi Lewat Materi, Kuis, &amp; Active Recall
           </h1>
           <p style="font-size: 0.95rem; line-height: 1.6; color: #ccfbf1; margin: 0 0 22px 0; max-width: 520px;">
-            Pilih workspace di bawah untuk mempelajari peta prasyarat, berlatih tanpa penalti di sandbox, dan menguji penguasaan melalui evaluasi terukur.
+            Pilih topik yang ingin dipelajari, ikuti arahan langkah demi langkah di layar, dan lanjutkan kapan saja dari posisi terakhir.
           </p>
 
           <!-- Search Bar -->
@@ -173,6 +189,9 @@
         </div>
       </div>
     </section>
+
+    <!-- Resumable Learning Sessions (Shown Only When Learner Has Saved Progress) -->
+    <ResumeLearningStrip sessions={recentSessions} onOpenContent={navigateToContent} />
 
     <!-- Workspace List Header -->
     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">

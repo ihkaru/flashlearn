@@ -15,6 +15,7 @@ import { DrizzleTaskAttemptReviewRepository } from '../repositories/DrizzleTaskA
 import { DrizzleCredentialRepository } from '../repositories/DrizzleCredentialRepository';
 import { DrizzleDomainRepository } from '../repositories/DrizzleDomainRepository';
 import { DrizzleSocraticChatRepository } from '../repositories/DrizzleSocraticChatRepository';
+import { DrizzleInteractiveRepository } from '../repositories/DrizzleInteractiveRepository';
 
 import { JwtTokenService } from '../services/JwtTokenService';
 import { GoogleAuthVerifier } from '../services/GoogleAuthVerifier';
@@ -61,6 +62,10 @@ import { CreateApiKeyUseCase } from '../../application/use-cases/apikey/CreateAp
 import { ListApiKeysUseCase } from '../../application/use-cases/apikey/ListApiKeysUseCase';
 import { RevokeApiKeyUseCase } from '../../application/use-cases/apikey/RevokeApiKeyUseCase';
 import { VerifyApiKeyUseCase } from '../../application/use-cases/apikey/VerifyApiKeyUseCase';
+import { UpsertContentArtifactUseCase } from '../../application/use-cases/interactive/UpsertContentArtifactUseCase';
+import { GetContentArtifactUseCase } from '../../application/use-cases/interactive/GetContentArtifactUseCase';
+import { SaveLearnerProgressUseCase } from '../../application/use-cases/interactive/SaveLearnerProgressUseCase';
+import { GetLearnerProgressUseCase } from '../../application/use-cases/interactive/GetLearnerProgressUseCase';
 
 export class BaseContainer {
   // Repositories
@@ -81,6 +86,7 @@ export class BaseContainer {
   public readonly credentialRepository = new DrizzleCredentialRepository();
   public readonly domainRepository = new DrizzleDomainRepository();
   public readonly socraticChatRepository = new DrizzleSocraticChatRepository();
+  public readonly interactiveRepository = new DrizzleInteractiveRepository();
 
   // Services
   public readonly tokenService = new JwtTokenService();
@@ -140,11 +146,13 @@ export class BaseContainer {
   );
   public readonly listContentsUseCase = new ListContentsUseCase(
     this.contentRepository,
-    this.workspaceRepository
+    this.workspaceRepository,
+    this.interactiveRepository
   );
   public readonly getContentByIdUseCase = new GetContentByIdUseCase(
     this.contentRepository,
-    this.workspaceRepository
+    this.workspaceRepository,
+    this.interactiveRepository
   );
   public readonly updateContentUseCase = new UpdateContentUseCase(
     this.contentRepository,
@@ -183,5 +191,25 @@ export class BaseContainer {
   public readonly verifyApiKeyUseCase = new VerifyApiKeyUseCase(
     this.apiKeyRepository,
     this.userRepository
+  );
+
+  // Phase 07: Interactive Bridging Modules, Sandboxed Artifacts & Resumable Progress
+  public readonly upsertContentArtifactUseCase = new UpsertContentArtifactUseCase(
+    this.contentRepository,
+    this.workspaceRepository,
+    this.interactiveRepository
+  );
+  public readonly getContentArtifactUseCase = new GetContentArtifactUseCase(
+    this.contentRepository,
+    this.workspaceRepository,
+    this.interactiveRepository
+  );
+  public readonly saveLearnerProgressUseCase = new SaveLearnerProgressUseCase(
+    this.contentRepository,
+    this.interactiveRepository,
+    this.masteryRepository
+  );
+  public readonly getLearnerProgressUseCase = new GetLearnerProgressUseCase(
+    this.interactiveRepository
   );
 }

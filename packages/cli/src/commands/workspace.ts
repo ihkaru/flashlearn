@@ -1,7 +1,9 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import type { ApiClient } from '../core/client';
 import { CliError, ExitCode, type NextAction } from '../core/envelope';
 import { validateDomainBlueprint } from '../core/blueprint-validator';
+import { importInteractiveModule } from '../core/interactive-importer';
 
 export async function handleWorkspaceCommand(
   action: string,
@@ -199,10 +201,106 @@ export async function handleWorkspaceCommand(
       };
     }
 
+    case 'import-curriculum': {
+      const dirPath = flags.dir || args[0];
+      if (!dirPath) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: '--dir path is required: `flashlearn workspace import-curriculum --dir <compiled-package-dir>`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      const absDir = resolve(dirPath);
+      const pkgPath = resolve(absDir, 'curriculum-package.json');
+      if (!existsSync(pkgPath)) {
+        throw new CliError({
+          code: 'INVALID_PACKAGE',
+          message: `Missing curriculum-package.json inside ${absDir}`,
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+      const dryRun = Boolean(flags['dry-run']);
+      let workspaceId: string = flags['workspace-id'] || pkg.workspaceId || '';
+      let blueprintResult: any = null;
+
+      if (pkg.blueprintFile) {
+        const bpPath = resolve(absDir, pkg.blueprintFile);
+        const bp = JSON.parse(readFileSync(bpPath, 'utf-8'));
+        const bpVal = validateDomainBlueprint(bp);
+        if (dryRun) {
+          blueprintResult = { dryRun: true, workspaceName: bp.workspace.name, dagIsAcyclic: bpVal.isValid };
+          workspaceId = workspaceId || 'dry-run-workspace-id';
+        } else {
+          blueprintResult = await client.request('/api/v1/workspaces/import-blueprint', {
+            method: 'POST',
+            body: bp,
+          });
+          workspaceId = blueprintResult.workspaceId || workspaceId;
+        }
+      }
+
+      if (!workspaceId) {
+        throw new CliError({
+          code: 'MISSING_WORKSPACE_ID',
+          message: 'curriculum-package.json must include blueprintFile or workspaceId (or pass --workspace-id).',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      const competencyByCode = new Map<string, string>();
+      if (!dryRun) {
+        try {
+          const graph = await client.request<any>(`/api/v1/competencies/graph/${workspaceId}`);
+          for (const node of graph?.nodes || []) {
+            if (node.code && node.id) competencyByCode.set(node.code, node.id);
+          }
+        } catch {
+          // Optional competency linking if workspace has no DAG nodes yet
+        }
+      }
+
+      const modules = Array.isArray(pkg.modules) ? pkg.modules : [];
+      const moduleResults: any[] = [];
+      for (const mod of modules) {
+        const res = await importInteractiveModule(client, {
+          workspaceId,
+          competencyId: mod.competencyCode ? competencyByCode.get(mod.competencyCode) : mod.competencyId,
+          title: mod.title,
+          slug: mod.slug,
+          summary: mod.summary,
+          readingTimeMinutes: mod.readingTimeMinutes,
+          manifestPath: resolve(absDir, mod.manifestFile),
+          deckPath: mod.deckFile ? resolve(absDir, mod.deckFile) : undefined,
+          simPath: mod.simFile ? resolve(absDir, mod.simFile) : undefined,
+          dryRun,
+          mediaOpts: {
+            enabled: Boolean(flags['upload-media']),
+            dryRun,
+            vaultUrl: flags['mediavault-url'],
+            apiKey: flags['mediavault-key'],
+          },
+        });
+        moduleResults.push(res);
+      }
+
+      return {
+        data: {
+          dryRun,
+          workspaceId,
+          blueprint: blueprintResult,
+          modulesImported: moduleResults.length,
+          modules: moduleResults,
+        },
+      };
+    }
+
     default:
       throw new CliError({
         code: 'UNKNOWN_ACTION',
-        message: `Unknown action '${action}' for noun 'workspace'. Available actions: list, get, create, describe, diagnose, import-blueprint, delete.`,
+        message: `Unknown action '${action}' for noun 'workspace'. Available actions: list, get, create, describe, diagnose, import-blueprint, import-curriculum, delete.`,
         exitCode: ExitCode.USAGE_ERROR,
       });
   }

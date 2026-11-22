@@ -1,7 +1,7 @@
 ---
 arc42_section: 4
 verified_commit: 50c1217
-verified_timestamp: 2026-11-22T09:29:05+07:00
+verified_timestamp: 2026-11-22T11:46:44+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -13,7 +13,7 @@ tracked_paths:
 
 > [!INFO] **Architecture Provenance & Freshness**
 > - **Verified Commit**: `50c1217` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-22T09:29:05+07:00`
+> - **Verified Timestamp**: `2026-11-22T11:46:44+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -105,3 +105,16 @@ Core runtime code (`apps/api/src/domain/`, `apps/api/src/application/`, `apps/we
   - `flashlearn domain describe <id-or-slug>`: audits domain completeness, orphan competencies, cycle integrity, and readiness score.
 - Five canonical starter domain seeds live strictly isolated in `apps/api/src/infrastructure/database/seeds/` for turnkey container onboarding (`DEBT-06`).
 - Shared contract types reside in `packages/shared/src/types/` and shared validators in `packages/shared/src/utils/`, verified at compile time via `tsc --noEmit`.
+
+---
+
+### 8. Bridging Analogies (Clement & Brown), Guided Single-Focus UX & Sandboxed Visual Decks
+To eliminate passive, shallow text modules without overwhelming learners:
+- **Grounding Strategy Router (`InteractiveModulePayload`, `packages/shared/src/types/interactive.ts`)**: Every `interactive_module` explicitly declares a `groundingDecision.mode` based on prior anchor availability, setup cost (`<= 60s`), and scale/dimensionality:
+  - `experiential_anchor_bridge`: Launches an instant interactive **Anchoring Micro-Lab** (`StateMachineLab`, `MechanismManipulatorLab`, `WaveFieldTapperLab`, `BridgeMorphLab`, or sandboxed HTML micro-sim) before structural `bridgingChain` mapping and mandatory `analogyBreakpoint`.
+  - `direct_analogy`: Uses familiar daily anchors with mandatory `analogyBreakpoint`.
+  - `thought_experiment`: Handles high-scale/dimensional concepts (e.g., Byzantine consensus) via progressive thought experiments.
+  - `direct_formalism`: Skips contrived analogies when direct formal rules are faster to learn.
+- **One-Instruction-Per-Screen Guided Flow (`buildGuidedLearningSteps` -> `InteractiveModuleViewer.svelte`)**: Learners select a topic and follow one clear action at a time (read -> interact -> answer `<1ms` 5-axis diagnostic probe with 1-hint-at-a-time scaffolding), while secondary glossary and PDF source citations stay quietly collapsed until tapped.
+- **Seamless Auto-Resume (`learner_content_progress` + `x-learner-session`)**: Step position, slide index, anchoring completion, and diagnostic mastery auto-save to both local storage and PostgreSQL for authenticated AND guest learners, surfaced as one-tap "Lanjutkan Belajar" cards (`ResumeLearningStrip.svelte`).
+- **Adaptive Portrait & Landscape HTML Deck Stage (`AdaptiveDeckStage.svelte`)**: Lazy-loaded from `content_artifacts` and rendered strictly inside `<iframe sandbox="allow-scripts">` (without `allow-same-origin`) via FlashLearn's generic MIT `buildSandboxedDeckHtml` bridge (`localStorage` in-memory shim + `postMessage` sync + automatic mobile `low-power` mode). External authoring tools (such as `guizang-ppt-skill` under AGPL-3.0) remain strictly decoupled at CLI authoring time (`flashlearn content import-interactive` / `domain import-curriculum`).

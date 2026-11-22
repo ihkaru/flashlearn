@@ -1,4 +1,5 @@
 import { auth } from '../auth.svelte';
+import { getLearnerSessionKey } from '../../lib/learnerSession';
 
 export const API_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.port !== '5173' ? '' : 'http://localhost:3001');
 
@@ -40,6 +41,10 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
 
   if (auth.token) {
     headers.set('Authorization', `Bearer ${auth.token}`);
+  }
+  const sessionKey = getLearnerSessionKey();
+  if (sessionKey) {
+    headers.set('x-learner-session', sessionKey);
   }
 
   const res = await fetch(`${API_URL}${endpoint}`, {

@@ -2,7 +2,7 @@
   import { Page } from 'framework7-svelte';
   import { api } from '../stores/api';
   import { auth } from '../stores/auth.svelte';
-  import type { Workspace, Content, Domain } from '@flashlearn/shared';
+  import type { Workspace, Content, Domain, LearnerContentProgress } from '@flashlearn/shared';
   import ContentEditorModal from '../components/ContentEditorModal.svelte';
   import ConfirmDeleteModal from '../components/ConfirmDeleteModal.svelte';
   import QuizReviewModal from '../components/QuizReviewModal.svelte';
@@ -26,11 +26,12 @@
 
   let workspace = $state<Workspace | null>(null);
   let contents = $state<Content[]>([]);
+  let progressByContentId = $state<Record<string, LearnerContentProgress>>({});
   let domains = $state<Domain[]>([]);
   let selectedDomainId = $state<string>('');
   let isLoading = $state(true);
   let activeFilter = $state<string>('all');
-  let activeViewTab = $state<'competencies' | 'gates' | 'modules'>('competencies');
+  let activeViewTab = $state<'modules' | 'competencies' | 'gates'>('modules');
 
   // Creator Content Editor Modal state (Create & Edit)
   let showEditorModal = $state(false);
@@ -60,16 +61,23 @@
   async function loadWorkspaceData() {
     isLoading = true;
     try {
-      const [ws, items, domRes] = await Promise.all([
+      const [ws, items, domRes, progressList] = await Promise.all([
         api.workspaces.get(id),
         api.contents.listByWorkspace(id),
         api.domains.listByWorkspace(id).catch(() => ({ domains: [] })),
+        api.contents.listWorkspaceProgress(id).catch(() => []),
       ]);
       workspace = ws;
       contents = items;
+      progressByContentId = Object.fromEntries(
+        (Array.isArray(progressList) ? progressList : []).map((p) => [p.contentId, p])
+      );
       domains = domRes.domains || [];
       if (domains.length > 0 && (!selectedDomainId || !domains.some(d => d.id === selectedDomainId))) {
         selectedDomainId = domains[0].id;
+      }
+      if (items.filter((c) => !c.deletedAt).length === 0) {
+        activeViewTab = 'competencies';
       }
     } catch (err: any) {
       alert(`Gagal memuat workspace: ${err.message}`);
@@ -206,6 +214,14 @@
     <!-- Workspace Main Views Switcher -->
     <div class="fl-scroll-row" style="margin-bottom: 20px; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 10px;">
       <button
+        onclick={() => (activeViewTab = 'modules')}
+        class="fl-btn fl-btn-md fl-pill-btn"
+        style="border: none; font-weight: 700; background: {activeViewTab === 'modules' ? '#0f766e' : '#f1f5f9'}; color: {activeViewTab === 'modules' ? '#ffffff' : '#475569'};"
+      >
+        <span>Topik Belajar</span>
+      </button>
+
+      <button
         onclick={() => (activeViewTab = 'competencies')}
         class="fl-btn fl-btn-md fl-pill-btn"
         style="border: none; font-weight: 700; background: {activeViewTab === 'competencies' ? '#0f766e' : '#f1f5f9'}; color: {activeViewTab === 'competencies' ? '#ffffff' : '#475569'};"
@@ -220,14 +236,6 @@
       >
         <span>Paspor Gerbang</span>
       </button>
-
-      <button
-        onclick={() => (activeViewTab = 'modules')}
-        class="fl-btn fl-btn-md fl-pill-btn"
-        style="border: none; font-weight: 700; background: {activeViewTab === 'modules' ? '#0f766e' : '#f1f5f9'}; color: {activeViewTab === 'modules' ? '#ffffff' : '#475569'};"
-      >
-        <span>Modul &amp; Kuis</span>
-      </button>
     </div>
 
     {#if activeViewTab === 'modules'}
@@ -240,6 +248,16 @@
       >
         <span>Semua ({activeContents.length})</span>
       </button>
+
+      {#if activeContents.some((c) => c.type === 'interactive_module')}
+        <button
+          onclick={() => (activeFilter = 'interactive_module')}
+          class="fl-btn fl-btn-sm fl-pill-btn"
+          style="border: 1px solid {activeFilter === 'interactive_module' ? '#0f766e' : '#e2e8f0'}; background: {activeFilter === 'interactive_module' ? '#0f766e' : '#ffffff'}; color: {activeFilter === 'interactive_module' ? '#ffffff' : '#475569'};"
+        >
+          <span>Interaktif ({activeContents.filter(c => c.type === 'interactive_module').length})</span>
+        </button>
+      {/if}
 
       <button
         onclick={() => (activeFilter = 'materi')}
@@ -291,6 +309,7 @@
         {#each filteredContents as c (c.id)}
           <ContentListItem
             content={c}
+            progress={progressByContentId[c.id] || null}
             {isOwner}
             isTrash={activeFilter === 'trash'}
             {isRestoring}

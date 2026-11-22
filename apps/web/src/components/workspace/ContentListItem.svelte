@@ -1,10 +1,11 @@
 <script lang="ts">
-  import type { Content } from '@flashlearn/shared';
+  import type { Content, LearnerContentProgress } from '@flashlearn/shared';
   import Icon from '../ui/Icon.svelte';
   import ChipBadge from '../ui/ChipBadge.svelte';
 
   interface Props {
     content: Content;
+    progress?: LearnerContentProgress | null;
     isOwner: boolean;
     isTrash: boolean;
     isRestoring?: boolean;
@@ -20,6 +21,7 @@
 
   let {
     content: c,
+    progress = null,
     isOwner,
     isTrash,
     isRestoring = false,
@@ -80,8 +82,12 @@
         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
           <ChipBadge
             variant={c.type === 'quiz' ? 'quiz' : c.type === 'materi' ? 'materi' : 'combined'}
-            label={c.type === 'quiz' ? 'Kuis' : c.type === 'materi' ? 'Materi' : 'Materi + Kuis'}
+            label={c.type === 'interactive_module' ? 'Panduan Interaktif' : c.type === 'quiz' ? 'Kuis' : c.type === 'materi' ? 'Materi' : 'Materi + Kuis'}
           />
+
+          {#if c.hasSlideDeck}
+            <ChipBadge variant="neutral" label="Slide Visual" />
+          {/if}
 
           {#if c.questions && c.questions.length > 0}
             <ChipBadge variant="neutral" label="{c.questions.length} Soal" />
@@ -101,11 +107,23 @@
             {c.summary}
           </p>
         {/if}
+
+        {#if progress}
+          {@const pct = Math.min(100, Math.round(((progress.currentStepIndex + 1) / Math.max(1, progress.totalSteps)) * 100))}
+          <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+            <div style="flex: 1; max-width: 180px; height: 5px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
+              <div style="height: 100%; width: 100%; background: {progress.isCompleted ? '#16a34a' : '#0f766e'}; transform-origin: left center; transform: scaleX({pct / 100});"></div>
+            </div>
+            <span style="font-size: 0.76rem; font-weight: 700; color: {progress.isCompleted ? '#15803d' : '#0f766e'};">
+              {progress.isCompleted ? 'Selesai' : `Langkah ${progress.currentStepIndex + 1}/${progress.totalSteps}`}
+            </span>
+          </div>
+        {/if}
       </div>
 
       <div style="flex-shrink: 0;">
         <span style="color: #0f766e; font-weight: 700; font-size: 0.85rem; white-space: nowrap;">
-          Buka
+          {progress && !progress.isCompleted ? 'Lanjutkan' : progress?.isCompleted ? 'Tinjau' : 'Mulai'}
         </span>
       </div>
     </div>
@@ -128,7 +146,7 @@
             <span>{copiedLinkId === c.id ? 'Tersalin' : 'Salin Link'}</span>
           </button>
 
-          {#if c.type !== 'materi'}
+          {#if c.type !== 'materi' && c.type !== 'interactive_module'}
             <button
               type="button"
               class="fl-btn fl-btn-sm fl-pill-btn"

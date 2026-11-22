@@ -1,7 +1,7 @@
 ---
 arc42_section: 9
 verified_commit: 50c1217
-verified_timestamp: 2026-11-22T09:29:05+07:00
+verified_timestamp: 2026-11-22T11:46:44+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -13,7 +13,7 @@ tracked_paths:
 
 > [!INFO] **Architecture Provenance & Freshness**
 > - **Verified Commit**: `50c1217` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-22T09:29:05+07:00`
+> - **Verified Timestamp**: `2026-11-22T11:46:44+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -102,3 +102,21 @@ This section documents architecturally significant decisions (ADRs) governing th
 - **Decision**: Standardize all LLM connectivity on `IAiGateway` -> `AiGatewayService` with env-only credentials (`AI_GATEWAY_URL`, `AI_GATEWAY_KEY`, `AI_TIMEOUT_MS=45000`), exponential backoff retries (`Bun.sleep`) on transient 429/5xx errors, multi-turn `messages` forwarding, `response_format: json_object` with 400 fallback, SSE streaming (`/api/v1/socratic/stream`), and `/api/v1/health/ai` diagnostics. Enforce strict fail-fast HTTP `503` errors (`AI_EVALUATOR_UNAVAILABLE` / `AI_TUTOR_UNAVAILABLE`) across Oracles and Socratic endpoints—eliminating all silent fallbacks and fake browser replies.
 - **Consequences**: Honest, observable, production-viable LLM connectivity compatible with Lumis AI Gateway, 9router, OpenRouter, OpenAI, or self-hosted vLLM/Ollama without compromising evaluation integrity.
 - **Risks Created**: RISK-04
+
+---
+
+## ADR-10: Clement–Brown Bridging Analogies, Grounding Router & Guided Single-Focus UX
+- **Status**: Accepted
+- **Context**: Static Markdown reading modules (`materi`) and basic MCQs feel too shallow when learners lack prior experiential anchors, while exposing many simultaneous tabs/panels creates cognitive overload on mobile screens.
+- **Decision**: Introduce `contents.type = 'interactive_module'` with structured `interactive_payload` (`UilaV2BlockSet` in `packages/shared/src/types/interactive.ts`) governed by an explicit `groundingDecision.mode` (`experiential_anchor_bridge` | `direct_analogy` | `thought_experiment` | `direct_formalism`) and mandatory `analogyBreakpoint`. Compile modules deterministically via `buildGuidedLearningSteps` into a calm one-step-per-screen flow (`InteractiveModuleViewer.svelte`) with 2-tier Anchoring Micro-Labs, `<1ms` 5-axis diagnostic checks, and automatic local + PostgreSQL resume (`learner_content_progress`) for both authenticated users and guest `x-learner-session` devices.
+- **Consequences**: Accelerated comprehension without jargon walls, zero setup-cost waste when direct formalism is faster, and effortless resume across sessions.
+- **Risks Created**: none
+
+---
+
+## ADR-11: Lazy-Loaded Sandboxed HTML Artifact Isolation & Licensing Boundary
+- **Status**: Accepted
+- **Context**: Authoring visual slide decks externally via CLI tools (such as `guizang-ppt-skill`, licensed under GNU AGPL-3.0) produces rich interactive HTML files that contain executable `<script>` blocks and must remain license-isolated from FlashLearn's core repository while remaining XSS-safe on mobile Portrait and Landscape viewports.
+- **Decision**: Store HTML artifacts in a separate lazy-loaded `content_artifacts` table (`0010_interactive_learning_modules.sql`) audited pre-upload (`auditHtmlArtifactSafety`), never copy AGPL-3.0 template/runtime code into FlashLearn core, and render artifacts generically inside `<iframe sandbox="allow-scripts">` (without `allow-same-origin`) wrapped with FlashLearn's MIT `buildSandboxedDeckHtml` host bridge (in-memory `localStorage` fallback, automatic mobile `low-power` mode, and `event.source`-verified `postMessage` slide synchronization). Offload slide images to MediaVault via CLI (`--upload-media`).
+- **Consequences**: Strict XSS containment, clean license separation, fast workspace listing queries, and zero-reload Portrait/Landscape slide transitions.
+- **Risks Created**: none

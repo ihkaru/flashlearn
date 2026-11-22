@@ -1,11 +1,13 @@
 import type { IContentRepository } from '../../../domain/ports/IContentRepository';
 import type { IWorkspaceRepository } from '../../../domain/ports/IWorkspaceRepository';
+import type { IInteractiveRepository } from '../../../domain/ports/IInteractiveRepository';
 import type { Content, UserRole } from '@flashlearn/shared';
 
 export class GetContentByIdUseCase {
   constructor(
     private readonly contentRepository: IContentRepository,
-    private readonly workspaceRepository: IWorkspaceRepository
+    private readonly workspaceRepository: IWorkspaceRepository,
+    private readonly interactiveRepository?: IInteractiveRepository
   ) {}
 
   async execute(
@@ -31,6 +33,17 @@ export class GetContentByIdUseCase {
       throw new Error('This content is not published yet');
     }
 
-    return content.toJSON(isOwner);
+    const dto = content.toJSON(isOwner);
+    if (this.interactiveRepository) {
+      const kindsMap = await this.interactiveRepository.listArtifactKindsByContentIds([content.id]);
+      const kinds = kindsMap.get(content.id) || [];
+      return {
+        ...dto,
+        hasSlideDeck: kinds.includes('slide_deck_html'),
+        hasAnchoringSim: kinds.includes('anchoring_sim_html'),
+      };
+    }
+
+    return dto;
   }
 }

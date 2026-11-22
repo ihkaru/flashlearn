@@ -227,7 +227,17 @@
                 {#if mat.summary}
                   <p style="margin: 0 0 8px 0; font-weight: 600; color: #0f766e;">{mat.summary}</p>
                 {/if}
-                <MarkdownRenderer content={mat.body || 'Tidak ada teks panjang.'} />
+                {#if mat.type === 'interactive_module'}
+                  <a
+                    href="#/content/{mat.id}"
+                    class="fl-btn fl-btn-sm"
+                    style="display: inline-flex; background: #0f766e; color: #ffffff; text-decoration: none; font-weight: 700;"
+                  >
+                    Buka Panduan Interaktif
+                  </a>
+                {:else}
+                  <MarkdownRenderer content={mat.body || 'Tidak ada teks panjang.'} />
+                {/if}
               </div>
             {/if}
           </div>

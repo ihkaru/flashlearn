@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "uila-v2",
+  "estimatedMinutes": 6,
+  "learningObjective": "Menjelaskan mengapa menyebarkan Public Key secara terbuka tetap menjaga kerahasiaan pesan terenkripsi.",
+  "uila": {
+    "groundingDecision": {
+      "mode": "experiential_anchor_bridge",
+      "priorKnowledgeAssumed": "none",
+      "setupCostSeconds": 20,
+      "rationale": "Kotak transparan bergembok klik memberi jangkar sebab-akibat instan < 30 detik bagi pemula tanpa latar matematika kriptografi."
+    },
+    "block1_anomaly": {
+      "groundState": "Dua rekan ingin bertukar dokumen rahasia melalui jaringan publik.",
+      "oldWay": "Memakai satu kunci yang sama untuk mengunci dan membuka lalu mengirim kunci tersebut lewat jalur yang sama.",
+      "breakdownPoint": "Jika penyadap menyalin kunci saat pengiriman pertama, seluruh pesan selanjutnya terbuka.",
+      "slideIndex": 0
+    },
+    "block2_grounding": {
+      "anchoringLab": {
+        "labId": "asymmetric-lockbox-sample",
+        "title": "Coba Sendiri: Kotak Transparan & Gembok Klik",
+        "instructionPrompt": "Tekan gembok sebagai Pengirim, lalu coba buka sebagai Penyadap.",
+        "ahaObservation": "Siapa saja dapat mengunci sekali klik, tetapi hanya pemegang anak kunci tunggal yang mampu membukanya.",
+        "timeToAhaSeconds": 20,
+        "tier": "native_primitive",
+        "nativeKind": "state_machine_sandbox",
+        "nativeConfig": {
+          "kind": "state_machine_sandbox",
+          "initialStateId": "open",
+          "states": [
+            { "id": "open", "label": "Kotak Terbuka", "description": "Pesan diletakkan di dalam kotak.", "tone": "open" },
+            { "id": "locked", "label": "Terkunci Rapat", "description": "Gembok klik terkunci tanpa butuh anak kunci.", "tone": "locked" },
+            { "id": "unlocked", "label": "Dibuka Pemilik", "description": "Anak kunci pribadi membuka gembok dengan aman.", "tone": "open" }
+          ],
+          "actions": [
+            { "id": "lock", "label": "Tekan Gembok Klik", "actor": "Pengirim", "fromStates": ["open"], "toState": "locked", "resultMessage": "Terkunci! Tanpa perlu anak kunci." },
+            { "id": "sniff", "label": "Coba Buka Tanpa Kunci", "actor": "Penyadap", "fromStates": ["locked"], "toState": "locked", "resultMessage": "Gagal. Tahu cara mengunci tidak berarti bisa membuka.", "triggersAha": true },
+            { "id": "unlock", "label": "Buka dengan Anak Kunci", "actor": "Penerima", "fromStates": ["locked"], "toState": "unlocked", "resultMessage": "Berhasil dibuka oleh pemilik anak kunci tunggal." }
+          ],
+          "requiredActionIdsForAha": ["lock", "sniff"]
+        }
+      },
+      "bridgingChain": [
+        {
+          "stepTitle": "Dari Gembok Klik ke Public & Private Key",
+          "bridgeScenario": "Salinan gembok terbuka = Public Key; satu anak kunci di tangan penerima = Private Key.",
+          "invariantPreserved": "Pemisahan satu arah antara kunci pengunci dan kunci pembuka.",
+          "structuralMapping": [
+            { "anchorElement": "Gembok klik terbuka", "targetConcept": "Public Key", "whyItMatches": "Dibagikan bebas agar siapa saja bisa mengenkripsi untuk penerima." },
+            { "anchorElement": "Anak kunci tunggal", "targetConcept": "Private Key", "whyItMatches": "Tetap rahasia dan satu-satunya kunci untuk dekripsi." }
+          ]
+        }
+      ],
+      "analogyBreakpoint": {
+        "whereItBreaks": "Gembok fisik tidak bisa memverifikasi identitas pengirim dan bersifat mekanis.",
+        "realMechanismInstead": "Kriptografi asimetris digital menggunakan fungsi matematika satu arah (kurva eliptik / faktorisasi prima) sehingga juga memungkinkan tanda tangan digital."
+      },
+      "slideIndex": 1
+    },
+    "block3_coreMechanics": {
+      "invariantProperty": "Informasi untuk mengunci (Public Key) tidak cukup untuk membalikkan dekripsi tanpa Private Key.",
+      "variableComponents": ["Plaintext", "Public Key", "Private Key", "Ciphertext"],
+      "contrastingCases": [
+        {
+          "beginnerMisconception": "Membagikan Public Key berarti membocorkan isi pesan.",
+          "physicalReality": "Public Key hanya bisa mengenkripsi; dekripsi tetap mustahil tanpa Private Key."
+        }
+      ],
+      "slideIndex": 1
+    },
+    "block4_notationContract": {
+      "formulaOrCode": "C = Enc(M, K_pub) | M = Dec(C, K_priv)",
+      "minimalFormalization": "Dua kunci berbeda memisahkan aksi mengunci dan membuka secara eksplisit.",
+      "termsDeconstruction": [
+        { "symbol": "K_pub", "physicalMeaning": "Gembok klik yang boleh disalin siapa saja" },
+        { "symbol": "K_priv", "physicalMeaning": "Anak kunci pribadi milik penerima" }
+      ],
+      "slideIndex": 2
+    },
+    "block5_stressTest": {
+      "probeType": "prediction_what_if",
+      "prompt": "Penyadap memiliki salinan Public Key penerima dan menyadap ciphertext C. Apakah penyadap bisa membaca M?",
+      "options": [
+        { "optionId": "a", "text": "Tidak bisa, karena Public Key hanya dapat mengenkripsi dan tidak bisa menjalankan Dec tanpa Private Key.", "isCorrect": true, "causalRationale": "Sesuai aturan satu arah, Dec membutuhkan K_priv." },
+        { "optionId": "b", "text": "Bisa langsung membuka C karena ia memegang kunci yang sama dengan pengirim.", "isCorrect": false, "diagnosticAxis": "conceptGap", "causalRationale": "Masih mengira sistem memakai kunci simetris." },
+        { "optionId": "c", "text": "Pesan C rusak otomatis karena Public Key disalin pihak luar.", "isCorrect": false, "diagnosticAxis": "reasoningBug", "causalRationale": "Menyalin Public Key tidak merusak ciphertext." }
+      ],
+      "hintLadder": {
+        "level0Reflective": "Ingat percobaan Penyadap di kotak transparan.",
+        "level1Directional": "Bedakan peran gembok dan anak kunci.",
+        "level2Constraint": "Lihat fungsi Dec(C, K_priv).",
+        "level3WorkedExample": "Tanpa K_priv, penyadap tidak bisa membalikkan C menjadi M."
+      },
+      "groundTruth": "Tidak bisa membaca M tanpa K_priv."
+    }
+  }
+}

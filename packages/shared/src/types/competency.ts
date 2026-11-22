@@ -1,3 +1,6 @@
+import type { ContentType } from './content';
+import type { InteractiveModulePayload } from './interactive';
+
 export type OracleClass = 'A' | 'B' | 'C';
 export type RiskLevel = 'low' | 'medium' | 'high';
 export type MasteryStatus = 'locked' | 'ready' | 'in_progress' | 'mastered' | 'stale';
@@ -120,7 +123,8 @@ export interface CompetencyLearningBundle {
     summary?: string | null;
     body?: string | null;
     readingTimeMinutes?: number | null;
-    type: 'materi' | 'quiz' | 'combined';
+    type: ContentType;
+    interactivePayload?: InteractiveModulePayload | null;
   }>;
   causalProbes?: CausalProbe[];
   workedExamples?: Array<{

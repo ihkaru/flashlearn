@@ -1,4 +1,6 @@
-export type ContentType = 'materi' | 'quiz' | 'combined';
+import type { InteractiveModulePayload } from './interactive';
+
+export type ContentType = 'materi' | 'quiz' | 'combined' | 'interactive_module';
 
 export interface QuizOption {
   id: string;
@@ -27,6 +29,9 @@ export interface Content {
   readingTimeMinutes: number | null;
   body: string | null; // Markdown for 'materi' and 'combined'
   questions: QuizQuestion[] | null; // Questions for 'quiz' and 'combined'
+  interactivePayload?: InteractiveModulePayload | null;
+  hasSlideDeck?: boolean;
+  hasAnchoringSim?: boolean;
   citations?: ContentSourceCitation[];
   isPublished: boolean;
   deletedAt?: string | null;
@@ -97,6 +102,7 @@ export interface CreateContentRequest {
   readingTimeMinutes?: number;
   body?: string;
   questions?: QuizQuestion[];
+  interactivePayload?: InteractiveModulePayload | null;
   isPublished?: boolean;
 }
 
@@ -110,6 +116,7 @@ export interface UpdateContentRequest {
   readingTimeMinutes?: number;
   body?: string;
   questions?: QuizQuestion[];
+  interactivePayload?: InteractiveModulePayload | null;
   isPublished?: boolean;
 }
 

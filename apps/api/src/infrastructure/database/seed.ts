@@ -7,6 +7,7 @@ import { seedEnterpriseProcurement } from './seeds/enterprise_procurement.seed';
 import { seedSoftwareArchitecture } from './seeds/software_architecture.seed';
 import { seedTypeScriptMastery } from './seeds/typescript_mastery.seed';
 import { seedWilkerstat } from './seeds/wilkerstat.seed';
+import { seedBridgingMastery } from './seeds/bridging_mastery.seed';
 
 async function seed() {
   console.log('🌱 Starting FlashLearn Database Seeding...');
@@ -271,6 +272,9 @@ Pisahkan use case berdasarkan aktor:
 
   // 9. Seed Pelatihan Wilkerstat SE2026 Domain Blueprint
   await seedWilkerstat(creator.id);
+
+  // 10. Seed Interactive Bridging Analogies Mastery Workspace (Phase 07-12)
+  await seedBridgingMastery(admin.id);
 
   console.log('🎉 FlashLearn Database Seeding Finished Successfully!');
   process.exit(0);

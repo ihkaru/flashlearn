@@ -46,6 +46,18 @@ export const DOMAIN_SCHEMAS: Record<string, ResourceSchemaDef> = {
         mutating: true,
       },
       {
+        action: 'import-curriculum',
+        description: 'Atomically import a compiled 4-layer curriculum package (blueprint + interactive UILA v2 modules + slide decks + micro-sims)',
+        args: [
+          { name: '--dir', type: 'string', required: true, description: 'Directory containing curriculum-package.json' },
+          { name: '--workspace-id', type: 'string', required: false, description: 'Optional existing workspace UUID' },
+          { name: '--upload-media', type: 'boolean', required: false, description: 'Upload local slide images to MediaVault' },
+          { name: '--dry-run', type: 'boolean', required: false, description: 'Validate all modules and artifacts without persisting' },
+        ],
+        example: 'flashlearn workspace import-curriculum --dir ./compiled-course --dry-run',
+        mutating: true,
+      },
+      {
         action: 'delete',
         description: 'Delete a workspace',
         args: [

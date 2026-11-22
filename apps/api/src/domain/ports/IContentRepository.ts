@@ -1,5 +1,5 @@
 import type { ContentEntity } from '../entities/Content';
-import type { ContentType, QuizQuestion } from '@flashlearn/shared';
+import type { ContentType, InteractiveModulePayload, QuizQuestion } from '@flashlearn/shared';
 
 export interface CreateContentData {
   workspaceId: string;
@@ -12,6 +12,7 @@ export interface CreateContentData {
   readingTimeMinutes?: number | null;
   body?: string | null;
   questions?: QuizQuestion[] | null;
+  interactivePayload?: InteractiveModulePayload | null;
   isPublished: boolean;
 }
 
@@ -25,6 +26,7 @@ export interface UpdateContentData {
   readingTimeMinutes?: number | null;
   body?: string | null;
   questions?: QuizQuestion[] | null;
+  interactivePayload?: InteractiveModulePayload | null;
   isPublished?: boolean;
 }
 

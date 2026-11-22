@@ -1,7 +1,7 @@
 ---
 arc42_section: 8
 verified_commit: 50c1217
-verified_timestamp: 2026-11-22T09:29:05+07:00
+verified_timestamp: 2026-11-22T11:46:44+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -13,7 +13,7 @@ tracked_paths:
 
 > [!INFO] **Architecture Provenance & Freshness**
 > - **Verified Commit**: `50c1217` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-22T09:29:05+07:00`
+> - **Verified Timestamp**: `2026-11-22T11:46:44+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -37,16 +37,18 @@ Cross-cutting concepts span across all building blocks of FlashLearn to preserve
 ## 8.2 Safe Persistence, Deduplication & Migration Governance
 
 1. **Explicit Drizzle SQL Builders (`db.select()`)**:
-   - All 17 repositories (`apps/api/src/infrastructure/repositories/`) and all seed modules (`apps/api/src/infrastructure/database/seed.ts`, `seeds/*.ts`) use explicit parameterized SQL query builders (`db.select().from(...).where(...)`), with zero `db.query.*` calls across the codebase.
-2. **Compound Unique Constraints & Idempotency (Migration `0007`)**:
+   - All 18 repositories (`apps/api/src/infrastructure/repositories/`) and all seed modules (`apps/api/src/infrastructure/database/seed.ts`, `seeds/*.ts`) use explicit parameterized SQL query builders (`db.select().from(...).where(...)`), with zero `db.query.*` calls across the codebase.
+2. **Compound Unique Constraints & Idempotency (Migrations `0007` & `0010`)**:
    - `idx_competencies_ws_code`: `(workspace_id, code)`
    - `idx_sources_ws_code`: `(workspace_id, code)`
    - `idx_gates_ws_level`: `(workspace_id, level)`
    - `idx_contents_ws_slug`: `(workspace_id, slug)`
    - `idx_tasks_comp_title`: `(competency_id, title)`
+   - `idx_content_artifacts_content_kind`: `(content_id, kind)` (idempotent CLI artifact upserts)
+   - Partial unique indexes `idx_lcp_content_user` and `idx_lcp_content_session` on `learner_content_progress` supporting seamless resume for both logged-in users and anonymous guest sessions (`x-learner-session`).
    - Plus `idx_mastery_user_comp_unique` `(user_id, competency_id)`, `idx_gate_req_unique` `(gate_id, competency_id)`, and `idx_content_chunk_unique` `(content_id, source_chunk_id)`.
 3. **Database Migration Safety (`migrate.ts`)**:
-   - Migrations in `apps/api/drizzle/` (`0000`–`0009`) execute sequentially under PostgreSQL advisory lock `84920384` (`pg_advisory_lock`) with schema integrity checks on exit.
+   - Migrations in `apps/api/drizzle/` (`0000`–`0010`) execute sequentially under PostgreSQL advisory lock `84920384` (`pg_advisory_lock`) with schema integrity checks on exit.
 4. **Zero Hardcoded Production Credentials**:
    - `db.ts` and `migrate.ts` throw immediately in `NODE_ENV=production` if `DATABASE_URL` is absent; `AiGatewayService` fails fast (`AI_GATEWAY_NOT_CONFIGURED`) if `AI_GATEWAY_KEY` is absent; `seed.ts` only seeds a master API key when `SEED_MASTER_API_KEY` is explicitly provided.
 
@@ -80,3 +82,4 @@ FlashLearn enforces strict **Fail-Fast & Zero Silent Fallback** semantics:
 3. **Restrained Vector Iconography & Zero-Emoticon Monograms**: Lightweight custom SVG registry (`apps/web/src/components/ui/Icon.svelte` + `iconPaths.ts`, 45 typed icons) applied selectively to icon-only controls and critical lock/verification states (zero decorative icon overload). Zero Unicode emoticons across all frontend source files, backed by `apps/web/src/lib/monogram.ts` (`getMonogram`) so legacy emoji `icon` fields stored in PostgreSQL render as clean 2-3 letter typographic monograms.
 4. **XSS-Hardened Markdown Rendering (`MarkdownRenderer.svelte`)**: `marked@18` + `marked-katex-extension` + `highlight.js/lib/common` + custom `markedAlert` callouts, sanitized via `DOMPurify` with **zero inline `onclick` attributes** (code copy handled via delegated Svelte click listener reading `data-code`).
 5. **Wrap-Safe & Accessible Mobile Ergonomics (`apps/web/src/styles/app.css`)**: Single-line flex-safe buttons (`.fl-btn` with `white-space: nowrap; flex-shrink: 0`), opt-in multi-line option wrapping (`.fl-btn-wrap`), horizontal scroll bars (`.fl-scroll-row`), safe fluid grids (`.fl-grid-cards` using `minmax(min(100%, 280px), 1fr)`), prose-only wrapping (`.fl-prose`), WCAG `:focus-visible` rings, `min-height: 44px` mobile touch targets, `prefers-reduced-motion` support, and user-triggered 3D Y-axis CSS flashcard flip animations without idle looping animations.
+6. **Sandboxed HTML Artifact Isolation (`deck-sandbox-bridge.ts` & `AdaptiveDeckStage.svelte`)**: Interactive HTML slide decks and custom micro-simulations execute exclusively inside `<iframe sandbox="allow-scripts">` **without** `allow-same-origin` (opaque origin, zero cookie/JWT/DOM access). Pre-upload static audits (`auditHtmlArtifactSafety`) reject disallowed remote script origins and large inline base64 blobs, while `postMessage` listeners validate strict `event.source === iframeEl.contentWindow` identity.

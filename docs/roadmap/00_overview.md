@@ -77,3 +77,5 @@ Dokumentasi detail setiap fase dipecah ke dalam file bernomor terpisah:
    *Uji coba komprehensif pada domain Pengadaan Korporat vs Aviasi/Kedokteran membuktikan 100% domain-agnosticism.*
 6. **[Fase 6: Causal Priming, Unaided Sandbox, & Multi-Observation Entrustment](06_phase6_causal_priming_and_unaided_gate_enforcement.md)**  
    *Penutupan celah AI Crutch via Unaided Sandbox, kartu What-If kausal, dan verifikasi wewenang multi-observasi.*
+7. **[Fase 7–12 (v3.0): Pipeline 4-Layer, Bridging Analogies, Adaptive Portrait/Landscape & Resumable Guided UX](07_phase7_to_12_bridging_4layer_pipeline.md)**  
+   *Grounding Strategy Router (Clement & Brown), Anchoring Micro-Lab 2-tier, Sandboxed HTML Deck Viewer (`sandbox="allow-scripts"`), CLI-only ingestion + MediaVault, serta UX satu arahan per layar dengan auto-resume.*

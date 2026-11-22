@@ -1,7 +1,7 @@
 ---
 arc42_section: 11
 verified_commit: 50c1217
-verified_timestamp: 2026-11-22T09:29:05+07:00
+verified_timestamp: 2026-11-22T11:46:44+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -13,7 +13,7 @@ tracked_paths:
 
 > [!INFO] **Architecture Provenance & Freshness**
 > - **Verified Commit**: `50c1217` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-22T09:29:05+07:00`
+> - **Verified Timestamp**: `2026-11-22T11:46:44+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -40,7 +40,7 @@ This section catalogues known architectural risks and active technical debt in F
 | Debt ID | Component | Description | Impact | Remediation Plan | Target Milestone |
 |---|---|---|---|---|---|
 | DEBT-01 | `apps/web` Testing | Frontend workspace (`apps/web`) currently has no automated unit/component test runner (only `apps/api`, `packages/shared`, and `packages/cli` run `bun test`). | UI regressions rely on manual QA and `vite build` checks. | Add lightweight Svelte 5 component tests and smoke E2E checks integrated into root `bun run test`. | v1.1.0 |
-| DEBT-02 | `apps/web` Component Decomposition | 16 Svelte components remain between 200–392 lines (above 200-line soft SRP guidance, below 400-line hard cap). *(Zero-emoticon hygiene, wrap-safe CSS, and restrained iconography are completed.)* | Elevated component size on largest modals/pages. | Decompose largest pages (`QuizRunner.svelte`, `ContentEditorModal.svelte`, `workspace.svelte`) into subcomponents. | v1.1.0 |
+| DEBT-02 | `apps/web` Component Decomposition | 20 Svelte components remain between 200–392 lines (above 200-line soft SRP guidance, below 400-line hard cap). *(Zero-emoticon hygiene, wrap-safe CSS, restrained iconography, and Guided Interactive Bridging modules are completed.)* | Elevated component size on largest modals/pages. | Decompose largest pages (`QuizRunner.svelte`, `ContentEditorModal.svelte`, `workspace.svelte`, `InteractiveModuleViewer.svelte`) into smaller subcomponents. | v1.1.0 |
 | DEBT-03 | Planned Cognitive & Security Evolutions | Several target enhancements from the architecture roadmap are not yet implemented in code: Dual-Agent Class B Critic, 4-tier adaptive fading (70/30/0%), Graceful Downgrade server-side instance burning, `/.well-known/did.json` endpoint, W3C Bitstring Status List, organizational decay attestation endpoint, and async LLM evaluation queue. | Documented honestly as roadmap items rather than active runtime guarantees. | Deliver incrementally in dedicated vertical slices with hermetic tests before promoting to As-Is status. | v1.2.0 |
 | DEBT-04 | Live Load & DB Integration CI | Integration tests `apps/api/tests/phase01`–`phase16.test.ts` require a running PostgreSQL instance, and 50-VU load benchmarks for `QS-03` have not yet been automated in CI. | Full DB integration and `QS-03` performance telemetry cannot run in DB-less sandboxes. | Provision ephemeral Postgres service container + k6 load benchmark in CI alongside hermetic `llm_and_oracle_integrity.test.ts`. | v1.1.0 |
 | DEBT-05 | Credential Execution Artifact Hash | Column `issued_credentials.execution_artifact_hash` exists in schema (`0009`), but `IssueVerifiableCredentialUseCase` does not yet populate it with the aggregated Merkle hash of verified attempt transcripts. | W3C VCs do not yet embed attempt transcript Merkle digests automatically. | Compute and attach aggregated attempt `conversationHash` / artifact digest in `IssueVerifiableCredentialUseCase`. | v1.1.0 |

@@ -1,0 +1,14 @@
+{
+  "workspaceId": "",
+  "notes": "Pass --workspace-id <WS_ID> or attach blueprintFile to create a new workspace automatically.",
+  "modules": [
+    {
+      "title": "Enkripsi Asimetris: Dari Kotak Gembok ke Kunci Publik",
+      "slug": "enkripsi-asimetris-bridging",
+      "summary": "Pahami public-private key lewat percobaan kotak transparan bergembok klik sebelum menyentuh rumus.",
+      "readingTimeMinutes": 6,
+      "manifestFile": "01-asymmetric-uila.json",
+      "deckFile": "01-deck.html"
+    }
+  ]
+}

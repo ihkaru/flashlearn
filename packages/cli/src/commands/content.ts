@@ -1,6 +1,11 @@
 import { readFileSync } from 'node:fs';
+import type { ContentArtifactKind } from '@flashlearn/shared';
 import type { ApiClient } from '../core/client';
 import { CliError, ExitCode, type NextAction } from '../core/envelope';
+import {
+  importInteractiveModule,
+  prepareValidatedHtmlArtifact,
+} from '../core/interactive-importer';
 
 export async function handleContentCommand(
   action: string,
@@ -173,10 +178,103 @@ export async function handleContentCommand(
       return { data };
     }
 
+    case 'import-interactive': {
+      const workspaceId = flags['workspace-id'] || flags.workspace;
+      const title = flags.title;
+      const manifestPath = flags.manifest || flags.file || args[0];
+
+      if (!workspaceId || !title || !manifestPath) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message:
+            'Required: --workspace-id, --title, and --manifest <uila-v2.json>. Optional: --deck <index.html> --sim <sim.html> --slug <slug> --competency-id <id>',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      const data = await importInteractiveModule(client, {
+        workspaceId,
+        domainId: flags['domain-id'],
+        competencyId: flags['competency-id'],
+        title,
+        slug: flags.slug,
+        summary: flags.summary,
+        readingTimeMinutes: flags['reading-time'] ? Number(flags['reading-time']) : undefined,
+        manifestPath,
+        deckPath: flags.deck,
+        simPath: flags.sim,
+        dryRun: Boolean(flags['dry-run']),
+        mediaOpts: {
+          enabled: Boolean(flags['upload-media']),
+          dryRun: Boolean(flags['dry-run']),
+          vaultUrl: flags['mediavault-url'],
+          apiKey: flags['mediavault-key'],
+        },
+      });
+      return { data };
+    }
+
+    case 'upload-artifact': {
+      const contentId = args[0] || flags['content-id'];
+      const kind = (flags.kind || 'slide_deck_html') as ContentArtifactKind;
+      const filePath = flags.file || args[1];
+
+      if (!contentId || !filePath) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message:
+            'Usage: `flashlearn content upload-artifact <content-id> --kind slide_deck_html --file <index.html>`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+      if (kind !== 'slide_deck_html' && kind !== 'anchoring_sim_html') {
+        throw new CliError({
+          code: 'INVALID_ARGUMENT',
+          message: '--kind must be slide_deck_html or anchoring_sim_html',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+
+      const prepared = await prepareValidatedHtmlArtifact(filePath, {
+        enabled: Boolean(flags['upload-media']),
+        dryRun: Boolean(flags['dry-run']),
+        vaultUrl: flags['mediavault-url'],
+        apiKey: flags['mediavault-key'],
+      });
+
+      if (flags['dry-run']) {
+        return {
+          data: {
+            dryRun: true,
+            contentId,
+            kind,
+            slideCount: prepared.slideCount,
+            lang: prepared.lang,
+            warnings: prepared.warnings,
+            mediaUrls: prepared.mediaUrls,
+          },
+        };
+      }
+
+      const data = await client.request(`/api/v1/contents/${contentId}/artifacts/${kind}`, {
+        method: 'PUT',
+        body: {
+          htmlContent: prepared.htmlContent,
+          mimeType: 'text/html',
+          metadata: {
+            slideCount: prepared.slideCount,
+            lang: prepared.lang,
+            mediaUrls: prepared.mediaUrls,
+          },
+        },
+      });
+      return { data };
+    }
+
     default:
       throw new CliError({
         code: 'UNKNOWN_ACTION',
-        message: `Unknown action '${action}' for noun 'content'. Available: list, get, create, update, delete, rollback.`,
+        message: `Unknown action '${action}' for noun 'content'. Available: list, get, create, update, delete, rollback, import-interactive, upload-artifact.`,
         exitCode: ExitCode.USAGE_ERROR,
       });
   }

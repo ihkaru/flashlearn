@@ -1,6 +1,11 @@
 import type { IContentRepository } from '../../../domain/ports/IContentRepository';
 import type { IWorkspaceRepository } from '../../../domain/ports/IWorkspaceRepository';
-import type { Content, CreateContentRequest, UserRole } from '@flashlearn/shared';
+import {
+  validateInteractiveModulePayload,
+  type Content,
+  type CreateContentRequest,
+  type UserRole,
+} from '@flashlearn/shared';
 
 export class CreateContentUseCase {
   constructor(
@@ -33,6 +38,17 @@ export class CreateContentUseCase {
       throw new Error('Forbidden: You can only add content to workspaces you created');
     }
 
+    if (input.type === 'interactive_module') {
+      const report = validateInteractiveModulePayload(input.interactivePayload);
+      if (!report.valid) {
+        const msg = report.issues
+          .filter((i) => i.severity === 'error')
+          .map((i) => `${i.code}: ${i.message}`)
+          .join('; ');
+        throw new Error(`Invalid interactive_module payload: ${msg}`);
+      }
+    }
+
     const baseSlug = input.slug || this.slugify(input.title);
     let finalSlug = baseSlug;
     let counter = 1;
@@ -43,6 +59,8 @@ export class CreateContentUseCase {
 
     const entity = await this.contentRepository.create({
       workspaceId: input.workspaceId,
+      domainId: input.domainId ?? null,
+      competencyId: input.competencyId ?? null,
       title: input.title,
       slug: finalSlug,
       type: input.type,
@@ -50,6 +68,7 @@ export class CreateContentUseCase {
       readingTimeMinutes: input.readingTimeMinutes || 5,
       body: input.body,
       questions: input.questions,
+      interactivePayload: input.interactivePayload ?? null,
       isPublished: input.isPublished !== undefined ? input.isPublished : true,
     });
 

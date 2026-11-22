@@ -6,6 +6,7 @@
   import MaterialViewer from '../components/MaterialViewer.svelte';
   import QuizRunner from '../components/QuizRunner.svelte';
   import CombinedModule from '../components/CombinedModule.svelte';
+  import InteractiveModuleViewer from '../components/interactive/InteractiveModuleViewer.svelte';
   import ContentEditorModal from '../components/ContentEditorModal.svelte';
   import QuizReviewModal from '../components/QuizReviewModal.svelte';
   import Icon from '../components/ui/Icon.svelte';
@@ -80,11 +81,11 @@
         <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap;">
           <ChipBadge
             variant={content.type === 'quiz' ? 'quiz' : content.type === 'materi' ? 'materi' : 'combined'}
-            label={content.type.toUpperCase()}
+            label={content.type === 'interactive_module' ? 'PANDUAN INTERAKTIF' : content.type.toUpperCase()}
           />
 
           {#if canEdit}
-            {#if content.type !== 'materi'}
+            {#if content.type !== 'materi' && content.type !== 'interactive_module'}
               <button
                 type="button"
                 class="fl-btn fl-btn-sm fl-pill-btn"
@@ -132,6 +133,8 @@
       <QuizRunner {content} />
     {:else if content.type === 'combined'}
       <CombinedModule {content} />
+    {:else if content.type === 'interactive_module'}
+      <InteractiveModuleViewer {content} onFinished={goBack} />
     {/if}
   {/if}
 </div>

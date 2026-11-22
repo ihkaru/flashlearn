@@ -49,14 +49,25 @@ export const contentController = new Elysia({ prefix: '/api/v1/contents' })
     {
       body: t.Object({
         workspaceId: t.String({ description: 'Target workspace UUID' }),
+        domainId: t.Optional(t.String()),
+        competencyId: t.Optional(t.String()),
         title: t.String({ minLength: 3, description: 'Content title' }),
         slug: t.Optional(t.String()),
-        type: t.Union([t.Literal('materi'), t.Literal('quiz'), t.Literal('combined')], {
-          description: 'Type of content',
-        }),
+        type: t.Union(
+          [
+            t.Literal('materi'),
+            t.Literal('quiz'),
+            t.Literal('combined'),
+            t.Literal('interactive_module'),
+          ],
+          {
+            description: 'Type of content',
+          }
+        ),
         summary: t.Optional(t.String()),
         readingTimeMinutes: t.Optional(t.Integer()),
         body: t.Optional(t.String({ description: 'Markdown body for materi & combined' })),
+        interactivePayload: t.Optional(t.Any()),
         questions: t.Optional(
           t.Array(
             t.Object({
@@ -146,15 +157,23 @@ export const contentController = new Elysia({ prefix: '/api/v1/contents' })
         id: t.String({ description: 'Content UUID' }),
       }),
       body: t.Object({
+        domainId: t.Optional(t.String()),
+        competencyId: t.Optional(t.String()),
         title: t.Optional(t.String()),
         slug: t.Optional(t.String()),
         type: t.Optional(
-          t.Union([t.Literal('materi'), t.Literal('quiz'), t.Literal('combined')])
+          t.Union([
+            t.Literal('materi'),
+            t.Literal('quiz'),
+            t.Literal('combined'),
+            t.Literal('interactive_module'),
+          ])
         ),
         summary: t.Optional(t.String()),
         readingTimeMinutes: t.Optional(t.Integer()),
         body: t.Optional(t.String()),
         questions: t.Optional(t.Array(t.Any())),
+        interactivePayload: t.Optional(t.Any()),
         isPublished: t.Optional(t.Boolean()),
       }),
       detail: {
