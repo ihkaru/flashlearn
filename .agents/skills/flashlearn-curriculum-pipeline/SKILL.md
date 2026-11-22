@@ -76,6 +76,20 @@ Jika modul dilengkapi deck visual (disarankan 4–10 slide yang sinkron dengan `
 
 ## Layer 4: Ingesti CLI-Only ke FlashLearn (Idempoten & Non-Interaktif)
 
+### Konfigurasi Base URL & API Key CLI (Infisical atau Lokal)
+CLI membaca konfigurasi dengan urutan prioritas: **Flag (`--base-url` / `--api-url`, `--api-key`) > Environment (`FLASHLEARN_BASE_URL` / `FLASHLEARN_API_URL`, `FLASHLEARN_API_KEY` / `FLASHLEARN_SUPERADMIN_API_KEY`) > File Lokal (`~/.flashlearn/config.json`, `chmod 600`)**.
+
+```bash
+# Simpan base URL & API key lokal sekali jalan
+flashlearn config set --base-url https://learn.dvlpid.my.id --api-key "$FLASHLEARN_SUPERADMIN_API_KEY"
+flashlearn config get
+flashlearn auth whoami
+
+# Atau jalankan langsung dengan injeksi environment (mis. via secret manager)
+# env: FLASHLEARN_BASE_URL + FLASHLEARN_API_KEY (atau FLASHLEARN_SUPERADMIN_API_KEY)
+flashlearn auth whoami
+```
+
 ### Opsi 1 — Impor 1 Modul Interaktif (Idempoten via `--slug`)
 ```bash
 # 1. Dry-run: validasi UILA v2, Clement-Brown router, audit keamanan HTML, & cek aset gambar

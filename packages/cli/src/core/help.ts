@@ -21,9 +21,10 @@ export function generateHelp(noun?: string, action?: string): HelpPayload {
     '--dry-run': 'Simulate mutating state action without applying server changes',
     '--yes, -y': 'Automatic yes confirmation for destructive operations',
     '--output <json|text>': 'Output format (default: json for agent-first loops)',
+    '--base-url <url>': 'Base URL for backend (alias: --api-url, env: FLASHLEARN_BASE_URL)',
     '--api-url <url>': 'Base URL for backend (default: http://localhost:3000)',
-    '--api-key <key>': 'API authentication key (fl_live_...)',
-    '--token <jwt>': 'JWT user session token',
+    '--api-key <key>': 'API authentication key (fl_live_..., env: FLASHLEARN_API_KEY / FLASHLEARN_SUPERADMIN_API_KEY)',
+    '--token <jwt>': 'JWT user session token (env: FLASHLEARN_TOKEN)',
   };
 
   // Case 1: Granular Action Help

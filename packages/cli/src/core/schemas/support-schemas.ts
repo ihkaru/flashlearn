@@ -295,15 +295,53 @@ export const SUPPORT_SCHEMAS: Record<string, ResourceSchemaDef> = {
       },
       {
         action: 'config',
-        description: 'Save local CLI configuration (API URL, workspace, token)',
+        description: 'Save local CLI configuration (base URL, workspace, API key, token)',
         args: [
+          { name: '--base-url', type: 'string', required: false, description: 'Default FlashLearn Base URL (alias: --api-url)' },
           { name: '--api-url', type: 'string', required: false, description: 'Default API URL' },
           { name: '--token', type: 'string', required: false, description: 'Active JWT token' },
-          { name: '--api-key', type: 'string', required: false, description: 'Active API key' },
+          { name: '--api-key', type: 'string', required: false, description: 'Active API key (fl_live_...)' },
           { name: '--workspace', type: 'string', required: false, description: 'Default workspace ID' },
         ],
-        example: 'flashlearn auth config --api-url http://localhost:3000 --workspace ws_123',
+        example: 'flashlearn auth config --base-url https://learn.dvlpid.my.id --api-key fl_live_...',
         mutating: false,
+      },
+    ],
+  },
+  config: {
+    noun: 'config',
+    description: 'Configure and inspect CLI Base URL, API key, workspace, and Infisical env resolution',
+    actions: [
+      {
+        action: 'get',
+        description: 'Inspect effective Base URL, masked API key, and config sources (flag/env/stored)',
+        args: [
+          { name: '--show-secrets', type: 'boolean', required: false, description: 'Reveal full API key/token instead of masked prefix' },
+        ],
+        example: 'flashlearn config get',
+        mutating: false,
+      },
+      {
+        action: 'set',
+        description: 'Persist Base URL and/or API key to local CLI config (~/.flashlearn/config.json, chmod 600)',
+        args: [
+          { name: '--base-url', type: 'string', required: false, description: 'FlashLearn Base URL (alias: --api-url)' },
+          { name: '--api-key', type: 'string', required: false, description: 'FlashLearn API Key (fl_live_...)' },
+          { name: '--workspace', type: 'string', required: false, description: 'Default workspace UUID' },
+        ],
+        example: 'flashlearn config set --base-url https://learn.dvlpid.my.id --api-key fl_live_...',
+        mutating: true,
+      },
+      {
+        action: 'unset',
+        description: 'Remove saved credentials or base URL from local CLI config',
+        args: [
+          { name: '--base-url', type: 'boolean', required: false, description: 'Clear stored Base URL' },
+          { name: '--api-key', type: 'boolean', required: false, description: 'Clear stored API key' },
+          { name: '--all', type: 'boolean', required: false, description: 'Clear all stored CLI settings' },
+        ],
+        example: 'flashlearn config unset --api-key',
+        mutating: true,
       },
     ],
   },

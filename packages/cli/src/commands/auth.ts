@@ -1,10 +1,10 @@
-import { saveStoredConfig, loadStoredConfig } from '../core/config';
+import { saveStoredConfig, resolveConfigWithSources, maskSecret } from '../core/config';
 import type { ApiClient } from '../core/client';
 import { CliError, ExitCode, type NextAction } from '../core/envelope';
 
 export async function handleAuthCommand(
   action: string,
-  args: string[],
+  _args: string[],
   flags: Record<string, any>,
   client: ApiClient
 ): Promise<{ data: any; nextActions?: NextAction[] }> {
@@ -16,20 +16,41 @@ export async function handleAuthCommand(
 
     case 'config': {
       const updateData: Record<string, any> = {};
-      if (flags['api-url']) updateData.apiUrl = flags['api-url'];
-      if (flags['api-key']) updateData.apiKey = flags['api-key'];
-      if (flags['token']) updateData.token = flags['token'];
-      if (flags['workspace']) updateData.workspaceId = flags['workspace'];
-
-      if (Object.keys(updateData).length > 0) {
-        saveStoredConfig(updateData);
+      const rawUrl = flags['base-url'] || flags['api-url'];
+      if (typeof rawUrl === 'string' && rawUrl.trim().length > 0) {
+        updateData.apiUrl = rawUrl.trim().replace(/\/+$/, '');
+      }
+      if (typeof flags['api-key'] === 'string' && flags['api-key'].trim().length > 0) {
+        updateData.apiKey = flags['api-key'].trim();
+      }
+      if (typeof flags['token'] === 'string' && flags['token'].trim().length > 0) {
+        updateData.token = flags['token'].trim();
+      }
+      const ws = flags['workspace'] || flags['workspace-id'];
+      if (typeof ws === 'string' && ws.trim().length > 0) {
+        updateData.workspaceId = ws.trim();
       }
 
-      const current = loadStoredConfig();
+      const configPath = flags['config'];
+      if (Object.keys(updateData).length > 0) {
+        saveStoredConfig(updateData, configPath);
+      }
+
+      const { config, sources, configFile } = resolveConfigWithSources(flags);
+      const showSecrets = Boolean(flags['show-secrets']);
       return {
         data: {
-          currentConfig: current,
-          updated: Object.keys(updateData).length > 0 ? updateData : undefined,
+          configFile,
+          currentConfig: {
+            baseUrl: config.apiUrl,
+            apiUrl: config.apiUrl,
+            apiKey: showSecrets ? config.apiKey : maskSecret(config.apiKey),
+            hasApiKey: Boolean(config.apiKey),
+            token: showSecrets ? config.token : maskSecret(config.token),
+            workspaceId: config.workspaceId ?? null,
+          },
+          sources,
+          updatedKeys: Object.keys(updateData).length > 0 ? Object.keys(updateData) : undefined,
         },
       };
     }

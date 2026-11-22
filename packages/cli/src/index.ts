@@ -24,6 +24,7 @@ import { handleFlashcardCommand } from './commands/flashcard';
 import { handleAuditCommand } from './commands/audit';
 import { handleApiKeyCommand } from './commands/apikey';
 import { handleAuthCommand } from './commands/auth';
+import { handleConfigCommand } from './commands/config';
 import { handleSchemaCommand } from './commands/schema';
 import { handleDiagnosticCommand } from './commands/diagnostic';
 
@@ -117,6 +118,10 @@ export async function runCli(rawArgv: string[]): Promise<number> {
       case 'auth':
       case 'session':
         result = await handleAuthCommand(action, args, parsed.flags, client);
+        break;
+      case 'config':
+      case 'configure':
+        result = await handleConfigCommand(action === 'list' && !parsed.action ? 'get' : action, args, parsed.flags);
         break;
       default:
         throw new CliError({
