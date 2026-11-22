@@ -142,4 +142,131 @@ export function validateElasticProfileExtensions(
       message: 'University lecture unit budget should be <= 120 minutes; split into smaller lossless units.',
     });
   }
+
+  auditUnexplainedAcronyms(payload, issues);
+}
+
+const UNIVERSAL_SHORT_TOKENS = new Set([
+  // Everyday universal abbreviations & units
+  'MIT', 'AS', 'RI', 'SD', 'SMP', 'SMA', 'SMK', 'IPA', 'IPS', 'HP', 'TV', 'ID', 'RP', 'UU',
+  'AI', 'UI', 'UX', 'IT', 'PC', 'OS', 'JS', 'TS', 'SQL', 'PDF', 'PPT', 'HTML',
+  'HTTP', 'HTTPS', 'URL', 'API', 'JSON', 'CLI', 'CSS', 'IGD', 'USD', 'IDR', 'USA',
+  'RAM', 'CPU', 'GPU', 'USB', 'SMS', 'ATM', 'KTP', 'SIM', 'GPS', 'PIN', 'OTP', 'LED', 'LCD',
+  'WIB', 'WITA', 'WIT', 'UTC', 'GMT',
+  // Common Indonesian & English emphatic ALL-CAPS words & SQL keywords (not jargon acronyms)
+  'DAN', 'YANG', 'ATAU', 'TIDAK', 'BUKAN', 'TANPA', 'SATU', 'DUA', 'TIGA', 'SEMUA',
+  'HARUS', 'WAJIB', 'BOLEH', 'HANYA', 'PALING', 'SANGAT', 'LEBIH', 'DARI', 'UNTUK',
+  'DENGAN', 'KARENA', 'SAAT', 'BILA', 'JIKA', 'MAKA', 'AKAN', 'TELAH', 'SUDAH',
+  'BELUM', 'JADI', 'BISA', 'DAPAT', 'ADA', 'GURU', 'BUKU',
+  'AND', 'THE', 'FOR', 'NOT', 'ALL', 'ONE', 'ONLY', 'MUST', 'WITH', 'FROM', 'THAT',
+  'THIS', 'BUT', 'ARE', 'WAS', 'YOU', 'YOUR', 'CAN', 'HOW', 'WHY', 'WHAT', 'WHEN',
+  'ZERO', 'MAX', 'MIN', 'NEW', 'OLD', 'PRO', 'TOP', 'END', 'LOW', 'HIGH', 'TRUE',
+  'FALSE', 'NULL', 'NONE', 'SELECT', 'WHERE', 'LIMIT', 'OFFSET', 'ORDER', 'GROUP',
+]);
+
+function collectModuleProse(payload: InteractiveModulePayload): string {
+  const parts: string[] = [payload.learningObjective || ''];
+  if (payload.microKnow) {
+    parts.push(
+      payload.microKnow.coreIdea,
+      payload.microKnow.whyItMatters,
+      ...(payload.microKnow.concreteExamples || []).flatMap((e) => [e.label, e.detail]),
+      ...(payload.microKnow.keyTakeaways || [])
+    );
+  }
+  const u = payload.uila;
+  if (u) {
+    parts.push(
+      u.block1_anomaly?.groundState || '',
+      u.block1_anomaly?.oldWay || '',
+      u.block1_anomaly?.breakdownPoint || '',
+      u.block2_grounding?.physicalObject || '',
+      u.block2_grounding?.isomorphicMapping || '',
+      u.block2_grounding?.analogyBreakpoint?.whereItBreaks || '',
+      u.block2_grounding?.analogyBreakpoint?.realMechanismInstead || '',
+      ...(u.block2_grounding?.thoughtExperimentSteps || []),
+      ...(u.block2_grounding?.bridgingChain || []).flatMap((b) => [
+        b.stepTitle,
+        b.bridgeScenario,
+        b.invariantPreserved,
+        ...b.structuralMapping.flatMap((m) => [m.anchorElement, m.targetConcept, m.whyItMatches]),
+      ]),
+      u.block3_coreMechanics?.invariantProperty || '',
+      ...(u.block3_coreMechanics?.variableComponents || []),
+      ...(u.block3_coreMechanics?.contrastingCases || []).flatMap((c) => [c.beginnerMisconception, c.physicalReality]),
+      u.block4_notationContract?.minimalFormalization || '',
+      u.block4_notationContract?.workedExampleSummary || '',
+      u.block5_stressTest?.prompt || '',
+      ...(u.block5_stressTest?.options || []).flatMap((o) => [o.text, o.causalRationale])
+    );
+  }
+  if (payload.hingeCheck) {
+    parts.push(payload.hingeCheck.prompt, payload.hingeCheck.remediationCard);
+  }
+  if (payload.erroneousExample) {
+    parts.push(
+      payload.erroneousExample.scenarioPrompt,
+      payload.erroneousExample.takeaway,
+      ...(payload.erroneousExample.steps || []).map((s) => `${s.label} ${s.content}`)
+    );
+  }
+  if (payload.illStructuredCase) {
+    parts.push(
+      payload.illStructuredCase.contextBrief,
+      payload.illStructuredCase.corroborationQuestion,
+      ...(payload.illStructuredCase.perspectives || []).flatMap((p) => [
+        p.actorOrSchool,
+        p.claim,
+        p.supportingEvidence,
+        p.blindSpot,
+      ])
+    );
+  }
+  if (payload.explainBack) {
+    parts.push(payload.explainBack.prompt, ...(payload.explainBack.referenceKeyPoints || []));
+  }
+  return parts.join('\n');
+}
+
+function isAcronymExplainedInline(text: string, acronym: string): boolean {
+  const esc = acronym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Matches: "Long Name (ACR)", "ACR (penjelasan...)", "ACR =", "ACR —", "ACR:"
+  const patterns = [
+    new RegExp(`[A-Za-z][A-Za-z0-9\\s-]{4,}\\(${esc}\\)`),
+    new RegExp(`\\b${esc}\\s*\\([^)]{4,}\\)`),
+    new RegExp(`\\b${esc}\\s*(?:=|—|-\\s+|:|adalah|yaitu|artinya)`),
+  ];
+  return patterns.some((re) => re.test(text));
+}
+
+function auditUnexplainedAcronyms(
+  payload: InteractiveModulePayload,
+  issues: InteractiveValidationIssue[]
+): void {
+  const fullText = collectModuleProse(payload);
+  const glossaryBlob = [
+    ...(payload.glossary || []).map((g) => `${g.term} ${g.definition}`),
+    ...(payload.uila?.block4_notationContract?.termsDeconstruction || []).map(
+      (t) => `${t.symbol} ${t.physicalMeaning}`
+    ),
+  ].join(' ');
+
+  const matches = fullText.match(/\b[A-Z]{3,6}\b/g) || [];
+  const unexplained = new Set<string>();
+
+  for (const token of matches) {
+    if (UNIVERSAL_SHORT_TOKENS.has(token)) continue;
+    if (glossaryBlob.includes(token)) continue;
+    if (isAcronymExplainedInline(fullText, token)) continue;
+    unexplained.add(token);
+  }
+
+  if (unexplained.size > 0) {
+    issues.push({
+      code: 'UNEXPLAINED_ACRONYM_WARNING',
+      severity: 'warning',
+      field: 'glossary',
+      message: `Unexplained acronym(s) detected without inline definition or glossary entry: ${Array.from(unexplained).join(', ')}. Explain on first use or add to glossary with a familiar anchor.`,
+    });
+  }
 }

@@ -282,4 +282,20 @@ describe('Phase 13 Elastic Pedagogy Profiles & Confidence Calibration', () => {
     expect(calibrated.requiresConsolidation).toBe(false);
     expect(calibrated.nextTheta).toBeGreaterThan(lucky.nextTheta);
   });
+
+  it('flags unexplained acronyms via UNEXPLAINED_ACRONYM_WARNING until defined inline or in glossary', () => {
+    const payload = createMicroKnowPayload();
+    payload.microKnow!.coreIdea = 'Prosedur FDA dan NURBS sangat ketat.';
+    const report1 = validateInteractiveModulePayload(payload);
+    const warn1 = report1.issues.find((i) => i.code === 'UNEXPLAINED_ACRONYM_WARNING');
+    expect(warn1).toBeDefined();
+    expect(warn1?.message).toContain('FDA');
+    expect(warn1?.message).toContain('NURBS');
+
+    // Once defined inline or in glossary, warning clears cleanly
+    payload.microKnow!.coreIdea = 'Prosedur badan pengawas obat AS (FDA) dan format NURBS sangat ketat.';
+    payload.glossary = [{ term: 'NURBS', definition: 'Format file geometri 3D standar studio animasi.', tier: 3 }];
+    const report2 = validateInteractiveModulePayload(payload);
+    expect(report2.issues.find((i) => i.code === 'UNEXPLAINED_ACRONYM_WARNING')).toBeUndefined();
+  });
 });

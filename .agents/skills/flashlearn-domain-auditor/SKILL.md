@@ -60,6 +60,7 @@ Bandingkan temuan riset internet dengan isi domain blueprint:
 - **Competency Gaps**: Apakah ada keahlian krusial yang luput dari DAG (misal: analisis ESG, deteksi benturan kepentingan, audit digital e-procurement)?
 - **Oracle Realism Gaps**: Apakah skenario tugas sudah mencerminkan kondisi riil di lapangan beserta sanksi hukum/operasionalnya?
 - **Adversarial Resilience**: Apakah ada skenario dilema yang cukup menantang calon pemegang otoritas?
+- **Zero Unexplained Jargon & Familiar Example Anchor**: Apakah ada istilah teknis, akronim, istilah asing, atau merek contoh yang muncul tiba-tiba tanpa penjelasan di kemunculan pertamanya, atau contoh yang terlalu asing bagi audiens sehingga menambah beban kognitif alih-alih memperjelas konsep?
 
 ### Langkah 4: Penyusunan Laporan Audit & Rekomendasi Patch Blueprint
 Agen menyusun laporan terstruktur dengan format:
