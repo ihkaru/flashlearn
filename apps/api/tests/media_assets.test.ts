@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'bun:test';
+import { Elysia } from 'elysia';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { workspaceController } from '../src/infrastructure/http/controllers/workspace.controller';
+import { mediaController } from '../src/infrastructure/http/controllers/media.controller';
 import type {
   CreateMediaAssetInput,
   IMediaAssetRepository,
@@ -180,5 +183,14 @@ describe('Phase 19 Persistent Content-Addressed Media Assets (Pluggable Storage)
     } finally {
       rmSync(tmpDir, { recursive: true, force: true });
     }
+  });
+
+  it('mounts mediaController alongside workspaceController in Elysia without radix parameter conflict', () => {
+    const app = new Elysia().use(workspaceController).use(mediaController);
+    const routes = app.routes.map((r) => `${r.method} ${r.path}`);
+    expect(routes).toContain('POST /api/v1/workspaces/:id/assets');
+    expect(routes).toContain('GET /api/v1/workspaces/:id/assets');
+    expect(routes).toContain('GET /api/v1/assets/:id');
+    expect(routes).toContain('DELETE /api/v1/assets/:id');
   });
 });

@@ -6,7 +6,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 export const mediaController = new Elysia({ prefix: '/api/v1' })
   .post(
-    '/workspaces/:workspaceId/assets',
+    '/workspaces/:id/assets',
     async ({ headers, params, body, set }) => {
       const auth = await resolveAuth(headers);
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
@@ -23,7 +23,7 @@ export const mediaController = new Elysia({ prefix: '/api/v1' })
       try {
         const bytes = new Uint8Array(await file.arrayBuffer());
         const record = await container.uploadMediaAssetUseCase.execute(auth.user.id, auth.role, {
-          workspaceId: params.workspaceId,
+          workspaceId: params.id,
           filename: file.name || 'figure.webp',
           mimeType: file.type || 'application/octet-stream',
           bytes,
@@ -42,7 +42,7 @@ export const mediaController = new Elysia({ prefix: '/api/v1' })
       }
     },
     {
-      params: t.Object({ workspaceId: t.String() }),
+      params: t.Object({ id: t.String() }),
       body: t.Object({
         file: t.File(),
         caption: t.Optional(t.String()),
@@ -61,12 +61,12 @@ export const mediaController = new Elysia({ prefix: '/api/v1' })
     }
   )
   .get(
-    '/workspaces/:workspaceId/assets',
+    '/workspaces/:id/assets',
     async ({ headers, params, set }) => {
       const auth = await resolveAuth(headers);
       try {
         return await container.listMediaAssetsUseCase.execute(
-          params.workspaceId,
+          params.id,
           auth.user?.id,
           auth.role
         );
@@ -76,7 +76,7 @@ export const mediaController = new Elysia({ prefix: '/api/v1' })
       }
     },
     {
-      params: t.Object({ workspaceId: t.String() }),
+      params: t.Object({ id: t.String() }),
       detail: {
         tags: ['Workspaces'],
         summary: 'List Persistent Media Assets in Workspace',
