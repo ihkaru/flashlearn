@@ -68,8 +68,10 @@ export class DrizzleCredentialRepository implements ICredentialRepository {
     executionArtifactHash?: string | null;
     vcPayload: W3CVerifiableCredential20;
     signatureProof: string;
-    status?: string;
+    status?: 'active' | 'revoked' | 'drift_suspended';
   }): Promise<IssuedCredentialRecord> {
+    const resolvedStatus: 'active' | 'revoked' | 'drift_suspended' =
+      credential.status || 'active';
     const [row] = await db
       .insert(issuedCredentials)
       .values({
@@ -80,7 +82,7 @@ export class DrizzleCredentialRepository implements ICredentialRepository {
         executionArtifactHash: credential.executionArtifactHash || null,
         vcPayload: credential.vcPayload,
         signatureProof: credential.signatureProof,
-        status: credential.status || 'active',
+        status: resolvedStatus,
       })
       .onConflictDoUpdate({
         target: issuedCredentials.id,
@@ -88,7 +90,7 @@ export class DrizzleCredentialRepository implements ICredentialRepository {
           executionArtifactHash: credential.executionArtifactHash || null,
           vcPayload: credential.vcPayload,
           signatureProof: credential.signatureProof,
-          status: credential.status || 'active',
+          status: resolvedStatus,
         },
       })
       .returning();

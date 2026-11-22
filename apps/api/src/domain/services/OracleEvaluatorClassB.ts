@@ -115,6 +115,7 @@ Task: Conduct a rigorous audit of the candidate's submission following the RCAF 
 
     try {
       aiResult = await this.aiGateway.chatJson<{
+        auditAnalysis?: string;
         criterionEvaluations: Array<{ criterionId: string; passed: boolean; scorePercentage: number; justification: string }>;
         triggeredTraps: Array<{ trapId: string; triggered: boolean; evidenceQuote: string }>;
         overallSummary: string;
@@ -123,33 +124,9 @@ Task: Conduct a rigorous audit of the candidate's submission following the RCAF 
         model: process.env.AI_FAST_MODEL || process.env.AI_DEFAULT_MODEL || 'my9model-fast',
       });
     } catch (netErr: any) {
-      // Resilient fallback when AI gateway is unreachable or offline
-      const triggeredTraps = negativeAnchors
-        .filter((anchor) => {
-          const lower = submissionText.toLowerCase();
-          const words = anchor.trapDescription
-            .toLowerCase()
-            .replace(/[^\w\s]/g, '')
-            .split(/\s+/)
-            .filter((w) => w.length > 3);
-          return words.some((w) => lower.includes(w));
-        })
-        .map((a) => ({
-          trapId: a.id,
-          triggered: true,
-          evidenceQuote: `Ditemukan ketidakpatuhan atau kesamaan pola jebakan: "${a.trapDescription}".`,
-        }));
-
-      aiResult = {
-        criterionEvaluations: rubric.map((r) => ({
-          criterionId: r.id,
-          passed: triggeredTraps.length === 0,
-          scorePercentage: triggeredTraps.length === 0 ? 100 : 25,
-          justification: triggeredTraps.length === 0 ? 'Kriteria evaluasi terpenuhi' : 'Terindikasi ketidaksesuaian kriteria atau terpicu jebakan',
-        })),
-        triggeredTraps,
-        overallSummary: triggeredTraps.length > 0 ? 'Terdeteksi jebakan atau ketidakpatuhan kriteria' : 'Memenuhi standar verifikasi',
-      };
+      throw new Error(
+        `AI_EVALUATOR_UNAVAILABLE: Oracle Class B memerlukan koneksi AI Gateway aktif untuk evaluasi rubrik terverifikasi (${netErr?.message || String(netErr)})`
+      );
     }
 
     const breakdown: AttemptDetail[] = [];

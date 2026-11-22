@@ -1,3 +1,5 @@
+import { eq, and } from 'drizzle-orm';
+import type { CognitiveArchetype, OracleClass, RiskLevel } from '@flashlearn/shared';
 import { db } from '../db';
 import {
   workspaces,
@@ -16,9 +18,12 @@ import { createHash } from 'crypto';
 export async function seedTypeScriptMastery(creatorId: string) {
   console.log('🏛️ Seeding TypeScript Mastery & Bun Runtime Domain Blueprint...');
 
-  const activeWs = await db.query.workspaces.findFirst({
-    where: (w, { eq }) => eq(w.slug, 'typescript-mastery-bun'),
-  });
+  const activeWs = (
+    await db
+      .select()
+      .from(workspaces)
+      .where(eq(workspaces.slug, 'typescript-mastery-bun'))
+  )[0];
   if (!activeWs) return;
 
   // 1. Domain
@@ -40,9 +45,12 @@ export async function seedTypeScriptMastery(creatorId: string) {
     .onConflictDoNothing()
     .returning();
 
-  const activeDomain = domain || (await db.query.domains.findFirst({
-    where: (d, { and, eq }) => and(eq(d.workspaceId, activeWs.id), eq(d.code, 'DOM-TS-BUN')),
-  }));
+  const activeDomain =
+    domain ||
+    (await db
+      .select()
+      .from(domains)
+      .where(and(eq(domains.workspaceId, activeWs.id), eq(domains.code, 'DOM-TS-BUN'))))[0];
 
   // 2. Source & Chunks (Corpus of Record)
   const [source] = await db
@@ -60,9 +68,9 @@ export async function seedTypeScriptMastery(creatorId: string) {
     .onConflictDoNothing()
     .returning();
 
-  const activeSource = source || (await db.query.sources.findFirst({
-    where: (s, { eq }) => eq(s.code, 'SOP-TS-BUN-2026'),
-  }));
+  const activeSource =
+    source ||
+    (await db.select().from(sources).where(eq(sources.code, 'SOP-TS-BUN-2026')))[0];
 
   if (!activeSource) return;
 
@@ -82,16 +90,23 @@ export async function seedTypeScriptMastery(creatorId: string) {
       content: item.text,
       sha256Hash: hash,
     }).onConflictDoNothing().returning();
-    const activeC = c || (await db.query.sourceChunks.findFirst({ where: (sc, { eq }) => eq(sc.sha256Hash, hash) }));
+    const activeC = c || (await db.select().from(sourceChunks).where(eq(sourceChunks.sha256Hash, hash)))[0];
     if (activeC) chunkIds.push(activeC.id);
   }
 
   // 3. Competencies DAG
-  const compsDef = [
+  const compsDef: Array<{
+    code: string;
+    title: string;
+    arch: CognitiveArchetype;
+    tier: string;
+    risk: RiskLevel;
+    oClass: OracleClass;
+  }> = [
     { code: 'TSB-01', title: 'Sistem Tipe Tingkat Lanjut & Aljabar Tipe Compile-Time', arch: 'algorithmic_quant', tier: 'remember', risk: 'low', oClass: 'A' },
     { code: 'TSB-02', title: 'Optimasi Syscall I/O & Bun Native Zero-Copy Streaming', arch: 'algorithmic_quant', tier: 'apply', risk: 'medium', oClass: 'A' },
     { code: 'TSB-03', title: 'Arsitektur Reaktif Svelte 5 Runes & Desain State Hermetis', arch: 'ill_structured_case', tier: 'analyze', risk: 'high', oClass: 'B' },
-    { code: 'TSB-04', title: 'Pencegahan Memory Leak & Concurrency Race Condition', arch: 'ill_structured_case', tier: 'evaluate', risk: 'critical', oClass: 'B' },
+    { code: 'TSB-04', title: 'Pencegahan Memory Leak & Concurrency Race Condition', arch: 'ill_structured_case', tier: 'evaluate', risk: 'high', oClass: 'B' },
   ];
 
   const compMap = new Map<string, string>();
@@ -104,11 +119,11 @@ export async function seedTypeScriptMastery(creatorId: string) {
       title: cDef.title,
       description: `Penguasaan ${cDef.title} berpedoman pada SOP-TS-BUN-2026.`,
       cognitiveArchetype: cDef.arch,
-      oracleClass: cDef.oClass as any,
-      riskLevel: cDef.risk as any,
+      oracleClass: cDef.oClass,
+      riskLevel: cDef.risk,
       isExpertApproved: true,
     }).onConflictDoNothing().returning();
-    const activeC = c || (await db.query.competencies.findFirst({ where: (cmp, { and, eq }) => and(eq(cmp.workspaceId, activeWs.id), eq(cmp.code, cDef.code)) }));
+    const activeC = c || (await db.select().from(competencies).where(and(eq(competencies.workspaceId, activeWs.id), eq(competencies.code, cDef.code))))[0];
     if (activeC) compMap.set(cDef.code, activeC.id);
   }
 
@@ -137,7 +152,7 @@ export async function seedTypeScriptMastery(creatorId: string) {
       title: gDef.title,
       description: `Wewenang dan otorisasi bertingkat ${gDef.title}.`,
     }).onConflictDoNothing().returning();
-    const activeG = g || (await db.query.gates.findFirst({ where: (gt, { and, eq }) => and(eq(gt.workspaceId, activeWs.id), eq(gt.level, gDef.level)) }));
+    const activeG = g || (await db.select().from(gates).where(and(eq(gates.workspaceId, activeWs.id), eq(gates.level, gDef.level))))[0];
     if (activeG && gDef.comp) {
       await db.insert(gateRequirements).values({
         gateId: activeG.id,
@@ -239,7 +254,7 @@ export async function seedTypeScriptMastery(creatorId: string) {
       isIsomorphicVariant: false,
       passingScore: 90,
       adversarialSpec: {
-        trapType: 'PRESSURE_INCIDENT',
+        trapType: 'AUTHORITY_PRESSURE',
         correctDisposition: 'REJECT_AND_DEMAND_DATA',
         trapCues: [
           { cue: 'Tekanan insiden downtime production', weight: 0.5 },
@@ -277,7 +292,7 @@ export async function seedTypeScriptMastery(creatorId: string) {
       category: 'causal_priming',
       repetitionIntervalDays: 1,
       easeFactor: 250,
-      consecutiveCorrectAnswers: 0,
+      repetitionCount: 0,
       nextReviewDue: new Date(),
     }).onConflictDoNothing();
   }

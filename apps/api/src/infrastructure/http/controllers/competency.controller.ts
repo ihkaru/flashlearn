@@ -207,4 +207,39 @@ export const competencyController = new Elysia({ prefix: '/api/v1/competencies' 
         description: 'Updates a learner mastery ledger entry for a competency node.',
       },
     }
+  )
+  .post(
+    '/:id/unaided-sandbox-pass',
+    async ({ headers, params, set }) => {
+      const auth = await resolveAuth(headers);
+      if (!auth.user) {
+        set.status = 401;
+        return { error: 'Unauthorized: Sign in required to record unaided practice checkpoint' };
+      }
+
+      try {
+        const record = await container.masteryRepository.markUnaidedSandboxPassed(
+          auth.user.id,
+          params.id
+        );
+        return {
+          success: true,
+          competencyId: params.id,
+          hasPassedUnaidedSandbox: record.hasPassedUnaidedSandbox,
+        };
+      } catch (err: any) {
+        set.status = 400;
+        return { error: err.message };
+      }
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      detail: {
+        tags: ['Competency & Mastery DAG'],
+        summary: 'Persist Mandatory Unaided Sandbox Checkpoint',
+        description: 'Marks that the authenticated learner has passed the unaided sandbox checkpoint before entering the formal Gate Exam.',
+      },
+    }
   );

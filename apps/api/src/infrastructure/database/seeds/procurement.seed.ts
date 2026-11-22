@@ -1,3 +1,4 @@
+import { eq, and } from 'drizzle-orm';
 import { db } from '../db';
 import {
   workspaces,
@@ -30,9 +31,12 @@ export async function seedProcurement(creatorId: string) {
     .onConflictDoNothing()
     .returning();
 
-  const activeWs = ws || (await db.query.workspaces.findFirst({
-    where: (w, { eq }) => eq(w.slug, 'pengadaan-barang-jasa-pemerintah'),
-  }));
+  const activeWs =
+    ws ||
+    (await db
+      .select()
+      .from(workspaces)
+      .where(eq(workspaces.slug, 'pengadaan-barang-jasa-pemerintah')))[0];
 
   if (!activeWs) return;
 
@@ -51,9 +55,9 @@ export async function seedProcurement(creatorId: string) {
     .onConflictDoNothing()
     .returning();
 
-  const activeSource = source || (await db.query.sources.findFirst({
-    where: (s, { eq }) => eq(s.code, 'PERPRES-16-2021'),
-  }));
+  const activeSource =
+    source ||
+    (await db.select().from(sources).where(eq(sources.code, 'PERPRES-16-2021')))[0];
 
   if (activeSource) {
     const chunkHpsText = 'Penyusunan Harga Perkiraan Sendiri (HPS) memperhitungkan keuntungan dan biaya tidak langsung (overhead) paling tinggi 15%, serta Pajak Pertambahan Nilai (PPN) 11%.';
@@ -116,10 +120,10 @@ export async function seedProcurement(creatorId: string) {
     }).onConflictDoNothing().returning();
 
     // Fetch existing if already inserted
-    const c1 = comp1[0] || (await db.query.competencies.findFirst({ where: (c, { eq }) => eq(c.code, 'PBJ-01') }));
-    const c2 = comp2[0] || (await db.query.competencies.findFirst({ where: (c, { eq }) => eq(c.code, 'PBJ-02') }));
-    const c3 = comp3[0] || (await db.query.competencies.findFirst({ where: (c, { eq }) => eq(c.code, 'PBJ-03') }));
-    const c4 = comp4[0] || (await db.query.competencies.findFirst({ where: (c, { eq }) => eq(c.code, 'PBJ-04') }));
+    const c1 = comp1[0] || (await db.select().from(competencies).where(and(eq(competencies.workspaceId, activeWs.id), eq(competencies.code, 'PBJ-01'))))[0];
+    const c2 = comp2[0] || (await db.select().from(competencies).where(and(eq(competencies.workspaceId, activeWs.id), eq(competencies.code, 'PBJ-02'))))[0];
+    const c3 = comp3[0] || (await db.select().from(competencies).where(and(eq(competencies.workspaceId, activeWs.id), eq(competencies.code, 'PBJ-03'))))[0];
+    const c4 = comp4[0] || (await db.select().from(competencies).where(and(eq(competencies.workspaceId, activeWs.id), eq(competencies.code, 'PBJ-04'))))[0];
 
     // Prerequisites DAG (PBJ-01 -> PBJ-02 -> PBJ-03 -> PBJ-04)
     if (c1 && c2) await db.insert(competencyEdges).values({ competencyId: c2.id, prerequisiteId: c1.id }).onConflictDoNothing();
@@ -156,10 +160,10 @@ export async function seedProcurement(creatorId: string) {
     }).onConflictDoNothing().returning();
 
     // Gate Requirements
-    const gate0 = g0 || (await db.query.gates.findFirst({ where: (g, { and, eq }) => and(eq(g.workspaceId, activeWs.id), eq(g.level, 0)) }));
-    const gate1 = g1 || (await db.query.gates.findFirst({ where: (g, { and, eq }) => and(eq(g.workspaceId, activeWs.id), eq(g.level, 1)) }));
-    const gate2 = g2 || (await db.query.gates.findFirst({ where: (g, { and, eq }) => and(eq(g.workspaceId, activeWs.id), eq(g.level, 2)) }));
-    const gate3 = g3 || (await db.query.gates.findFirst({ where: (g, { and, eq }) => and(eq(g.workspaceId, activeWs.id), eq(g.level, 3)) }));
+    const gate0 = g0 || (await db.select().from(gates).where(and(eq(gates.workspaceId, activeWs.id), eq(gates.level, 0))))[0];
+    const gate1 = g1 || (await db.select().from(gates).where(and(eq(gates.workspaceId, activeWs.id), eq(gates.level, 1))))[0];
+    const gate2 = g2 || (await db.select().from(gates).where(and(eq(gates.workspaceId, activeWs.id), eq(gates.level, 2))))[0];
+    const gate3 = g3 || (await db.select().from(gates).where(and(eq(gates.workspaceId, activeWs.id), eq(gates.level, 3))))[0];
 
     if (gate0 && c1) await db.insert(gateRequirements).values({ gateId: gate0.id, competencyId: c1.id, minimumScore: 80, requiresHumanApproval: false }).onConflictDoNothing();
     if (gate1 && c2) await db.insert(gateRequirements).values({ gateId: gate1.id, competencyId: c2.id, minimumScore: 80, requiresHumanApproval: false }).onConflictDoNothing();
@@ -288,7 +292,7 @@ export async function seedProcurement(creatorId: string) {
         isIsomorphicVariant: false,
         passingScore: 90,
         adversarialSpec: {
-          trapType: 'PRESSURE_EXECUTIVE',
+          trapType: 'AUTHORITY_PRESSURE',
           correctDisposition: 'REJECT_AND_DEMAND_DATA',
           trapCues: [
             { cue: 'Ancaman hangusnya DIPA anggaran akhir tahun', weight: 0.5 },
@@ -326,7 +330,7 @@ export async function seedProcurement(creatorId: string) {
         category: 'causal_priming',
         repetitionIntervalDays: 1,
         easeFactor: 250,
-        consecutiveCorrectAnswers: 0,
+        repetitionCount: 0,
         nextReviewDue: new Date(),
       }).onConflictDoNothing();
     }

@@ -81,6 +81,7 @@ export const authController = new Elysia({ prefix: '/api/v1/auth' })
             name: body?.name || 'Pembelajar Mandiri (Demo)',
             avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`,
             role,
+            googleId: null,
           });
         }
         const token = container.tokenService.signToken({

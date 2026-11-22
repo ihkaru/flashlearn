@@ -156,29 +156,25 @@ Learner's Question / Point of Confusion:
 
 Task: Provide Socratic guidance to help the learner resolve their question independently without violating the Oracle Shield. Analyze their confusion against what was taught in their curriculum.`;
 
+    const historyMessages = (req.conversationHistory || [])
+      .slice(-8)
+      .filter((m) => m.text && m.text.trim().length > 0)
+      .map((m) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.text.trim(),
+      }));
+
     try {
       return await this.aiGateway.chatJson<SocraticTutorResponse>(prompt, schemaPrompt, {
         systemPrompt: tutorSystemPrompt,
+        messages: historyMessages,
         model: process.env.AI_SMART_MODEL || process.env.AI_DEFAULT_MODEL || 'my9model-free',
         temperature: 0.2,
       });
     } catch (err: any) {
-      // Resilient fallback when offline
-      const primaryChunk = chunks[0];
-      return {
-        socraticGuidance: `Untuk menyelesaikan tugas "${task.title}", perhatikan kembali materi pembelajaran yang telah dipelajari serta batasan metodologi dalam rujukan resmi. Identifikasi variabel apa saja yang menjadi hak atau kewajiban sebelum melakukan kalkulasi atau analisis.`,
-        reflectiveQuestion: 'Apakah Anda telah meninjau kembali modul materi terkait batasan maksimal persentase atau kewenangan penunjukan?',
-        citationReferences: primaryChunk
-          ? [
-              {
-                sourceCode: primaryChunk.sourceCode,
-                locationTag: primaryChunk.locationTag,
-                relevantPrinciple: 'Batasan kepatuhan dan formula acuan standar',
-              },
-            ]
-          : [],
-        suggestedAction: 'Buka kembali modul materi yang telah dipelajari dan naskah rujukan resmi pada bagian ketentuan teknis.',
-      };
+      throw new Error(
+        `AI_TUTOR_UNAVAILABLE: Gagal menghubungi AI Gateway untuk bimbingan Sokratik (${err?.message || String(err)})`
+      );
     }
   }
 }

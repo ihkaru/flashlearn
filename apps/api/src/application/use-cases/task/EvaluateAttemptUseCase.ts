@@ -122,7 +122,11 @@ export class EvaluateAttemptUseCase {
       details.conversationHash = req.conversationAudit.merkleRootHash;
     }
 
-    // 3. Persist Attempt
+    // 3. Persist Attempt (including Phase 6 unaided/practice metadata)
+    const isPractice = Boolean(req.isPractice);
+    const aiHintsUsedCount = req.aiHintsUsedCount ?? 0;
+    const isUnaided = req.isUnaided ?? (aiHintsUsedCount === 0);
+
     const attempt = await this.attemptRepo.create({
       taskId: task.id,
       userId,
@@ -132,6 +136,9 @@ export class EvaluateAttemptUseCase {
       assessedBy,
       oracleClassUsed: competency.oracleClass,
       passed,
+      isUnaided,
+      aiHintsUsedCount,
+      isPractice,
       details,
     });
 
@@ -189,10 +196,17 @@ export class EvaluateAttemptUseCase {
       }
     }
 
-    // 4. Update Mastery Ledger if Passed
+    // 4. Update Mastery Ledger (separate Practice Sandbox vs Official Gate Exam)
     let unlockedCompetencyId: string | null = null;
-    if (passed) {
-      await this.masteryRepo.upsertStatus(userId, competency.id, 'mastered', attempt.id);
+    if (isPractice) {
+      if (passed && isUnaided && aiHintsUsedCount === 0) {
+        await this.masteryRepo.markUnaidedSandboxPassed(userId, competency.id);
+      }
+    } else if (passed) {
+      await this.masteryRepo.upsertStatus(userId, competency.id, 'mastered', attempt.id, {
+        hasPassedUnaidedSandbox: isUnaided ? true : undefined,
+        addPassedVariantCode: task.scenarioVariantCode || 'variant_a',
+      });
 
       // Check which downstream nodes were unlocked
       const newMasteryMap = await this.masteryRepo.batchGetStatus(userId, allNodes.map((n) => n.id));
@@ -219,6 +233,9 @@ export class EvaluateAttemptUseCase {
         assessedBy: attempt.assessedBy,
         oracleClassUsed: attempt.oracleClassUsed,
         passed: attempt.passed,
+        isUnaided: attempt.isUnaided,
+        aiHintsUsedCount: attempt.aiHintsUsedCount,
+        isPractice: attempt.isPractice,
         details: attempt.details,
         createdAt: attempt.props.createdAt.toISOString(),
       },

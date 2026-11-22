@@ -1,7 +1,7 @@
 ---
 arc42_section: 8
-verified_commit: 846f709
-verified_timestamp: 2026-10-26T10:50:00+07:00
+verified_commit: 9f770ab
+verified_timestamp: 2026-11-22T07:30:00+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -12,66 +12,71 @@ tracked_paths:
 # 8. Cross-Cutting Concepts
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `846f709` (branch: `main`)
-> - **Verified Timestamp**: `2026-10-26T10:50:00+07:00`
+> - **Verified Commit**: `9f770ab` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-22T07:30:00+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
-Cross-cutting concepts span across all components and tiers of FlashLearn to maintain architectural integrity, operational reliability, and cryptographic trust.
+Cross-cutting concepts span across all building blocks of FlashLearn to preserve security, persistence safety, LLM reliability, cryptographic verifiability, and UI quality.
 
 ---
 
 ## 8.1 Security & Identity Management
 
-1. **Dual-Channel Authentication**:
-   - **Interactive Web Sessions**: Authenticated via JWT bearer tokens and Google OAuth 2.0 (`GoogleAuthVerifier`). Guests can explore workspaces without an account via transient guest sessions.
-   - **Headless & Agent Automation**: High-entropy master API keys (`fl_live_...`) passed via `Authorization: Bearer <key>` or `x-api-key` headers.
+1. **Dual-Channel Authentication (`apps/api/src/infrastructure/http/middlewares/auth.ts`)**:
+   - **Interactive Web Sessions**: Authenticated via Google Identity Services OAuth 2.0 (`GoogleAuthVerifier` -> `POST /api/v1/auth/google`), 1-click Demo Learner login (`POST /api/v1/auth/demo-login`), and signed JWT tokens (`JwtTokenService`, `Authorization: Bearer <jwt>`). Unauthenticated visitors browse public workspaces as `guest`.
+   - **Headless & Agent Automation**: Scoped API keys (`fl_live_...`, stored as SHA-256 hashes in `api_keys`) accepted via either `Authorization: Bearer fl_live_...` or `x-api-key: fl_live_...`.
 2. **Role-Based Access Control (RBAC)**:
-   - `guest`: Read public modules, attempt quizzes and DAG sandbox tasks.
-   - `learner`: Save persistent progress, take official gate exams, receive W3C Verifiable Credentials.
-   - `creator`: Author and import domain blueprints, manage sources and competency graphs.
-   - `superadmin`: Manage API keys, arbitrate dispute reviews, and configure global platform settings.
+   Defined in `packages/shared/src/types/user.ts` and `apps/api/src/infrastructure/database/schemas/core.ts` as three concrete roles:
+   - `guest`: Unauthenticated public visitor viewing public workspaces, reading materials, and taking public quizzes.
+   - `creator`: Authenticated user/learner/author who can persist learning progress, submit task attempts, claim gates/W3C credentials, author own workspaces, and issue scoped API keys.
+   - `superadmin`: Platform administrator with cross-workspace moderation, role management, dispute arbitration, and master API key privileges.
 
 ---
 
 ## 8.2 Safe Persistence, Deduplication & Migration Governance
 
-1. **Drizzle ORM & Explicit SQL Builder Pattern**:
-   - To prevent runtime relational mapping failures (`undefined is not an object`), all persistence logic uses explicit, deterministic SQL queries (`db.select().from(...).where(...)`).
-2. **Hard Unique Constraints & Idempotent Seeding**:
-   - Multi-tenant data integrity is protected by unique compound database indexes:
-     - `idx_competencies_ws_code`: `(workspace_id, code)`
-     - `idx_sources_ws_code`: `(workspace_id, code)`
-     - `idx_gates_ws_level`: `(workspace_id, level)`
-     - `idx_contents_ws_slug`: `(workspace_id, slug)`
-     - `idx_tasks_comp_title`: `(competency_id, title)`
-3. **Database Migration Safety**:
-   - Migrations in `apps/api/drizzle/` execute sequentially with PostgreSQL advisory locks (`pg_advisory_lock`), preventing race conditions during simultaneous container deployments.
+1. **Explicit Drizzle SQL Builders (`db.select()`)**:
+   - All 17 repositories (`apps/api/src/infrastructure/repositories/`) and all seed modules (`apps/api/src/infrastructure/database/seed.ts`, `seeds/*.ts`) use explicit parameterized SQL query builders (`db.select().from(...).where(...)`), with zero `db.query.*` calls across the codebase.
+2. **Compound Unique Constraints & Idempotency (Migration `0007`)**:
+   - `idx_competencies_ws_code`: `(workspace_id, code)`
+   - `idx_sources_ws_code`: `(workspace_id, code)`
+   - `idx_gates_ws_level`: `(workspace_id, level)`
+   - `idx_contents_ws_slug`: `(workspace_id, slug)`
+   - `idx_tasks_comp_title`: `(competency_id, title)`
+   - Plus `idx_mastery_user_comp_unique` `(user_id, competency_id)`, `idx_gate_req_unique` `(gate_id, competency_id)`, and `idx_content_chunk_unique` `(content_id, source_chunk_id)`.
+3. **Database Migration Safety (`migrate.ts`)**:
+   - Migrations in `apps/api/drizzle/` (`0000`–`0009`) execute sequentially under PostgreSQL advisory lock `84920384` (`pg_advisory_lock`) with schema integrity checks on exit.
+4. **Zero Hardcoded Production Credentials**:
+   - `db.ts` and `migrate.ts` throw immediately in `NODE_ENV=production` if `DATABASE_URL` is absent; `AiGatewayService` fails fast (`AI_GATEWAY_NOT_CONFIGURED`) if `AI_GATEWAY_KEY` is absent; `seed.ts` only seeds a master API key when `SEED_MASTER_API_KEY` is explicitly provided.
 
 ---
 
-## 8.3 Fail-Fast Policy & Zero Silent Fallbacks
+## 8.3 Fail-Fast Policy & LLM Integration Hygiene
 
-FlashLearn strictly enforces the **Fail-Fast Doctrine**:
-- Missing prerequisites, unmapped domain models, or broken database invariants must throw typed errors (`Error: Competency not found`) immediately.
-- Production code must never return silent stubs or fake successes (`return true;`, `return 0;`, `catch(e) {}`) to mask failures.
-- Audited deterministically before every deployment via `detect-mocks .`.
-
----
-
-## 8.4 Tamper-Evident Merkle Conversational Audit Trail
-
-Every learner interaction—including Socratic AI tutor exchanges and Oracle submissions—is hashed into a cryptographic Merkle tree (`sha256`):
-- Leaf hashes represent individual conversational turns and code submissions.
-- The Merkle root hash is stored alongside the official `attempts` ledger record.
-- Any retroactive tampering with conversation logs invalidates the cryptographic root hash, guaranteeing audit readiness under international compliance standards.
+FlashLearn enforces strict **Fail-Fast & Zero Silent Fallback** semantics:
+- **Deterministic Oracles**: `OracleEvaluatorClassA` throws `ORACLE_CLASS_A_MISCONFIGURED` if a task defines zero verifiable formula/checklist criteria (preventing silent 100% auto-pass).
+- **LLM Evaluators & Socratic Tutor**: `OracleEvaluatorClassB`, `OracleEvaluatorAdversarial`, and `AskSocraticTutorUseCase` propagate explicit `AI_EVALUATOR_UNAVAILABLE` / `AI_TUTOR_UNAVAILABLE` errors (HTTP `503`) when the upstream AI Gateway is unconfigured, unreachable, or returns invalid responses.
+- **Resilient Gateway Transport (`AiGatewayService`)**: Uses configurable timeout (`AI_TIMEOUT_MS`, default 45s), `Bun.sleep` exponential backoff retries on HTTP 408/429/5xx and transient network failures, multi-turn `messages` forwarding, `response_format: { type: 'json_object' }` with automatic 400 compatibility retry, SSE streaming (`chatStream`), and `/api/v1/health/ai` diagnostics.
+- Audited deterministically via `detect-mocks .`.
 
 ---
 
-## 8.5 UI Design Hygiene & 120Hz Native Compositing
+## 8.4 Tamper-Evident Merkle Audit Trail
 
-All UI components in `apps/web` conform to enterprise hygiene invariants:
-1. **GPU Compositor-Only Animations**: Transitions use `transform: translate3d` and `opacity` with `will-change: transform` to guarantee smooth 120fps/144fps rendering on mobile displays without triggering CPU layout reflows.
-2. **Zero Emoticon Policy**: Unicode emojis are prohibited in system UI controls; vector icons from `lucide-svelte` and Framework7 SVG icons are used exclusively.
-3. **Typography**: Enforced Google Sans family (`Google Sans`, `Google Sans Text`, `Google Sans Code`) in styling and theme configurations.
-4. **Mobile Ergonomics**: All interactive elements maintain touch envelopes $\ge 44\text{px}$ with `[overflow-wrap:anywhere]` to eliminate layout breakage on small viewports.
+1. **Transcript Integrity (`packages/shared/src/utils/merkle-transcript.ts`)**:
+   - Computes deterministic SHA-256 Merkle root hashes over ordered chat turns, detects prompt-extraction attempts, and verifies transcript integrity upon attempt submission (`EvaluateAttemptUseCase`).
+2. **Server-Side Socratic Hash Chain (`socratic-chat.controller.ts`)**:
+   - `/api/v1/socratic/turn` chains each learner and tutor message hash (`sha256(session:turnIndex:sender:message:prevHash)`) and updates `socratic_chat_sessions.merkle_root`.
+3. **Immutable Event Ledger (`audit_logs`)**:
+   - Records `ORACLE_EVALUATED`, `LUMIS_CONVERSATION_RECORDED`, `ADVERSARIAL_EXTRACTION_FLAGGED`, `GATE_GRANT`, `GATE_PASSPORT_SUSPENDED_DRIFT`, and `CONTENT_GENERATED` events exportable via `ExportAuditBundleUseCase`.
+
+---
+
+## 8.5 Frontend Architecture, Security & UI Hygiene (`apps/web`)
+
+1. **Framework & Reactivity**: Svelte 5 Runes (`$state`, `$derived`, `$effect`, `$props`) + Framework7 v9.1.3.
+2. **Typography**: Loaded from Google Fonts in `apps/web/index.html` and configured in `apps/web/src/styles/app.css` using **`Inter`** (body) and **`Plus Jakarta Sans`** (headings/brand).
+3. **Vector Icon System**: Lightweight custom SVG registry (`apps/web/src/components/ui/Icon.svelte` + `iconPaths.ts`, 45 typed icons) alongside Framework7 icons—no external `lucide-svelte` dependency. *(Legacy Unicode emojis remaining in 18 components are tracked under `DEBT-02`.)*
+4. **XSS-Hardened Markdown Rendering (`MarkdownRenderer.svelte`)**: `marked@18` + `marked-katex-extension` + `highlight.js/lib/common` + custom `markedAlert` callouts, sanitized via `DOMPurify` with **zero inline `onclick` attributes** (code copy handled via delegated Svelte click listener reading `data-code`).
+5. **Responsive Ergonomics**: Text-wrap resilient button tokens (`.fl-btn`, `overflow-wrap: anywhere`, `touch-action: manipulation`) and 3D Y-axis CSS flashcard flip animations (`perspective: 1000px`, `transform-style: preserve-3d`).

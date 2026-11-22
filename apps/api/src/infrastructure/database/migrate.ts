@@ -10,7 +10,11 @@ const ADVISORY_LOCK_ID = 84920384; // Deterministic lock ID for FlashLearn DB mi
 async function runSafeMigration() {
   const connectionString =
     process.env.DATABASE_URL ||
-    'postgresql://postgres:T1sy7cEhciZI4FeMSCc6JzwkBcokqA4ubRBNVmRhLZWLrvKEoGjsORiF6nIoRcSl@localhost:5432/flashlearn';
+    (process.env.NODE_ENV === 'production'
+      ? (() => {
+          throw new Error('DATABASE_URL environment variable is required in production');
+        })()
+      : 'postgresql://postgres:postgres@localhost:5432/flashlearn');
 
   console.log('⚡ [DB Migration] Initializing PostgreSQL connection with max=1...');
   const sql = postgres(connectionString, { max: 1 });

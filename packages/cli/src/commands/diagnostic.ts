@@ -136,7 +136,7 @@ export async function handleDiagnosticCommand(
       throw new CliError({
         code: 'UNKNOWN_ACTION',
         message: `Unknown diagnostic action '${action}'. Valid actions: start, next, submit`,
-        exitCode: ExitCode.UNKNOWN_COMMAND,
+        exitCode: ExitCode.COMMAND_NOT_FOUND,
       });
   }
 }

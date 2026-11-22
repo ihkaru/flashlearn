@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import { db } from './db';
 import { users, workspaces, contents, apiKeys } from './schema';
 import { createHash } from 'crypto';
@@ -70,8 +71,18 @@ async function seed() {
     .onConflictDoNothing()
     .returning();
 
-  const activeWsArch = wsArch || (await db.query.workspaces.findFirst({ where: (w, { eq }) => eq(w.slug, 'software-engineering-architecture') }));
-  const activeWsTs = wsTs || (await db.query.workspaces.findFirst({ where: (w, { eq }) => eq(w.slug, 'typescript-mastery-bun') }));
+  const activeWsArch =
+    wsArch ||
+    (await db
+      .select()
+      .from(workspaces)
+      .where(eq(workspaces.slug, 'software-engineering-architecture')))[0];
+  const activeWsTs =
+    wsTs ||
+    (await db
+      .select()
+      .from(workspaces)
+      .where(eq(workspaces.slug, 'typescript-mastery-bun')))[0];
 
   if (!activeWsArch || !activeWsTs) {
     throw new Error('Failed to resolve workspaces for seeding');
@@ -223,25 +234,28 @@ Pisahkan use case berdasarkan aktor:
     })
     .onConflictDoNothing();
 
-  // 4. Create Sample API Key for Superadmin
-  const sampleKey = 'fl_live_masterdeveloper2026';
-  const samplePrefix = 'fl_live_master...';
-  const hashed = createHash('sha256').update(sampleKey).digest('hex');
+  // 4. Create Master API Key for Superadmin (only if explicitly provided via env)
+  const configuredMasterKey = process.env.SEED_MASTER_API_KEY?.trim();
+  if (configuredMasterKey && configuredMasterKey.startsWith('fl_live_')) {
+    const samplePrefix = `${configuredMasterKey.slice(0, 14)}...`;
+    const hashed = createHash('sha256').update(configuredMasterKey).digest('hex');
 
-  await db
-    .insert(apiKeys)
-    .values({
-      userId: admin.id,
-      name: 'Default Master Developer Key',
-      keyPrefix: samplePrefix,
-      hashedKey: hashed,
-      permissions: ['*'],
-      expiresAt: null,
-    })
-    .onConflictDoNothing();
+    await db
+      .insert(apiKeys)
+      .values({
+        userId: admin.id,
+        name: 'Configured Master Developer Key',
+        keyPrefix: samplePrefix,
+        hashedKey: hashed,
+        permissions: ['*'],
+        expiresAt: null,
+      })
+      .onConflictDoNothing();
 
-  console.log('✓ Master API Key seeded for Superadmin:');
-  console.log(`  Key: ${sampleKey}`);
+    console.log(`✓ Master API Key seeded for Superadmin (prefix: ${samplePrefix})`);
+  } else {
+    console.log('ℹ️ SEED_MASTER_API_KEY not set; skipping static API key seeding.');
+  }
 
   // 5. Seed Procurement (PBJ) Domain Blueprint
   await seedProcurement(creator.id);

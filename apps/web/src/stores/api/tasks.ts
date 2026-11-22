@@ -29,9 +29,13 @@ export const taskApi = {
   },
   getAttempts: (taskId: string): Promise<Attempt[]> =>
     fetchWithAuth(`/api/v1/tasks/${taskId}/attempts`),
-  askSocraticHint: (taskId: string, question: string): Promise<SocraticTutorResponse> =>
+  askSocraticHint: (
+    taskId: string,
+    question: string,
+    conversationHistory?: Array<{ role: 'user' | 'assistant'; text: string }>
+  ): Promise<SocraticTutorResponse> =>
     fetchWithAuth(`/api/v1/tasks/${taskId}/socratic-hint`, {
       method: 'POST',
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question, conversationHistory }),
     }),
 };

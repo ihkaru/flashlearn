@@ -10,6 +10,20 @@ export interface AuthContext {
 
 export async function resolveAuth(headers: Record<string, string | undefined>): Promise<AuthContext> {
   const authHeader = headers['authorization'] || headers['Authorization'];
+  const apiKeyHeader = headers['x-api-key'] || headers['X-Api-Key'];
+
+  if (apiKeyHeader && apiKeyHeader.trim().startsWith('fl_live_')) {
+    const verified = await container.verifyApiKeyUseCase.execute(apiKeyHeader.trim());
+    if (verified) {
+      return {
+        user: verified.user,
+        role: verified.user.role,
+        isApiKey: true,
+        permissions: verified.permissions,
+      };
+    }
+    return { user: null, role: 'guest', isApiKey: false };
+  }
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return { user: null, role: 'guest', isApiKey: false };

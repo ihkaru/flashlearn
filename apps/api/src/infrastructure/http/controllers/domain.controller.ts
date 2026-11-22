@@ -24,10 +24,11 @@ export function createDomainController(container: BaseContainer) {
     // Get single domain
     .get(
       '/:id',
-      async ({ params, error }) => {
+      async ({ params, set }) => {
         const domainEntity = await container.domainRepository.findById(params.id);
         if (!domainEntity) {
-          return error(404, { error: 'Domain not found' });
+          set.status = 404;
+          return { error: 'Domain not found' };
         }
         return domainEntity.toJSON();
       },

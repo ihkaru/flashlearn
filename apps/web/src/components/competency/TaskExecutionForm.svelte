@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import type { Task, Attempt } from '@flashlearn/shared';
+  import type { Task, Attempt, CompetencyCorpusChunk } from '@flashlearn/shared';
   import { api } from '../../stores/api';
   import { lumisChat } from '../../stores/lumisChat.svelte';
   import Icon from '../ui/Icon.svelte';
@@ -11,10 +11,18 @@
   interface Props {
     task: Task;
     oracleClass: 'A' | 'B' | 'C' | string;
+    corpusChunks?: CompetencyCorpusChunk[];
+    disableAiTutor?: boolean;
     onAttemptSubmitted: (attempt: Attempt) => void;
   }
 
-  let { task, oracleClass, onAttemptSubmitted }: Props = $props();
+  let {
+    task,
+    oracleClass,
+    corpusChunks = [],
+    disableAiTutor = false,
+    onAttemptSubmitted,
+  }: Props = $props();
 
   let isSubmitting = $state(false);
   let calculatedValue = $state<number | string>('');
@@ -148,11 +156,18 @@
     </div>
   </div>
 
-  <!-- Socratic Pedagogical Tutor -->
-  <SocraticTutorDrawer taskId={task.id} scenario={task.scenario} taskTitle={task.title} />
+  <!-- Socratic Pedagogical Tutor (Disabled in Official Unaided Gate Exam per ADR-06) -->
+  {#if disableAiTutor}
+    <div style="border-radius: 10px; border: 1px solid #fde68a; background: #fffbeb; padding: 10px 14px; font-size: 0.78rem; color: #92400e; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+      <Icon name="lock" size={14} />
+      <span>Mode Ujian Resmi (Unaided): Tutor AI Sokratik dinonaktifkan untuk membuktikan kompetensi mandiri.</span>
+    </div>
+  {:else}
+    <SocraticTutorDrawer taskId={task.id} scenario={task.scenario} taskTitle={task.title} />
+  {/if}
 
-  <!-- Corpus of Record (Official Statutory & SOP Acuan Resmi) -->
-  <CorpusReferenceCard taskTitle={task.title} scenario={task.scenario} {oracleClass} />
+  <!-- Corpus of Record (Official Statutory & SOP Acuan Resmi from DB) -->
+  <CorpusReferenceCard chunks={corpusChunks} taskTitle={task.title} scenario={task.scenario} {oracleClass} />
 
   <!-- Form Inputs Based on Oracle Class -->
   {#if isAdversarial}

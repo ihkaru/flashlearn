@@ -30,6 +30,14 @@ export class WorkspaceEntity {
     return this.props.slug;
   }
 
+  get description(): string | null {
+    return this.props.description;
+  }
+
+  get createdAt(): string {
+    return this.props.createdAt.toISOString();
+  }
+
   get creatorId(): string {
     return this.props.creatorId;
   }

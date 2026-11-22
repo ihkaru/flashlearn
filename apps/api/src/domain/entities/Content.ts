@@ -45,6 +45,10 @@ export class ContentEntity {
     return this.props.type;
   }
 
+  get summary(): string | null {
+    return this.props.summary;
+  }
+
   get body(): string | null {
     return this.props.body;
   }

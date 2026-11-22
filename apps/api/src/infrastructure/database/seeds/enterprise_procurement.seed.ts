@@ -1,3 +1,4 @@
+import { eq, and } from 'drizzle-orm';
 import { db } from '../db';
 import {
   workspaces,
@@ -35,9 +36,10 @@ export async function seedEnterpriseProcurement(creatorId: string) {
 
   const activeWs =
     ws ||
-    (await db.query.workspaces.findFirst({
-      where: (w, { eq }) => eq(w.slug, ENTERPRISE_WORKSPACE.slug),
-    }));
+    (await db
+      .select()
+      .from(workspaces)
+      .where(eq(workspaces.slug, ENTERPRISE_WORKSPACE.slug)))[0];
 
   if (!activeWs) return;
 
@@ -80,15 +82,17 @@ export async function seedEnterpriseProcurement(creatorId: string) {
 
   const activeD1 =
     d1 ||
-    (await db.query.domains.findFirst({
-      where: (d, { eq, and }) => and(eq(d.workspaceId, activeWs.id), eq(d.code, 'DOM-ENT-STRAT')),
-    }));
+    (await db
+      .select()
+      .from(domains)
+      .where(and(eq(domains.workspaceId, activeWs.id), eq(domains.code, 'DOM-ENT-STRAT'))))[0];
 
   const activeD2 =
     d2 ||
-    (await db.query.domains.findFirst({
-      where: (d, { eq, and }) => and(eq(d.workspaceId, activeWs.id), eq(d.code, 'DOM-ENT-P2P')),
-    }));
+    (await db
+      .select()
+      .from(domains)
+      .where(and(eq(domains.workspaceId, activeWs.id), eq(domains.code, 'DOM-ENT-P2P'))))[0];
 
   // 2. Source & Chunks (Corpus of Record)
   const [source] = await db
@@ -99,9 +103,10 @@ export async function seedEnterpriseProcurement(creatorId: string) {
 
   const activeSource =
     source ||
-    (await db.query.sources.findFirst({
-      where: (s, { eq }) => eq(s.code, ENTERPRISE_SOURCE.code),
-    }));
+    (await db
+      .select()
+      .from(sources)
+      .where(eq(sources.code, ENTERPRISE_SOURCE.code)))[0];
 
   if (!activeSource) return;
 
@@ -141,9 +146,10 @@ export async function seedEnterpriseProcurement(creatorId: string) {
 
     const node =
       inserted ||
-      (await db.query.competencies.findFirst({
-        where: (c, { eq, and }) => and(eq(c.workspaceId, activeWs.id), eq(c.code, def.code)),
-      }));
+      (await db
+        .select()
+        .from(competencies)
+        .where(and(eq(competencies.workspaceId, activeWs.id), eq(competencies.code, def.code))))[0];
 
     if (node) compMap.set(def.code, node.id);
   }
@@ -177,9 +183,10 @@ export async function seedEnterpriseProcurement(creatorId: string) {
 
     const activeGate =
       g ||
-      (await db.query.gates.findFirst({
-        where: (gt, { eq, and }) => and(eq(gt.workspaceId, activeWs.id), eq(gt.level, gDef.level)),
-      }));
+      (await db
+        .select()
+        .from(gates)
+        .where(and(eq(gates.workspaceId, activeWs.id), eq(gates.level, gDef.level))))[0];
 
     if (activeGate) {
       for (const reqCode of gDef.requiredCodes) {
@@ -224,7 +231,7 @@ export async function seedEnterpriseProcurement(creatorId: string) {
       category: 'causal_priming',
       repetitionIntervalDays: 1,
       easeFactor: 250,
-      consecutiveCorrectAnswers: 0,
+      repetitionCount: 0,
       nextReviewDue: new Date(),
     }).onConflictDoNothing();
   }
@@ -245,7 +252,7 @@ export async function seedEnterpriseProcurement(creatorId: string) {
       category: 'causal_priming',
       repetitionIntervalDays: 1,
       easeFactor: 250,
-      consecutiveCorrectAnswers: 0,
+      repetitionCount: 0,
       nextReviewDue: new Date(),
     }).onConflictDoNothing();
   }

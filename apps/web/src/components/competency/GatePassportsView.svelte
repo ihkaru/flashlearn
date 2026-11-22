@@ -44,10 +44,11 @@
     evaluatingGateId = gateId;
     try {
       const res = await api.gates.evaluate(gateId);
-      if (res.grant.status === 'active') {
+      const grantObj = res.data || res.grant;
+      if (grantObj?.status === 'active') {
         alert('Selamat! Anda memenuhi syarat dan resmi memegang Paspor Otorisasi untuk tingkat ini.');
       } else {
-        alert(`Status evaluasi: ${res.grant.status}. Pastikan semua prasyarat kompetensi telah tuntas.`);
+        alert(`Status evaluasi: ${grantObj?.status || 'belum memenuhi syarat'}. Pastikan semua prasyarat kompetensi telah tuntas.`);
       }
       await loadGates();
     } catch (err: any) {

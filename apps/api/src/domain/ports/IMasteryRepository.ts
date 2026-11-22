@@ -10,8 +10,13 @@ export interface IMasteryRepository {
     userId: string,
     competencyId: string,
     status: MasteryStatus,
-    verifiedAttemptId?: string | null
+    verifiedAttemptId?: string | null,
+    options?: {
+      hasPassedUnaidedSandbox?: boolean;
+      addPassedVariantCode?: string;
+    }
   ): Promise<MasteryRecordEntity>;
+  markUnaidedSandboxPassed(userId: string, competencyId: string): Promise<MasteryRecordEntity>;
   markStaleForCompetency(competencyId: string): Promise<number>;
   updateDriftState(
     id: string,

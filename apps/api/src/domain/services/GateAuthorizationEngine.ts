@@ -49,6 +49,20 @@ export class GateAuthorizationEngine {
         continue;
       }
 
+      // INVARIANT: Multi-Observation Entrustment (require >= N distinct isomorphic variants)
+      const requiredObs = req.requiredObservationsCount ?? 1;
+      const passedVariants = mastery?.passedVariantCodes ?? [];
+      if (requiredObs > 1 && passedVariants.length < requiredObs) {
+        missingCompetencies.push({
+          competencyId: comp.id,
+          code: comp.code,
+          title: `${comp.title} (Multi-Observation: ${passedVariants.length}/${requiredObs} varian lulus)`,
+          oracleClass: comp.oracleClass,
+          requiresHumanApproval: req.requiresHumanApproval,
+        });
+        continue;
+      }
+
       // INVARIANT: Level 3 or Class C human verification requirement
       const mustHaveHumanSignoff = req.requiresHumanApproval || comp.oracleClass === 'C' || gate.level === 3;
       if (mustHaveHumanSignoff) {

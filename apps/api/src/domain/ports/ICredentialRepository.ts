@@ -33,7 +33,7 @@ export interface ICredentialRepository {
     executionArtifactHash?: string | null;
     vcPayload: W3CVerifiableCredential20;
     signatureProof: string;
-    status?: string;
+    status?: 'active' | 'revoked' | 'drift_suspended';
   }): Promise<IssuedCredentialRecord>;
   findCredentialById(id: string): Promise<IssuedCredentialRecord | null>;
 }

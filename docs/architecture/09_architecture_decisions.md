@@ -1,7 +1,7 @@
 ---
 arc42_section: 9
-verified_commit: 846f709
-verified_timestamp: 2026-10-26T10:50:00+07:00
+verified_commit: 9f770ab
+verified_timestamp: 2026-11-22T07:30:00+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -12,85 +12,93 @@ tracked_paths:
 # 9. Architecture Decisions (ADRs)
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `846f709` (branch: `main`)
-> - **Verified Timestamp**: `2026-10-26T10:50:00+07:00`
+> - **Verified Commit**: `9f770ab` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-22T07:30:00+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
-This section documents architecturally significant decisions (ADRs) that shape the FlashLearn platform.
+This section documents architecturally significant decisions (ADRs) governing the FlashLearn platform.
 
 ---
 
 ## ADR-01: Bun Runtime & Package Manager Enforcement
 - **Status**: Accepted
-- **Context**: Node.js and legacy npm workflows on constrained ARM64 containers exhibit significant memory overhead, slow installs, and cold starts exceeding 250MB RAM.
-- **Decision**: Enforce Bun (`bun@1.4.2`) exclusively across all workspaces (`apps/api`, `apps/web`, `packages/shared`, `packages/cli`). Direct execution of `npm` and `npx` is blocked via shims.
-- **Consequences**: Sub-second test execution, native TypeScript execution without transpilation steps, low container footprint (<25MB idle).
+- **Context**: Node.js and legacy npm workflows on constrained ARM64 containers exhibit high memory overhead and slower startup/test cycles.
+- **Decision**: Enforce Bun (`bun@1.4.2`, Docker `oven/bun:1.4-alpine`) across all workspaces (`apps/api`, `apps/web`, `packages/shared`, `packages/cli`). Direct `npm`/`npx` calls are blocked by environment shims.
+- **Consequences**: Native TypeScript execution, sub-second hermetic unit tests (`bun test`), and minimal idle RAM footprint.
 - **Risks Created**: RISK-01
 
 ---
 
 ## ADR-02: Dual-Loop Architecture & Graceful Downgrade Protocol
 - **Status**: Accepted
-- **Context**: Confronting candidates with strict Oracle tests immediately after brief readings causes "The Assessment-as-Instruction Fallacy", high cognitive load, and learned helplessness.
-- **Decision**: Restructure every competency node into an integrated Dual-Loop Container: Tab 1 Safe Sandbox (Job Aid, Worked Example, Micro-Sandbox) and Tab 2 Gate Exam. If a candidate stalls in Tab 2, a confirmation modal downgrades the attempt into a practice session (`is_practice: true`), allowing step-by-step guidance without granting unearned authority credentials.
-- **Consequences**: Candidates learn through schema acquisition before certification. Assessment integrity is preserved.
+- **Context**: Confronting candidates with strict Oracle exams immediately after reading causes high extraneous cognitive load (*Assessment-as-Instruction Fallacy*).
+- **Decision**: Structure each competency modal (`TaskRunnerModal.svelte`) into two explicit loops: Tab 1 Safe Sandbox (`LearningSandboxTab.svelte`) and Tab 2 Official Gate Exam (`GateExamTab.svelte`). Candidates can downgrade from Tab 2 back to Tab 1 via a confirmation modal without polluting official transcripts.
+- **Consequences**: Clear separation between penalty-free practice and auditable certification attempts.
 - **Risks Created**: RISK-02
 
 ---
 
-## ADR-03: Backward Scaffolding Generation for Authoring Bottleneck
+## ADR-03: Domain-Agnostic Backward Scaffolding Generation
 - **Status**: Accepted
-- **Context**: Subject Matter Experts (SMEs) face a heavy authoring bottleneck when required to manually write detailed worked examples and job aids for dozens of competency nodes.
-- **Decision**: Implement `BackwardScaffoldingGenerator` to derive isomorphic worked examples directly from task specifications and corpus chunks. Varied surface details (different numbers, names, and scales) are generated while preserving identical mathematical formulas and legal criteria.
-- **Consequences**: Creators can deploy full domain curriculums by specifying only tasks and regulations.
+- **Context**: Authoring worked examples and job aids manually for every competency creates an SME bottleneck, while hardcoding procurement examples violates domain agnosticism.
+- **Decision**: Implement `BackwardScaffoldingGenerator` (`apps/api/src/application/services/BackwardScaffoldingGenerator.ts`) to derive Job Aids, scaled isomorphic Worked Examples, and Micro-Sandbox checkpoints dynamically from `cognitiveArchetype`, `task.oracleData`, `task.adversarialSpec`, and DB `source_chunks`.
+- **Consequences**: Any newly imported domain immediately receives relevant scaffolding without code edits.
 - **Risks Created**: RISK-03
 
 ---
 
 ## ADR-04: Multi-Tier Oracle Evaluation Architecture (Classes A, B, and C)
 - **Status**: Accepted
-- **Context**: Single-tier LLM evaluation is prone to hallucinations on mathematical formulas and lacks human accountability on high-stakes authority decisions.
-- **Decision**: Partition evaluation into three distinct classes:
-  - Class A: Deterministic mathematical tolerances ($\pm 1\%$) and exact classification.
-  - Class B: AI Judge with explicit role personas, Do's & Don'ts, and 100%-weighted rubric criteria.
-  - Class C: Human expert signoff with double-blind multi-rater consensus (Gwet's AC1/AC2 coefficient).
-- **Consequences**: Zero mathematical hallucination on financial calculations; structured qualitative evaluation on case studies.
+- **Context**: Pure LLM scoring hallucinates on arithmetic and lacks accountability on terminal delegations, whereas purely deterministic code cannot judge nuanced case studies.
+- **Decision**: Partition evaluation into three classes:
+  - Class A (`OracleEvaluatorClassA`): Deterministic TypeScript evaluation enforcing $\pm 1\%$ default relative tolerance and failing fast (`ORACLE_CLASS_A_MISCONFIGURED`) when criteria are missing.
+  - Class B (`OracleEvaluatorClassB` & `OracleEvaluatorAdversarial`): Grounded LLM evaluation with RCAF rubrics, negative-anchor traps, and veto thresholds.
+  - Class C (`MultiRaterConsensusEngine`): Double-blind multi-rater human review computing Gwet's AC1/AC2 and Chief Arbiter reconciliation.
+- **Consequences**: Deterministic accuracy on calculations, structured qualitative grading, and human sign-off on terminal gates.
 - **Risks Created**: RISK-04
 
 ---
 
-## ADR-05: W3C Verifiable Credentials 2.0 & Ed25519 Signatures
+## ADR-05: W3C Verifiable Credentials 2.0 & Ed25519 DataIntegrityProof
 - **Status**: Accepted
-- **Context**: Centralized digital badges and proprietary certification portals trap learner credentials inside proprietary walled gardens.
-- **Decision**: Issue digital authority passports conforming to W3C Verifiable Credentials 2.0 and OpenBadges 3.0, signed cryptographically using Ed25519 keypairs. Verification is open to external verifiers via public portals and standard crypto libraries.
-- **Consequences**: Portable, tamper-proof, decentralized credentials verifiable offline or by third-party enterprise HR systems.
+- **Context**: Proprietary badge platforms lock learner credentials inside walled gardens.
+- **Decision**: Issue W3C Verifiable Credentials 2.0 / OpenBadges 3.0 signed with Ed25519 via `DataIntegrityProof` (`eddsa-rdfc-2022`) and deterministic canonical JSON (`W3cCredentialCryptoEngine`). Store workspace keypairs and revocation status in PostgreSQL (`workspace_keypairs`, `issued_credentials`) and expose public verification via `/api/v1/credentials/verify` and `/#/verify/:id`.
+- **Consequences**: Cryptographically verifiable, tamper-evident credentials checkable without database mutation.
 - **Risks Created**: RISK-05
 
 ---
 
-## ADR-06: Causal Schema Priming & Mandatory Unaided Practice Gate
+## ADR-06: Causal Schema Priming & Persisted Unaided Practice Gate
 - **Status**: Accepted
-- **Context**: Empirical meta-analyses (Bastani et al., 2025) demonstrate that unguided AI tutoring during practice inflates assisted performance but drops unaided exam performance by 17% due to the "AI Crutch Paradox". In addition, traditional definition-recalling flashcards fail to build procedural mental models.
-- **Decision**: Re-engineer flashcards into Causal Prediction Probes ("What-If" directionality) and Micro-Debugging error spotting before the sandbox. Enforce a mandatory Unaided Practice Checkpoint where the AI tutor is completely disabled before the Gate Exam tab unlocks.
-- **Consequences**: Eliminates the illusion of competence, forcing genuine procedural schema retrieval before certification.
+- **Context**: Unguided AI tutoring during practice degrades unaided exam performance (*Bastani et al., 2025*), and definition-only flashcards fail to build operational mental models.
+- **Decision**: Extend `spaced_flashcards` with causal probe types (`causal_prediction`, `analogical_comparison`, `micro_debugging`) rendered in `CausalProbeDeck.svelte`. Require learners to record an unaided sandbox checkpoint (`POST /api/v1/competencies/:id/unaided-sandbox-pass` or unaided practice attempt) before unlocking Tab 2 Gate Exam, and strictly disable `SocraticTutorDrawer` inside `GateExamTab.svelte` (`disableAiTutor={true}`).
+- **Consequences**: Prevents AI crutch reliance during official gate verification and persists readiness state across sessions.
 - **Risks Created**: RISK-06
 
 ---
 
-## ADR-07: Autonomous Coding Agent CLI Generation Pipeline & Zero-Domain Hardcoding
+## ADR-07: Declarative CLI Blueprint Pipeline & Zero-Domain Hardcoding in Core
 - **Status**: Accepted
-- **Context**: Hardcoding domain business rules (e.g. procurement regulations or engineering formulas) inside the application codebase destroys portability and creates high maintenance overhead when expanding to new enterprise domains.
-- **Decision**: Mandate that all domain curricula (Corpus of Record, DAG edges, causal flashcards, analogical quizzes, worked examples, adaptive scaffolding, and oracle tests) must be 100% generated and certified by an autonomous Coding Agent through the Headless CLI (`bun run cli domain import / generate / certify`). The application codebase remains strictly domain-agnostic.
-- **Consequences**: Enables zero-code onboarding of arbitrary regulatory and technical domains while enforcing automated invariant verification before database ingestion.
+- **Context**: Hardcoding domain statutes inside core UI or services (previously present in `CorpusReferenceCard` and `BackwardScaffoldingGenerator`) breaks multi-domain scalability.
+- **Decision**: Keep core runtime code (`apps/api/src/domain`, `apps/api/src/application`, `apps/web/src`, `packages/shared/src`) 100% domain-agnostic. Load *Corpus of Record* chunks dynamically from PostgreSQL (`GetCompetencyLearningBundleUseCase` -> `CorpusReferenceCard.svelte`). Onboard arbitrary domains via the Headless CLI (`flashlearn domain validate-blueprint` / `import-blueprint` / `describe`), while isolating optional turnkey starter seeds solely under `apps/api/src/infrastructure/database/seeds/`.
+- **Consequences**: Zero-code onboarding of new domains with Tarjan SCC acyclicity and rubric weight checks before database writes.
 - **Risks Created**: RISK-07
 
 ---
 
-## ADR-08: High-Performance Client-Side Markdown Rendering Engine (Marked v18 + KaTeX + DOMPurify + Highlight.js)
+## ADR-08: XSS-Hardened Client-Side Markdown Engine (Marked v18 + KaTeX + DOMPurify + Highlight.js)
 - **Status**: Accepted
-- **Context**: Displaying domain learning materials, SOP regulations, and corpus excerpts as unstyled plain text (`white-space: pre-wrap`) degrades readability, obscures mathematical formulas, prevents syntax highlighting for technical codes, and lacks standard GitHub alerts.
-- **Decision**: Adopt `marked@18` with client-side linear-time $O(N)$ HTML parsing, integrated with `katex` (via `marked-katex-extension`) for inline/block mathematical expressions, `highlight.js/lib/common` for lightweight syntax highlighting, a native `markedAlert` extension for GitHub callouts (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`), and strict HTML sanitization via `DOMPurify` whitelisting MathML and SVG elements.
-- **Consequences**: Rich, high-fidelity pedagogical materials with zero CPU layout overhead and full XSS immunity.
+- **Context**: Rendering learning modules as plain text degrades mathematical formula and code legibility, while allowing inline `onclick` attributes in sanitized HTML creates XSS risk.
+- **Decision**: Use `marked@18`, `marked-katex-extension`, `highlight.js/lib/common`, custom `markedAlert` GitHub callouts, and `DOMPurify` whitelisting MathML/SVG elements without `onclick` (delegating copy-button clicks safely via `data-code` in `MarkdownRenderer.svelte`).
+- **Consequences**: High-fidelity technical pedagogy with full XSS immunity.
 - **Risks Created**: none
 
+---
+
+## ADR-09: Resilient OpenAI-Compatible AI Gateway & Fail-Fast Oracle/Tutor Boundary
+- **Status**: Accepted
+- **Context**: Earlier LLM integration suffered from a 5-second timeout, a DI constructor argument swap that disabled Socratic AI entirely, silent fallback logic in `OracleEvaluatorClassB` that could award 100% passing scores when the LLM was offline, and fake `setTimeout(600)` hardcoded replies in `lumisChat.svelte.ts`.
+- **Decision**: Standardize all LLM connectivity on `IAiGateway` -> `AiGatewayService` with env-only credentials (`AI_GATEWAY_URL`, `AI_GATEWAY_KEY`, `AI_TIMEOUT_MS=45000`), exponential backoff retries (`Bun.sleep`) on transient 429/5xx errors, multi-turn `messages` forwarding, `response_format: json_object` with 400 fallback, SSE streaming (`/api/v1/socratic/stream`), and `/api/v1/health/ai` diagnostics. Enforce strict fail-fast HTTP `503` errors (`AI_EVALUATOR_UNAVAILABLE` / `AI_TUTOR_UNAVAILABLE`) across Oracles and Socratic endpoints—eliminating all silent fallbacks and fake browser replies.
+- **Consequences**: Honest, observable, production-viable LLM connectivity compatible with Lumis AI Gateway, 9router, OpenRouter, OpenAI, or self-hosted vLLM/Ollama without compromising evaluation integrity.
+- **Risks Created**: RISK-04

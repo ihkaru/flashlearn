@@ -79,7 +79,11 @@ export class DrizzleMasteryRepository implements IMasteryRepository {
     userId: string,
     competencyId: string,
     status: MasteryStatus,
-    verifiedAttemptId?: string | null
+    verifiedAttemptId?: string | null,
+    options?: {
+      hasPassedUnaidedSandbox?: boolean;
+      addPassedVariantCode?: string;
+    }
   ): Promise<MasteryRecordEntity> {
     const now = new Date();
     const existing = await this.findByUserAndCompetency(userId, competencyId);
@@ -95,6 +99,16 @@ export class DrizzleMasteryRepository implements IMasteryRepository {
       }
       if (status === 'mastered') {
         updateData.masteredAt = now;
+        updateData.lastDemonstratedAt = now;
+      }
+      if (options?.hasPassedUnaidedSandbox !== undefined) {
+        updateData.hasPassedUnaidedSandbox = options.hasPassedUnaidedSandbox;
+      }
+      if (options?.addPassedVariantCode) {
+        const merged = Array.from(
+          new Set([...(existing.passedVariantCodes || []), options.addPassedVariantCode])
+        );
+        updateData.passedVariantCodes = merged;
       }
 
       const [updated] = await db
@@ -113,7 +127,39 @@ export class DrizzleMasteryRepository implements IMasteryRepository {
         competencyId,
         status,
         verifiedAttemptId: verifiedAttemptId || null,
+        hasPassedUnaidedSandbox: options?.hasPassedUnaidedSandbox ?? false,
+        passedVariantCodes: options?.addPassedVariantCode ? [options.addPassedVariantCode] : [],
         masteredAt: status === 'mastered' ? now : null,
+        lastDemonstratedAt: now,
+      })
+      .returning();
+
+    return this.mapToEntity(created);
+  }
+
+  async markUnaidedSandboxPassed(
+    userId: string,
+    competencyId: string
+  ): Promise<MasteryRecordEntity> {
+    const now = new Date();
+    const existing = await this.findByUserAndCompetency(userId, competencyId);
+    if (existing) {
+      const [updated] = await db
+        .update(masteryRecords)
+        .set({ hasPassedUnaidedSandbox: true, updatedAt: now })
+        .where(eq(masteryRecords.id, existing.id))
+        .returning();
+      return this.mapToEntity(updated);
+    }
+
+    const [created] = await db
+      .insert(masteryRecords)
+      .values({
+        userId,
+        competencyId,
+        status: 'in_progress',
+        hasPassedUnaidedSandbox: true,
+        passedVariantCodes: [],
       })
       .returning();
 

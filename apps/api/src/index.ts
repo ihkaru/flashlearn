@@ -19,6 +19,8 @@ import { driftController } from './infrastructure/http/controllers/drift.control
 import { credentialController } from './infrastructure/http/controllers/credential.controller';
 import { domainController } from './infrastructure/http/controllers/domain.controller';
 import { socraticChatController } from './infrastructure/http/controllers/socratic-chat.controller';
+import { container } from './infrastructure/di/container';
+import { BackgroundWorkerDaemon } from './worker';
 
 import { join } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
@@ -32,7 +34,7 @@ const app = new Elysia()
       origin: true,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'x-api-key'],
     })
   )
   .use(
@@ -70,11 +72,27 @@ const app = new Elysia()
       },
     })
   )
-  .get('/health', () => ({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    service: 'flashlearn-api',
-  }))
+  .get('/health', async ({ query }) => {
+    const deep = query?.deep === 'true' || query?.deep === '1';
+    const aiGateway = deep && container.aiGateway.healthCheck
+      ? await container.aiGateway.healthCheck()
+      : undefined;
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      service: 'flashlearn-api',
+      ...(aiGateway ? { aiGateway } : {}),
+    };
+  })
+  .get('/api/v1/health/ai', async ({ set }) => {
+    const status = container.aiGateway.healthCheck
+      ? await container.aiGateway.healthCheck()
+      : { configured: false, reachable: false, baseUrl: '', defaultModel: '' };
+    if (!status.configured || !status.reachable) {
+      set.status = 503;
+    }
+    return status;
+  })
   .use(authController)
   .use(workspaceController)
   .use(contentController)
@@ -120,3 +138,9 @@ const app = new Elysia()
 
 console.log(`⚡ FlashLearn API is running at http://localhost:${port}`);
 console.log(`📖 OpenAPI Scalar Docs available at http://localhost:${port}/docs`);
+
+if (import.meta.main && process.env.DISABLE_EMBEDDED_WORKER !== 'true') {
+  const intervalMs = Number(process.env.WORKER_INTERVAL_MS) || 60000;
+  const embeddedWorker = new BackgroundWorkerDaemon(intervalMs);
+  embeddedWorker.start();
+}

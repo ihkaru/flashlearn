@@ -6,26 +6,40 @@ export class BackgroundWorkerDaemon {
 
   constructor(private readonly pollIntervalMs: number = 60000) {}
 
-  async runCycle(): Promise<{ sourcesChecked: number; dueCardsCount: number; timestamp: string }> {
+  async runCycle(): Promise<{
+    sourcesChecked: number;
+    dueCardsCount: number;
+    decayProcessed: number;
+    decayWarnings: number;
+    decayExpired: number;
+    suspendedGatePassportsCount: number;
+    timestamp: string;
+  }> {
     const timestamp = new Date().toISOString();
     let sourcesChecked = 0;
-    let dueCardsCount = 0;
 
     try {
-      // 1. Check all workspaces
+      // 1. Check all workspaces & monitored sources
       const workspaces = await container.workspaceRepository.listAll();
-
       for (const ws of workspaces) {
-        // Count active sources
         const sources = await container.sourceRepository.listByWorkspace(ws.id);
         sourcesChecked += sources.length;
       }
 
-      console.log(`[Worker Daemon] [${timestamp}] Cycle complete. Workspaces checked: ${workspaces.length}, Sources monitored: ${sourcesChecked}`);
+      // 2. Execute Predictive Competency Drift & Decay batch cycle
+      const decayReport = await container.processCompetencyDecayBatchUseCase.execute();
+
+      console.log(
+        `[Worker Daemon] [${timestamp}] Cycle complete. Workspaces: ${workspaces.length}, Sources: ${sourcesChecked}, Masteries decayed/checked: ${decayReport.totalProcessed} (warn=${decayReport.warningCount}, expired=${decayReport.expiredCount}, suspendedGates=${decayReport.suspendedGatePassportsCount})`
+      );
 
       return {
         sourcesChecked,
-        dueCardsCount,
+        dueCardsCount: decayReport.warningCount + decayReport.expiredCount,
+        decayProcessed: decayReport.totalProcessed,
+        decayWarnings: decayReport.warningCount,
+        decayExpired: decayReport.expiredCount,
+        suspendedGatePassportsCount: decayReport.suspendedGatePassportsCount,
         timestamp,
       };
     } catch (err: any) {

@@ -38,12 +38,52 @@ export class GetCompetencyLearningBundleUseCase {
     // 2. Fetch tasks for competency
     const tasks = await this.taskRepo.listByCompetency(competencyId);
 
-    // 3. Citations
+    // 3. Citations & Addressable Corpus Chunks (100% domain-agnostic from DB)
     const citations: string[] = [];
+    const corpusChunks: Array<{
+      id: string;
+      sourceCode: string;
+      sourceTitle: string;
+      locationTag: string;
+      content: string;
+      sha256Hash: string;
+    }> = [];
+
     if (competency.sourceId) {
       const source = await this.sourceRepo.findById(competency.sourceId);
       if (source) {
         citations.push(`${source.code} v${source.version}: ${source.title}`);
+        const chunks = await this.sourceRepo.listChunksBySourceId(source.id);
+        for (const chk of chunks) {
+          corpusChunks.push({
+            id: chk.id,
+            sourceCode: source.code,
+            sourceTitle: source.title,
+            locationTag: chk.locationTag,
+            content: chk.content,
+            sha256Hash: chk.sha256Hash,
+          });
+        }
+      }
+    }
+
+    if (corpusChunks.length === 0) {
+      const wsSources = await this.sourceRepo.listByWorkspace(competency.workspaceId);
+      for (const source of wsSources) {
+        if (citations.length === 0) {
+          citations.push(`${source.code} v${source.version}: ${source.title}`);
+        }
+        const chunks = await this.sourceRepo.listChunksBySourceId(source.id);
+        for (const chk of chunks) {
+          corpusChunks.push({
+            id: chk.id,
+            sourceCode: source.code,
+            sourceTitle: source.title,
+            locationTag: chk.locationTag,
+            content: chk.content,
+            sha256Hash: chk.sha256Hash,
+          });
+        }
       }
     }
 
@@ -71,6 +111,7 @@ export class GetCompetencyLearningBundleUseCase {
 
     return {
       competency: node,
+      corpusChunks,
       readingMaterials,
       causalProbes,
       workedExamples: scaffolding.workedExamples,

@@ -1,7 +1,7 @@
 ---
 arc42_section: 11
-verified_commit: 846f709
-verified_timestamp: 2026-10-26T10:50:00+07:00
+verified_commit: 9f770ab
+verified_timestamp: 2026-11-22T07:30:00+07:00
 branch: main
 tracked_paths:
   - apps/
@@ -12,48 +12,47 @@ tracked_paths:
 # 11. Risks and Technical Debt
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `846f709` (branch: `main`)
-> - **Verified Timestamp**: `2026-10-26T10:50:00+07:00`
+> - **Verified Commit**: `9f770ab` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-22T07:30:00+07:00`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
-This section catalogues known architectural risks and technical debt in the FlashLearn codebase, providing mitigation strategies, ownership, and retirement roadmaps.
+This section catalogues known architectural risks and active technical debt in FlashLearn, keeping an honest ledger of gaps between current implementation and target maturity.
 
 ---
 
 ## 11.1 Architectural Risk Matrix
 
-The following risks are tracked and actively mitigated across architectural components, including all risks created by architectural decisions in Section 9:
-
 | Risk ID | Title / Summary | Severity | Likelihood | Mitigation Strategy | Owner |
 |---|---|---|---|---|---|
-| RISK-01 | Dependency on Bun runtime stability on ARM64 Linux containers | Medium | Low | Pinned Bun release (`1.4.2`), comprehensive hermetic CI tests, automated memory monitoring in container environments. | Platform Core |
-| RISK-02 | Candidate abuse of practice-to-exam loop transitions (system gaming) | High | Medium | Dynamic problem parameter generation per attempt, separate DB storage for practice diagnostics vs. immutable signed gate audit records, progressive rate limiting. | Curriculum & Auth |
-| RISK-03 | Quality drift in auto-generated backward scaffolding for edge-case blueprints | Medium | Medium | Strict schema validation before LLM pipeline execution, heuristic fallback generators for standard archetypes, human creator review flag. | AI Pipeline Team |
-| RISK-04 | Upstream AI Gateway latency spikes or rate limits during Class B evaluations | High | Medium | Asynchronous evaluation queue with exponential backoff retries; pre-evaluation by Class A deterministic checkers before invoking LLM judge. | AI Integration |
-| RISK-05 | Key management, rotation, and revocation overhead for Ed25519 digital authority passports | High | Low | Infisical universal secret management, public key distribution endpoints (`/.well-known/did.json`), and W3C Bitstring Status List 2021 revocation registry. | Security & Compliance |
-| RISK-06 | Learner frustration or anxiety spike when AI tutor assistance is disabled in Unaided Practice | Medium | Medium | Progressive hint fading schedule (full explanations fade to statutory clause citations only) prior to complete AI shutdown. | UX & Cognitive Design |
-| RISK-07 | AI hallucination in statutory clauses or numerical imbalances in CLI-generated domain blueprints | High | Low | Mandatory SHA-256 chunk citation matching against raw ingested text, Tarjan SCC acyclicity validator, and automated AST oracle solvability proofs. | CLI & Automation |
+| RISK-01 | Bun runtime compatibility regressions on ARM64 Linux containers | Medium | Low | Pin Bun `1.4.2` (`oven/bun:1.4-alpine`), maintain hermetic `bun test` suites and strict `tsc --noEmit` checks before deployment. | Platform Core |
+| RISK-02 | Candidate gaming of Sandbox-to-Exam transitions or downgrade peeking | High | Medium | Persist `has_passed_unaided_sandbox` on backend, disable AI Tutor inside `GateExamTab.svelte`, separate `is_practice` attempts from official mastery, and enforce multi-observation variants (`requiredObservationsCount`). Planned: server-side instance burning on downgrade (`DEBT-03`). | Curriculum & Auth |
+| RISK-03 | Generic heuristic wording in auto-generated backward scaffolding for niche domains | Medium | Medium | Derive scaffolding dynamically from `task.oracleData`, `adversarialSpec`, and DB `source_chunks` rather than hardcoded domain text; allow SME blueprint enrichment. | AI Pipeline Team |
+| RISK-04 | Upstream AI Gateway downtime, 429 rate limits, or latency spikes blocking Class B / Adversarial / Socratic flows | High | Medium | 45s configurable timeout (`AI_TIMEOUT_MS`), exponential backoff retries (`Bun.sleep`), strict fail-fast HTTP `503` (zero silent auto-pass), and active `/api/v1/health/ai` monitoring. Planned: async evaluation retry queue (`DEBT-03`). | AI Integration |
+| RISK-05 | Key management, rotation, and decentralized revocation for Ed25519 W3C credentials | High | Low | Store runtime secrets in Infisical/Coolify, validate credential `status` (`active`/`revoked`/`drift_suspended`) in PostgreSQL during verification. Planned: public `/.well-known/did.json` resolver and W3C Bitstring Status List (`DEBT-03`). | Security & Compliance |
+| RISK-06 | Learner friction when AI Tutor is disabled during Unaided Practice & Gate Exam | Medium | Medium | Provide DB-grounded `CorpusReferenceCard`, Job Aid checklists, formulas, and causal priming probes before entering the unaided Gate Exam. | UX & Cognitive Design |
+| RISK-07 | Hallucinated statutory citations or unsolvable parameters in agent-generated blueprints | High | Low | Enforce SHA-256 hashing of ingested source chunks, deterministic verbatim quote checks (`CitationValidatorService`), Tarjan SCC acyclicity, 100%-weighted rubric validation (`validateDomainBlueprint`), and Class A fail-fast config checks. | CLI & Automation |
 
 ---
 
 ## 11.2 Technical Debt Register
 
-The following items represent conscious technical compromises made during high-velocity development, prioritized for systematic resolution:
-
 | Debt ID | Component | Description | Impact | Remediation Plan | Target Milestone |
 |---|---|---|---|---|---|
-| DEBT-01 | `apps/api` Seeds | Direct SQL inner-join query builders used in seed scripts (`enterprise_procurement_contents.data.ts`) rather than Drizzle ORM relational queries (`db.query.*`). | Minor syntactic maintenance overhead when extending seed fixtures. | Define explicit Drizzle `relations(...)` in `packages/shared/src/schema/database.ts` across `contents`, `sourceChunks`, and `nodes`. | Phase 2 / v0.9.0 |
-| DEBT-02 | Monorepo Test Setup | Test runner split between `bun test` in backend/core and `vitest` in frontend UI workspace. | Minor workflow context switching between backend and frontend tests. | Harmonize unified test runner script in root `package.json` (`bun run test`) with consistent reporters. | Phase 3 / v1.0.0 |
-| DEBT-03 | Oracle Class B Fixtures | Integration tests for LLM judge evaluations require network connectivity or live AI Gateway. | Inability to run full suite in completely disconnected/airgapped environments. | Implement zero-mock recorded response fixture replay engine compliant with Layer 2 empirical testing doctrine. | Phase 2 / v0.9.0 |
-| DEBT-04 | Multi-Domain Scaffolding Templates | Scaffolding templates currently default to the Enterprise Procurement reference archetype. | New domain creation requires manual parameterization of diagnostic steps. | Extract archetype blueprints into generic domain configuration packs (`packages/shared/src/archetypes/`). | Phase 4 / v1.1.0 |
+| DEBT-01 | `apps/web` Testing | Frontend workspace (`apps/web`) currently has no automated unit/component test runner (only `apps/api`, `packages/shared`, and `packages/cli` run `bun test`). | UI regressions rely on manual QA and `vite build` checks. | Add lightweight Svelte 5 component tests and smoke E2E checks integrated into root `bun run test`. | v1.1.0 |
+| DEBT-02 | `apps/web` UI Hygiene | 17 Svelte components remain between 200–396 lines (above 200-line soft SRP guidance, below 400-line hard cap), and 18 frontend files still contain decorative Unicode emojis. | Elevated component size and partial inconsistency with strict vector-icon hygiene. | Decompose largest pages (`QuizRunner.svelte`, `ContentEditorModal.svelte`, `workspace.svelte`) and replace remaining Unicode symbols with `<Icon />`. | v1.1.0 |
+| DEBT-03 | Planned Cognitive & Security Evolutions | Several target enhancements from the architecture roadmap are not yet implemented in code: Dual-Agent Class B Critic, 4-tier adaptive fading (70/30/0%), Graceful Downgrade server-side instance burning, `/.well-known/did.json` endpoint, W3C Bitstring Status List, organizational decay attestation endpoint, and async LLM evaluation queue. | Documented honestly as roadmap items rather than active runtime guarantees. | Deliver incrementally in dedicated vertical slices with hermetic tests before promoting to As-Is status. | v1.2.0 |
+| DEBT-04 | Live Load & DB Integration CI | Integration tests `apps/api/tests/phase01`–`phase16.test.ts` require a running PostgreSQL instance, and 50-VU load benchmarks for `QS-03` have not yet been automated in CI. | Full DB integration and `QS-03` performance telemetry cannot run in DB-less sandboxes. | Provision ephemeral Postgres service container + k6 load benchmark in CI alongside hermetic `llm_and_oracle_integrity.test.ts`. | v1.1.0 |
+| DEBT-05 | Credential Execution Artifact Hash | Column `issued_credentials.execution_artifact_hash` exists in schema (`0009`), but `IssueVerifiableCredentialUseCase` does not yet populate it with the aggregated Merkle hash of verified attempt transcripts. | W3C VCs do not yet embed attempt transcript Merkle digests automatically. | Compute and attach aggregated attempt `conversationHash` / artifact digest in `IssueVerifiableCredentialUseCase`. | v1.1.0 |
+| DEBT-06 | Turnkey Bootstrap Seeds | Five canonical domain seed modules remain under `apps/api/src/infrastructure/database/seeds/` executed by `start.sh` for turnkey onboarding. | Couples starter domain content to backend container startup rather than pure CLI ingestion. | Export the 5 canonical seeds into versioned JSON blueprint files ingested via `flashlearn domain import-blueprint`. | v1.2.0 |
 
 ---
 
 ## 11.3 Quality Scenario Tracking & Mitigation
 
-All quality scenarios defined in Section 10 (`QS-01` to `QS-04`) are actively monitored:
-- **QS-01 (#correctness)**: Spaced repetition due calculation under high load is protected by atomic database indices and idempotency tokens.
-- **QS-02 (#performance)**: Real-time DAG acyclicity verification is enforced via Tarjan's Strongly Connected Components algorithm ($O(V + E)$), verified sub-50ms for up to 500 nodes.
-- **QS-03 (#maintainability)**: Maximum file size limit of 400 lines and SRP compliance enforced on every commit via `scripts/check-line-limits.sh` and `scripts/static_srp_analyzer.py`.
-- **QS-04 (#security)**: Cryptographic authority passport tamper-proofing guaranteed via Ed25519 digital signatures and SHA-256 Merkle chain verification.
+All quality scenarios defined in Section 10 (`QS-01` to `QS-05`) are tracked against concrete verification commands:
+- **QS-01 (#correctness)**: Verified deterministically by `bun test apps/api/tests/llm_and_oracle_integrity.test.ts` (Class A fail-fast + $\pm 1\%$ tolerance, Class B/Adversarial fail-fast HTTP 503, Multi-Observation `GateAuthorizationEngine`).
+- **QS-02 (#maintainability)**: Enforced on every change via `bun run lint:srp` (`scripts/check_srp_limits.ts`), `tsc --noEmit` across `packages/shared`, `packages/cli`, and `apps/api`, `detect-mocks .`, and `bun run lint:arc42:strict`.
+- **QS-03 (#performance — aspirational)**: Tracked under `DEBT-04`; mitigation includes zero-blocking Elysia handlers, pooled `postgres.js` (`max: 10`), `X-Accel-Buffering: no` SSE streaming, and upcoming automated 50-VU load testing + container RSS telemetry.
+- **QS-04 (#security)**: Verified via `bun test packages/cli/tests/phase18_merkle.test.ts`, `apps/api/tests/llm_and_oracle_integrity.test.ts`, DOMPurify XSS hardening (`MarkdownRenderer.svelte`), and fail-fast secret enforcement in `db.ts` and `AiGatewayService.ts`.
+- **QS-05 (#correctness)**: Verified via `bun test packages/shared/tests/cognitive_archetypes_and_scaffolding.test.ts`, `packages/cli/tests/cli_phases.test.ts`, and `bun run audit:domain` (`scripts/audit_domain_curriculum.ts`).

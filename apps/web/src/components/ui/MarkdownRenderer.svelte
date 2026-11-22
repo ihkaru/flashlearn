@@ -33,7 +33,7 @@
           highlighted = text;
         }
         const encoded = encodeURIComponent(text);
-        return `<div class="fl-code-block"><div class="fl-code-header"><span class="fl-code-lang">${validLang || 'text'}</span><button type="button" class="fl-copy-btn" onclick="navigator.clipboard.writeText(decodeURIComponent('${encoded}'))">Salin</button></div><pre><code class="hljs language-${validLang || 'text'}">${highlighted}</code></pre></div>`;
+        return `<div class="fl-code-block"><div class="fl-code-header"><span class="fl-code-lang">${validLang || 'text'}</span><button type="button" class="fl-copy-btn" data-code="${encoded}">Salin</button></div><pre><code class="hljs language-${validLang || 'text'}">${highlighted}</code></pre></div>`;
       },
     },
   });
@@ -47,7 +47,7 @@
     ADD_ATTR: [
       'target', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap',
       'stroke-linejoin', 'd', 'cx', 'cy', 'r', 'x', 'y', 'x1', 'y1', 'x2', 'y2',
-      'points', 'xmlns', 'aria-hidden', 'onclick',
+      'points', 'xmlns', 'aria-hidden', 'data-code',
     ],
   };
 
@@ -60,9 +60,24 @@
       return content;
     }
   });
+
+  function handleContainerClick(event: MouseEvent) {
+    const target = event.target as HTMLElement | null;
+    const btn = target?.closest?.('.fl-copy-btn') as HTMLButtonElement | null;
+    if (!btn) return;
+    const encoded = btn.getAttribute('data-code');
+    if (!encoded) return;
+    navigator.clipboard?.writeText(decodeURIComponent(encoded));
+    const prev = btn.textContent;
+    btn.textContent = 'Tersalin';
+    setTimeout(() => {
+      btn.textContent = prev || 'Salin';
+    }, 1500);
+  }
 </script>
 
-<div class="markdown-body {customClass}">
+<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+<div class="markdown-body {customClass}" onclick={handleContainerClick}>
   <!-- eslint-disable-next-line svelte/no-at-html-tags -->
   {@html html}
 </div>

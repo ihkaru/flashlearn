@@ -15,4 +15,20 @@ export const socraticChatApi = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  chat: (data: {
+    message: string;
+    conversationHistory?: Array<{ role: 'user' | 'assistant'; text: string }>;
+    context?: {
+      phase?: string;
+      workspaceName?: string;
+      taskTitle?: string;
+      scenario?: string;
+      competencyCode?: string;
+      competencyTitle?: string;
+    };
+  }): Promise<{ reply: string; model: string }> =>
+    fetchWithAuth('/api/v1/socratic/chat', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };

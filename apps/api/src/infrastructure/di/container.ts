@@ -97,8 +97,8 @@ export class Container extends BaseContainer {
     this.taskRepository,
     this.competencyRepository,
     this.sourceRepository,
-    this.contentRepository,
-    this.aiGateway
+    this.aiGateway,
+    this.contentRepository
   );
 
   // Phase 04 & 08: Progressive Gates & Passports

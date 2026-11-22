@@ -46,7 +46,7 @@ export class ImportDomainBlueprintUseCase {
     for (const src of blueprint.sources || []) {
       let existingSrc = await this.sourceRepo.findByCode(src.code);
       if (!existingSrc) {
-        existingSrc = await this.sourceRepo.create({
+        const createdSrc = await this.sourceRepo.create({
           workspaceId,
           code: src.code,
           title: src.title,
@@ -54,12 +54,13 @@ export class ImportDomainBlueprintUseCase {
           owner: src.owner || 'Standard Authority',
           effectiveDate: new Date(src.effectiveDate || Date.now()),
         });
+        existingSrc = createdSrc;
         sourcesCreated++;
 
         // Insert chunks with SHA256 hashes
         if (src.chunks && src.chunks.length > 0) {
           const chunkData = src.chunks.map((chk) => ({
-            sourceId: existingSrc.id,
+            sourceId: createdSrc.id,
             locationTag: chk.locationTag,
             content: chk.content,
             tokenCount: Math.ceil(chk.content.length / 4),
@@ -136,17 +137,19 @@ export class ImportDomainBlueprintUseCase {
     for (const g of blueprint.gates || []) {
       const existingGate = await this.gateRepo.findByWorkspaceAndLevel(workspaceId, g.level);
       if (!existingGate) {
+        const gateTitle = g.title || g.name || `Gate Level ${g.level}`;
         const createdGate = await this.gateRepo.createGate({
           workspaceId,
           level: g.level,
-          title: g.title || g.name,
-          description: g.description || g.title || g.name,
+          title: gateTitle,
+          description: g.description || gateTitle,
         });
         gatesCreated++;
 
         const reqSource = g.requirements || (g.requiredCompetencyCodes || []).map((code: string) => ({
           competencyCode: code,
           minimumScore: 80,
+          requiredObservationsCount: g.level >= 2 ? 2 : 1,
           requiresHumanApproval: g.level >= 3,
         }));
 
@@ -157,6 +160,7 @@ export class ImportDomainBlueprintUseCase {
             return {
               competencyId: cId,
               minimumScore: req.minimumScore ?? 80,
+              requiredObservationsCount: req.requiredObservationsCount ?? 1,
               requiresHumanApproval: req.requiresHumanApproval ?? false,
             };
           })
@@ -182,8 +186,10 @@ export class ImportDomainBlueprintUseCase {
           title: t.title,
           scenario: t.scenario || t.title,
           taskType: t.taskType,
+          scenarioVariantCode: t.scenarioVariantCode || 'variant_a',
+          isIsomorphicVariant: t.isIsomorphicVariant ?? false,
           oracleData: t.oracleData || {},
-          adversarialSpec: t.adversarialSpec || null,
+          adversarialSpec: (t.adversarialSpec as any) || null,
           rubricCriteria: t.rubricCriteria || [
             { id: 'crit_substance', title: 'Kesesuaian Prosedur', weight: 60, description: 'Kesesuaian dengan dokumen rujukan' },
             { id: 'crit_accuracy', title: 'Akurasi Eksekusi', weight: 40, description: 'Ketepatan hasil atau kalkulasi' },

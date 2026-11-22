@@ -102,8 +102,18 @@ export interface CausalProbe {
   faultyLine?: number;
 }
 
+export interface CompetencyCorpusChunk {
+  id: string;
+  sourceCode: string;
+  sourceTitle: string;
+  locationTag: string;
+  content: string;
+  sha256Hash: string;
+}
+
 export interface CompetencyLearningBundle {
   competency: CompetencyNode;
+  corpusChunks?: CompetencyCorpusChunk[];
   readingMaterials: Array<{
     id: string;
     title: string;

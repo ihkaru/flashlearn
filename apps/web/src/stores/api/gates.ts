@@ -6,10 +6,9 @@ export const gateApi = {
     fetchWithAuth(`/api/v1/gates/workspace/${workspaceId}`),
   getPassports: (workspaceId?: string): Promise<{ success: boolean; data: UserGateGrant[] }> =>
     fetchWithAuth(`/api/v1/gates/passports${workspaceId ? `?workspaceId=${workspaceId}` : ''}`),
-  evaluate: (gateId: string): Promise<{ success: boolean; grant: UserGateGrant }> =>
-    fetchWithAuth('/api/v1/gates/evaluate', {
+  evaluate: (gateId: string): Promise<{ success: boolean; data?: UserGateGrant; grant?: UserGateGrant }> =>
+    fetchWithAuth(`/api/v1/gates/${gateId}/grant`, {
       method: 'POST',
-      body: JSON.stringify({ gateId }),
     }),
   create: (data: Partial<Gate>): Promise<{ success: boolean; data: Gate }> =>
     fetchWithAuth('/api/v1/gates', { method: 'POST', body: JSON.stringify(data) }),

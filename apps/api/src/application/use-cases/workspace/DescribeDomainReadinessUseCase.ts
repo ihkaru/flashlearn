@@ -85,7 +85,10 @@ export class DescribeDomainReadinessUseCase {
     }
 
     // 4. DAG Topology & Cycle Check
-    const cycleDetected = this.graphEngine.hasCycle(competencies, edges);
+    const cycleDetected = this.graphEngine.hasCycle(
+      competencies.map((c) => c.id),
+      edges
+    );
     const prerequisiteTargetIds = new Set(edges.map((e) => e.competencyId));
     const prerequisiteSourceIds = new Set(edges.map((e) => e.prerequisiteId));
 
@@ -94,7 +97,7 @@ export class DescribeDomainReadinessUseCase {
 
     // 5. Gate Analysis
     const gateLevelsPresent = Array.from(new Set(gates.map((g) => g.level))).sort();
-    const missingGateLevels = [0, 1, 2, 3].filter((lvl) => !gateLevelsPresent.includes(lvl));
+    const missingGateLevels = ([0, 1, 2, 3] as const).filter((lvl) => !gateLevelsPresent.includes(lvl));
     const gatesWithoutRequirements = gates
       .filter((g) => !g.requirements || g.requirements.length === 0)
       .map((g) => ({ id: g.id, level: g.level, title: g.title }));

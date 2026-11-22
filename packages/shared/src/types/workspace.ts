@@ -75,11 +75,14 @@ export interface DomainBlueprint {
   }>;
   gates: Array<{
     level: 0 | 1 | 2 | 3;
-    title: string;
-    description: string;
-    requirements: Array<{
+    title?: string;
+    name?: string;
+    description?: string;
+    requiredCompetencyCodes?: string[];
+    requirements?: Array<{
       competencyCode: string;
       minimumScore: number;
+      requiredObservationsCount?: number;
       requiresHumanApproval?: boolean;
     }>;
   }>;
@@ -87,9 +90,12 @@ export interface DomainBlueprint {
     competencyCode: string;
     title: string;
     scenario: string;
-    taskType: 'calculation' | 'case_study' | 'document_draft' | 'checklist';
-    oracleData: Record<string, any>;
-    rubricCriteria: Array<{
+    taskType: 'calculation' | 'case_study' | 'document_draft' | 'checklist' | 'adversarial_dilemma';
+    scenarioVariantCode?: string;
+    isIsomorphicVariant?: boolean;
+    oracleData?: Record<string, any>;
+    adversarialSpec?: Record<string, any> | null;
+    rubricCriteria?: Array<{
       id: string;
       title: string;
       weight: number;

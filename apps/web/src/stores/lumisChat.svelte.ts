@@ -48,25 +48,26 @@ class LumisChatState {
     this.connectionStatus = 'connecting';
 
     try {
+      const history = this.messages.slice(0, -1).slice(-8).map((m) => ({
+        role: m.role,
+        text: m.content,
+      }));
+
       if (this.context.taskId) {
-        const history = this.messages.slice(-6).map((m) => ({
-          role: m.role,
-          text: m.content,
-        }));
-        const res = await api.tasks.askSocraticHint(this.context.taskId, text);
+        const res = await api.tasks.askSocraticHint(this.context.taskId, text, history);
 
         let reply = res.socraticGuidance;
         if (res.reflectiveQuestion) {
-          reply += `\n\n💡 **Pertanyaan Reflektif:**\n${res.reflectiveQuestion}`;
+          reply += `\n\nPertanyaan Reflektif:\n${res.reflectiveQuestion}`;
         }
         if (res.citationReferences && res.citationReferences.length > 0) {
           const citations = res.citationReferences
-            .map((c) => `• ${c.sourceCode}${c.locationTag ? ` (${c.locationTag})` : ''}: ${c.relevantPrinciple || ''}`)
+            .map((c) => `- ${c.sourceCode}${c.locationTag ? ` (${c.locationTag})` : ''}: ${c.relevantPrinciple || ''}`)
             .join('\n');
-          reply += `\n\n📜 **Rujukan Naskah Standar:**\n${citations}`;
+          reply += `\n\nRujukan Naskah Standar:\n${citations}`;
         }
         if (res.suggestedAction) {
-          reply += `\n\n🎯 **Langkah Tindak Lanjut:**\n${res.suggestedAction}`;
+          reply += `\n\nLangkah Tindak Lanjut:\n${res.suggestedAction}`;
         }
 
         this.appendMessage('assistant', reply);
@@ -74,22 +75,24 @@ class LumisChatState {
         this.sessionId = `socratic-${this.context.taskId}-${Date.now()}`;
         this.connectionStatus = 'connected';
       } else {
-        // Fallback pedagogical reflection for general or domain navigation
-        await new Promise((r) => setTimeout(r, 600));
-        let reply = '';
-        if (this.context.phase === 'adversarial_debrief') {
-          reply = `Dalam skenario bertekanan tinggi seperti "${this.context.taskTitle || 'Tugas Dilema'}", kaidah integritas dan pemisahan kewenangan (Segregation of Duties) bersifat mutlak.\n\n💡 **Pertanyaan Reflektif:** Mengapa kepatuhan prosedural wajib dipertahankan meskipun terdapat desakan percepatan atau ancaman eskalasi?`;
-        } else if (this.context.phase === 'diagnostic_guide') {
-          reply = `Berdasarkan peta diagnostik di workspace "${this.context.workspaceName || 'Domain'}", fokuskan pembelajaran Anda pada node-node fondasi yang berstatus 'Ready'. Menyelesaikan prasyarat awal akan otomatis membuka akses ke tingkat wewenang berikutnya.`;
-        } else {
-          reply = `Saya adalah Tutor Sokratik FlashLearn. Silakan pilih salah satu kompetensi atau tugas pada Peta Kompetensi (DAG) agar saya dapat memberikan bimbingan reflektif berbasis pasal dan standar teknis resmi.`;
-        }
-        this.appendMessage('assistant', reply);
-        this.lastAdoptedDraft = reply;
+        const res = await api.socraticChat.chat({
+          message: text,
+          conversationHistory: history,
+          context: {
+            phase: this.context.phase,
+            workspaceName: this.context.workspaceName,
+            taskTitle: this.context.taskTitle,
+            scenario: this.context.scenario,
+            competencyCode: this.context.competencyCode,
+            competencyTitle: this.context.competencyTitle,
+          },
+        });
+        this.appendMessage('assistant', res.reply);
+        this.lastAdoptedDraft = res.reply;
         this.connectionStatus = 'connected';
       }
     } catch (err: any) {
-      this.appendMessage('assistant', `⚠️ Maaf, terjadi kendala saat menelaah: ${err.message || 'Gagal menghubungi server Sokratik'}. Pastikan Anda telah masuk sebagai pembelajar.`);
+      this.appendMessage('assistant', `Maaf, koneksi ke AI Tutor gagal: ${err.message || 'Server AI tidak tersedia'}. Pastikan Anda telah masuk dan AI Gateway aktif.`);
       this.connectionStatus = 'fallback';
     } finally {
       this.isThinking = false;

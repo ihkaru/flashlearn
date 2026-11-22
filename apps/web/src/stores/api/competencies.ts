@@ -18,11 +18,17 @@ export const competencyApi = {
     fetchWithAuth(`/api/v1/competencies/${id}/learning-bundle`),
   create: (data: Partial<CompetencyNode>): Promise<CompetencyNode> =>
     fetchWithAuth('/api/v1/competencies', { method: 'POST', body: JSON.stringify(data) }),
-  createPrerequisite: (data: { competencyId: string; prerequisiteCompetencyId: string }): Promise<CompetencyEdge> =>
-    fetchWithAuth('/api/v1/competencies/prerequisite', { method: 'POST', body: JSON.stringify(data) }),
+  createPrerequisite: (data: { competencyId: string; prerequisiteId: string }): Promise<CompetencyEdge> =>
+    fetchWithAuth('/api/v1/competencies/link-prerequisite', { method: 'POST', body: JSON.stringify(data) }),
   verifyExpert: (id: string, notes?: string): Promise<{ success: boolean; data: CompetencyNode }> =>
-    fetchWithAuth(`/api/v1/competencies/${id}/verify-expert`, {
+    fetchWithAuth(`/api/v1/competencies/${id}/approve`, {
       method: 'POST',
       body: JSON.stringify({ notes }),
+    }),
+  markUnaidedSandboxPassed: (
+    id: string
+  ): Promise<{ success: boolean; competencyId: string; hasPassedUnaidedSandbox: boolean }> =>
+    fetchWithAuth(`/api/v1/competencies/${id}/unaided-sandbox-pass`, {
+      method: 'POST',
     }),
 };

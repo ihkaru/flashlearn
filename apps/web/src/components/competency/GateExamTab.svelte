@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Task, Attempt, CompetencyNode } from '@flashlearn/shared';
+  import type { Task, Attempt, CompetencyNode, CompetencyCorpusChunk } from '@flashlearn/shared';
   import TaskExecutionForm from './TaskExecutionForm.svelte';
   import Icon from '../ui/Icon.svelte';
 
@@ -7,6 +7,7 @@
     tasks: Task[];
     selectedTaskId: string | null;
     competency: CompetencyNode;
+    corpusChunks?: CompetencyCorpusChunk[];
     onSelectTask: (id: string) => void;
     onAttemptSubmitted: (attempt: Attempt) => void;
     onRequestScaffoldingHelp: () => void;
@@ -16,6 +17,7 @@
     tasks,
     selectedTaskId,
     competency,
+    corpusChunks = [],
     onSelectTask,
     onAttemptSubmitted,
     onRequestScaffoldingHelp,
@@ -104,6 +106,8 @@
     <TaskExecutionForm
       task={currentTask}
       oracleClass={competency.oracleClass}
+      corpusChunks={corpusChunks}
+      disableAiTutor={true}
       onAttemptSubmitted={onAttemptSubmitted}
     />
   {:else}

@@ -11,7 +11,7 @@ export const ENTERPRISE_SOURCE = {
   code: 'SRC-ENT-PROC-2026',
   title: 'SOP Manajemen Pengadaan Tingkat Enterprise & Strategic Sourcing (SOP-CORP-PROC-2026-08)',
   version: 'v2.4',
-  status: 'active',
+  status: 'active' as const,
   owner: 'Enterprise Procurement & Internal Audit Committee',
   effectiveDate: new Date('2026-08-01'),
 };
@@ -88,7 +88,7 @@ export const ENTERPRISE_COMPETENCIES = [
       'Kemampuan mempertahankan kepatuhan regulasi mutlak saat menghadapi desakan eksekutif dan risiko hangusnya anggaran akhir tahun.',
     oracleClass: 'B' as const,
     cognitiveArchetype: 'ill_structured_case' as const,
-    riskLevel: 'critical' as const,
+    riskLevel: 'high' as const,
   },
 ];
 

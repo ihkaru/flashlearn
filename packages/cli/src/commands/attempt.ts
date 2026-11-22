@@ -95,7 +95,7 @@ export async function handleAttemptCommand(
         });
       }
 
-      let rubricScores: any[];
+      let rubricScores: any;
       try {
         rubricScores = JSON.parse(readFileSync(rubricFilePath, 'utf-8'));
       } catch (err: any) {
@@ -110,7 +110,7 @@ export async function handleAttemptCommand(
         attemptId,
         passed,
         expertNotes: notes,
-        rubricScores: Array.isArray(rubricScores) ? rubricScores : rubricScores.rubricScores,
+        rubricScores: Array.isArray(rubricScores) ? rubricScores : rubricScores?.rubricScores ?? [],
       };
 
       const data = await client.request('/api/v1/reviewer/evaluate', { method: 'POST', body });

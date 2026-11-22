@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { CompetencyNode, Task, Attempt, CompetencyLearningBundle } from '@flashlearn/shared';
   import { api } from '../../stores/api';
+  import { auth } from '../../stores/auth.svelte';
   import Icon from '../ui/Icon.svelte';
   import LearningSandboxTab from './LearningSandboxTab.svelte';
   import GateExamTab from './GateExamTab.svelte';
@@ -72,6 +73,18 @@
     if (attempt.passed) {
       onMasteryUpdated?.();
     }
+  }
+
+  async function handleUnaidedSandboxPassed() {
+    if (competency && auth.isLoggedIn) {
+      try {
+        await api.competencies.markUnaidedSandboxPassed(competency.id);
+      } catch (err) {
+        console.warn('Unable to persist unaided sandbox checkpoint to backend:', err);
+      }
+    }
+    hasPassedUnaided = true;
+    onMasteryUpdated?.();
   }
 </script>
 
@@ -167,7 +180,7 @@
             <LearningSandboxTab
               bundle={learningBundle}
               hasPassedUnaided={hasPassedUnaided}
-              onPassedUnaidedSandbox={() => (hasPassedUnaided = true)}
+              onPassedUnaidedSandbox={handleUnaidedSandboxPassed}
               onProceedToExam={() => (activeTab = 'exam')}
             />
           {:else}
@@ -188,6 +201,7 @@
             tasks={tasks}
             selectedTaskId={selectedTaskId}
             competency={competency}
+            corpusChunks={learningBundle?.corpusChunks || []}
             onSelectTask={(id) => (selectedTaskId = id)}
             onAttemptSubmitted={handleAttemptSubmitted}
             onRequestScaffoldingHelp={() => (activeTab = 'sandbox')}

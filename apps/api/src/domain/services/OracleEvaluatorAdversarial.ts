@@ -99,9 +99,10 @@ Task: Audit whether the candidate fell into the adversarial trap or successfully
         systemPrompt,
         model: process.env.AI_FAST_MODEL || process.env.AI_DEFAULT_MODEL || 'my9model-fast',
       });
-    } catch {
-      // Offline/Deterministic heuristic fallback for hermetic testing & network resilience
-      aiResult = this.computeHeuristicFallback(submissionText, spec);
+    } catch (err: any) {
+      throw new Error(
+        `AI_EVALUATOR_UNAVAILABLE: Evaluasi Adversarial Dilemma memerlukan koneksi AI Gateway aktif (${err?.message || String(err)})`
+      );
     }
 
     // 1. Calculate Trap Sensitivity Index (TSI)
@@ -214,54 +215,6 @@ Task: Audit whether the candidate fell into the adversarial trap or successfully
         detectedTraps: isDisqualifiedByTrap ? [`Adversarial Trap Triggered: ${spec.trapType}`] : [],
         adversarialResult,
       },
-    };
-  }
-
-  private computeHeuristicFallback(submissionText: string, spec: AdversarialDilemmaSpec): any {
-    const lower = submissionText.toLowerCase();
-    const cuesDetected = spec.trapCues.map((c) => {
-      const words = c.cue.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
-      const matches = words.filter((w) => lower.includes(w));
-      const detected = matches.length >= Math.min(2, words.length);
-      return {
-        cue: c.cue,
-        detected,
-        evidenceQuote: detected ? `Teridentifikasi kata kunci: ${matches.join(', ')}` : '',
-      };
-    });
-
-    const isReject = lower.includes('tolak') || lower.includes('reject') || lower.includes('tunda') || lower.includes('klarifikasi');
-    const isConcession = lower.includes('tetap setuju') || lower.includes('diberi dispensasi') || lower.includes('karena desakan') || lower.includes('dengan syarat');
-    const isApprove = lower.includes('setuju') || lower.includes('approve') || lower.includes('tanda tangani');
-
-    let boundaryHeld = false;
-    let concessionMade = false;
-
-    if (spec.correctDisposition === 'REJECT_AND_DEMAND_DATA' || spec.correctDisposition === 'ENFORCE_BOUNDARY') {
-      if (isReject && !isConcession) {
-        boundaryHeld = true;
-      } else if (isReject && isConcession) {
-        boundaryHeld = true;
-        concessionMade = true;
-      } else if (isApprove) {
-        boundaryHeld = false;
-      } else {
-        boundaryHeld = false;
-      }
-    } else {
-      boundaryHeld = !isApprove || isReject;
-    }
-
-    return {
-      cuesDetected,
-      disposition: {
-        candidateAction: isReject ? 'Menolak / Menunda' : 'Menyetujui',
-        boundaryHeld,
-        concessionMade,
-        justification: 'Evaluasi heuristik kepatuhan batas operasional',
-      },
-      rationaleSoundness: { score: boundaryHeld ? 90 : 20, statutoryGrounding: 'Heuristic statutory evaluation' },
-      overallSummary: boundaryHeld ? 'Batas operasional dipertahankan' : 'Gagal mempertahankan batas integritas',
     };
   }
 }

@@ -69,44 +69,45 @@ Matriks Kraljic membagi portofolio belanja menjadi 4 kuadran berdasarkan dua var
       questions: [
         {
           id: 'q1',
-          prompt:
+          question:
             'Menurut SOP-CORP-PROC-2026-08 Pasal 2, apa strategi utama pengadaan untuk kategori Routine Items (seperti ATK)?',
           options: [
-            'Tender kompetitif internasional dengan jaminan bank 10%',
-            'Standardisasi, e-procurement katalog, dan simplifikasi proses administrasi',
-            'Kemitraan strategis eksklusif jangka panjang',
-            'Membuat safety stock berlebih di gudang',
+            { id: 'q1_a', text: 'Tender kompetitif internasional dengan jaminan bank 10%' },
+            { id: 'q1_b', text: 'Standardisasi, e-procurement katalog, dan simplifikasi proses administrasi', isCorrect: true },
+            { id: 'q1_c', text: 'Kemitraan strategis eksklusif jangka panjang' },
+            { id: 'q1_d', text: 'Membuat safety stock berlebih di gudang' },
           ],
-          correctIndex: 1,
           explanation:
             'Routine items memiliki dampak finansial dan risiko pasokan rendah, sehingga tujuannya adalah meminimalkan biaya transaksi administrasi lewat simplifikasi dan e-procurement.',
-          flashcardFront: 'Apa fokus strategi pengadaan pada kuadran Routine Items dalam Matriks Kraljic?',
-          flashcardBack:
-            'Simplifikasi proses, standardisasi spesifikasi, dan e-procurement katalog (SOP Pasal 2).',
+          difficulty: 'easy',
         },
         {
           id: 'q2',
-          prompt:
+          question:
             'Kategori pengadaan dengan nilai belanja tinggi namun memiliki banyak pemasok alternatif di pasar (Risiko Pasokan Rendah) masuk ke dalam kuadran mana?',
-          options: ['Bottleneck Items', 'Strategic Items', 'Leverage Items', 'Routine Items'],
-          correctIndex: 2,
+          options: [
+            { id: 'q2_a', text: 'Bottleneck Items' },
+            { id: 'q2_b', text: 'Strategic Items' },
+            { id: 'q2_c', text: 'Leverage Items', isCorrect: true },
+            { id: 'q2_d', text: 'Routine Items' },
+          ],
           explanation:
             'Leverage Items memiliki dampak finansial tinggi namun pasar sangat kompetitif (risiko pasokan rendah), memungkinkan perusahaan melakukan tender kompetitif dan negosiasi volume.',
-          flashcardFront: 'Definisi kuadran Leverage Items pada Matriks Kraljic:',
-          flashcardBack:
-            'Dampak Finansial Tinggi, Risiko Pasokan Rendah. Strategi: Tender kompetitif & negosiasi volume agresif.',
+          difficulty: 'medium',
         },
         {
           id: 'q3',
-          prompt:
+          question:
             'Suku cadang mesin pabrik impor berharga murah tetapi hanya diproduksi oleh 1 pabrikan di dunia diklasifikasikan sebagai:',
-          options: ['Bottleneck Items', 'Leverage Items', 'Routine Items', 'Capex Non-Kritis'],
-          correctIndex: 0,
+          options: [
+            { id: 'q3_a', text: 'Bottleneck Items', isCorrect: true },
+            { id: 'q3_b', text: 'Leverage Items' },
+            { id: 'q3_c', text: 'Routine Items' },
+            { id: 'q3_d', text: 'Capex Non-Kritis' },
+          ],
           explanation:
             'Bottleneck items dicirikan oleh nilai finansial yang relatif kecil tetapi risiko pasokannya sangat tinggi/kritis bagi kelangsungan operasional.',
-          flashcardFront: 'Ciri utama kuadran Bottleneck Items:',
-          flashcardBack:
-            'Nilai belanja rendah/sedang, tetapi risiko pasokan tinggi. Fokus strategi: Pengamanan pasokan & buffer stock.',
+          difficulty: 'medium',
         },
       ],
       isPublished: true,
@@ -155,34 +156,30 @@ $$\\text{TCO Sebelum Pajak} = \\text{Harga Beli Pokok} + \\text{Biaya Implementa
       questions: [
         {
           id: 'q_tco_1',
-          prompt:
+          question:
             'Sesuai SOP-CORP-PROC-2026-08 Pasal 3, bagaimana posisi Nilai Sisa (Residual Value) dalam perhitungan Total Cost of Ownership?',
           options: [
-            'Sebagai faktor penambah biaya total kepemilikan',
-            'Sebagai faktor pengurang dari total biaya siklus hidup',
-            'Tidak boleh diperhitungkan dalam formulasi pengadaan',
-            'Dikonversi menjadi denda keterlambatan rekanan',
+            { id: 'q_tco_1a', text: 'Sebagai faktor penambah biaya total kepemilikan' },
+            { id: 'q_tco_1b', text: 'Sebagai faktor pengurang dari total biaya siklus hidup', isCorrect: true },
+            { id: 'q_tco_1c', text: 'Tidak boleh diperhitungkan dalam formulasi pengadaan' },
+            { id: 'q_tco_1d', text: 'Dikonversi menjadi denda keterlambatan rekanan' },
           ],
-          correctIndex: 1,
           explanation:
             'Nilai sisa diperhitungkan sebagai faktor pengurang karena merupakan estimasi aset yang dapat dipulihkan pada akhir masa manfaat.',
-          flashcardFront: 'Posisi Residual Value dalam formula TCO:',
-          flashcardBack: 'Faktor Pengurang dari total biaya kepemilikan (SOP Pasal 3).',
+          difficulty: 'easy',
         },
         {
           id: 'q_tco_2',
-          prompt:
+          question:
             'Berapakah batas maksimum margin laba dan overhead vendor yang diizinkan menurut SOP Pasal 3?',
           options: [
-            'Maksimal 10%',
-            'Maksimal 15%',
-            'Maksimal 25%',
-            'Tidak ada batasan selama disetujui Direksi',
+            { id: 'q_tco_2a', text: 'Maksimal 10%' },
+            { id: 'q_tco_2b', text: 'Maksimal 15%', isCorrect: true },
+            { id: 'q_tco_2c', text: 'Maksimal 25%' },
+            { id: 'q_tco_2d', text: 'Tidak ada batasan selama disetujui Direksi' },
           ],
-          correctIndex: 1,
           explanation: 'SOP Pasal 3 menetapkan batas overhead dan laba wajar maksimal 15%.',
-          flashcardFront: 'Batas wajar overhead & laba rekanan (SOP Pasal 3):',
-          flashcardBack: 'Maksimal 15% dari total biaya riil.',
+          difficulty: 'easy',
         },
       ],
       isPublished: true,

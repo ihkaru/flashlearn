@@ -208,8 +208,8 @@ describe('FlashLearn Agent-First CLI (October 2026 Standards)', () => {
       fields: ['id', 'name'],
     });
     expect(combinedRes.itemCount).toBe(1);
-    expect(combinedRes.data[0]).toEqual({ id: '5', name: 'Epsilon' });
-    expect(combinedRes.data[0].role).toBeUndefined(); // Filtered out to save tokens!
+    expect(combinedRes.data[0] as Record<string, unknown>).toEqual({ id: '5', name: 'Epsilon' });
+    expect((combinedRes.data[0] as Record<string, unknown>).role).toBeUndefined(); // Filtered out to save tokens!
   });
 
   test('Learning Stage Creation: Material and Quiz content creation with simulated dry-run', async () => {

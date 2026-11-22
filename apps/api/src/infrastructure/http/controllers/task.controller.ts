@@ -106,11 +106,15 @@ export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
         return await container.evaluateAttemptUseCase.execute(auth.user.id, {
           taskId: params.id,
           submission,
+          isUnaided: body.isUnaided,
+          aiHintsUsedCount: body.aiHintsUsedCount,
+          isPractice: body.isPractice,
           conversationAudit: (body as any).conversationAudit,
         });
       } catch (err: any) {
-        set.status = 400;
-        return { error: err.message };
+        const msg = String(err?.message || err);
+        set.status = msg.includes('AI_EVALUATOR_UNAVAILABLE') ? 503 : 400;
+        return { error: msg };
       }
     },
     {
@@ -121,6 +125,9 @@ export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
         submission: t.Optional(t.Record(t.String(), t.Any())),
         submissionData: t.Optional(t.Record(t.String(), t.Any())),
         studentAnswerText: t.Optional(t.String()),
+        isUnaided: t.Optional(t.Boolean()),
+        aiHintsUsedCount: t.Optional(t.Integer({ minimum: 0 })),
+        isPractice: t.Optional(t.Boolean()),
         conversationAudit: t.Optional(t.Any()),
       }),
       detail: {
@@ -163,8 +170,9 @@ export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
       try {
         return await container.askSocraticTutorUseCase.execute(params.id, body);
       } catch (err: any) {
-        set.status = 400;
-        return { error: err.message };
+        const msg = String(err?.message || err);
+        set.status = msg.includes('AI_TUTOR_UNAVAILABLE') || msg.includes('AI_GATEWAY_') ? 503 : 400;
+        return { error: msg };
       }
     },
     {
