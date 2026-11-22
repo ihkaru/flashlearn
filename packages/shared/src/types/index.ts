@@ -13,4 +13,5 @@ export * from './drift';
 export * from './vc';
 export * from './lumis-audit';
 export * from './socratic-chat';
+export * from './elastic-pedagogy';
 export * from './interactive';

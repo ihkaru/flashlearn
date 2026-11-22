@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import type { BaseContainer } from '../../di/base.container';
 import { container } from '../../di/container';
+import { resolveAuth } from '../middlewares/auth';
 
 export function createDomainController(container: BaseContainer) {
   return new Elysia({ prefix: '/api/v1/domains' })
@@ -41,7 +42,12 @@ export function createDomainController(container: BaseContainer) {
     // Create new domain
     .post(
       '/',
-      async ({ body }) => {
+      async ({ headers, body, set }) => {
+        const auth = await resolveAuth(headers);
+        if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
+          set.status = 403;
+          return { error: 'Forbidden: Only creators and superadmins can create domains' };
+        }
         const slug = body.slug || body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         const created = await container.domainRepository.create({
           workspaceId: body.workspaceId,
@@ -79,7 +85,12 @@ export function createDomainController(container: BaseContainer) {
     // Update domain
     .patch(
       '/:id',
-      async ({ params, body }) => {
+      async ({ headers, params, body, set }) => {
+        const auth = await resolveAuth(headers);
+        if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
+          set.status = 403;
+          return { error: 'Forbidden: Only creators and superadmins can update domains' };
+        }
         const updated = await container.domainRepository.update(params.id, body);
         return updated.toJSON();
       },
@@ -105,7 +116,12 @@ export function createDomainController(container: BaseContainer) {
     // Delete domain
     .delete(
       '/:id',
-      async ({ params }) => {
+      async ({ headers, params, set }) => {
+        const auth = await resolveAuth(headers);
+        if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
+          set.status = 403;
+          return { error: 'Forbidden: Only creators and superadmins can delete domains' };
+        }
         await container.domainRepository.delete(params.id);
         return { success: true, deletedId: params.id };
       },

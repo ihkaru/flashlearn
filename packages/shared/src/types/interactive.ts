@@ -1,3 +1,17 @@
+import type {
+  CalibrationOutcome,
+  ConfidenceCalibrationStats,
+  ConfidenceLevel,
+  ErroneousExampleSpec,
+  ExplainBackSpec,
+  HingeCheckSpec,
+  IllStructuredCaseSpec,
+  KnowledgeProfile,
+  MicroKnowBlockSet,
+  QuickPredictionSpec,
+  UnitLectureMetadata,
+} from './elastic-pedagogy';
+
 export type GroundingMode =
   | 'experiential_anchor_bridge'
   | 'direct_analogy'
@@ -160,6 +174,7 @@ export interface UilaStressTestBlock {
   options: DiagnosticOption[];
   hintLadder: HintLadder;
   groundTruth: string;
+  slideIndex?: number;
 }
 
 export interface UilaV2BlockSet {
@@ -168,6 +183,7 @@ export interface UilaV2BlockSet {
     groundState: string;
     oldWay: string;
     breakdownPoint: string;
+    quickPrediction?: QuickPredictionSpec;
     slideIndex?: number;
   };
   block2_grounding: {
@@ -212,12 +228,23 @@ export interface GlossaryTerm {
   term: string;
   definition: string;
   highSchoolAnchor?: string;
+  /** Beck/McKeown Vocabulary Tiering: 2 = cross-domain academic, 3 = domain-technical */
+  tier?: 2 | 3;
 }
 
 export interface InteractiveModulePayload {
   schemaVersion: 'uila-v2';
+  /** Elastic KUD/Epistemic profile; defaults to 'bridging_understand' when omitted */
+  knowledgeProfile?: KnowledgeProfile;
   estimatedMinutes: number;
   learningObjective: string;
+  unitMeta?: UnitLectureMetadata;
+  microKnow?: MicroKnowBlockSet;
+  hingeCheck?: HingeCheckSpec;
+  erroneousExample?: ErroneousExampleSpec;
+  illStructuredCase?: IllStructuredCaseSpec;
+  explainBack?: ExplainBackSpec;
+  summarySlideIndex?: number;
   uila: UilaV2BlockSet;
   slideNotes?: SlideNoteItem[];
   glossary?: GlossaryTerm[];
@@ -252,13 +279,19 @@ export interface ContentArtifact {
 }
 
 export type GuidedStepKind =
+  | 'micro_core'
+  | 'micro_examples'
   | 'anomaly'
   | 'anchoring_lab'
   | 'bridging'
   | 'thought_experiment'
+  | 'hinge_check'
   | 'mechanics'
   | 'notation'
+  | 'erroneous_example'
+  | 'ill_structured_case'
   | 'stress_test'
+  | 'explain_back'
   | 'summary';
 
 export interface GuidedLearningStep {
@@ -269,6 +302,8 @@ export interface GuidedLearningStep {
   title: string;
   actionPrompt: string;
   requiresInteraction: boolean;
+  /** Suggests collapsing slide stage on compact portrait screens so interactive widget has room */
+  preferCollapsedDeck?: boolean;
   slideIndex?: number;
 }
 
@@ -287,6 +322,10 @@ export interface DiagnosticEvaluationResult {
   selectedOption: DiagnosticOption;
   nextTheta: number;
   mastered: boolean;
+  confidenceLevel?: ConfidenceLevel;
+  calibrationOutcome?: CalibrationOutcome;
+  calibrationNote?: string;
+  requiresConsolidation?: boolean;
 }
 
 export interface LearnerContentProgress {
@@ -304,6 +343,7 @@ export interface LearnerContentProgress {
   lossVector: LossVector | null;
   thetaMastery: number;
   isCompleted: boolean;
+  calibrationStats?: ConfidenceCalibrationStats | null;
   dailyActivityLog: Record<string, { stepsCompleted: number; probesSolved: number }>;
   updatedAt: string;
 }
@@ -320,6 +360,7 @@ export interface SaveLearnerProgressRequest {
   lossVector?: LossVector | null;
   thetaMastery: number;
   isCompleted: boolean;
+  calibrationOutcome?: CalibrationOutcome;
   incrementStepsToday?: number;
   incrementProbesToday?: number;
 }

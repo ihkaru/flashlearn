@@ -68,6 +68,26 @@ export async function handleWorkspaceCommand(
       };
     }
 
+    case 'update': {
+      const id = args[0] || flags['workspace-id'] || flags.workspace;
+      if (!id) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Workspace ID is required: `flashlearn workspace update <id> --name "<name>"`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+      const body: Record<string, any> = {};
+      if (flags.name) body.name = flags.name;
+      if (flags.slug) body.slug = flags.slug;
+      if (flags.description !== undefined) body.description = flags.description;
+      if (flags.icon !== undefined) body.icon = flags.icon;
+      if (flags.public !== undefined) body.isPublic = flags.public === true || flags.public === 'true';
+
+      const data = await client.request(`/api/v1/workspaces/${id}`, { method: 'PUT', body });
+      return { data };
+    }
+
     case 'import-blueprint': {
       const filePath = flags.file || args[0];
       if (!filePath) {

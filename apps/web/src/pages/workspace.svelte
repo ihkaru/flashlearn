@@ -7,7 +7,7 @@
   import ConfirmDeleteModal from '../components/ConfirmDeleteModal.svelte';
   import QuizReviewModal from '../components/QuizReviewModal.svelte';
   import WorkspaceHeader from '../components/workspace/WorkspaceHeader.svelte';
-  import ContentListItem from '../components/workspace/ContentListItem.svelte';
+  import WorkspaceUnitAccordion from '../components/workspace/WorkspaceUnitAccordion.svelte';
   import CompetencyDagView from '../components/competency/CompetencyDagView.svelte';
   import GatePassportsView from '../components/competency/GatePassportsView.svelte';
   import DomainTrackSelector from '../components/workspace/DomainTrackSelector.svelte';
@@ -305,25 +305,22 @@
         {/if}
       </div>
     {:else}
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        {#each filteredContents as c (c.id)}
-          <ContentListItem
-            content={c}
-            progress={progressByContentId[c.id] || null}
-            {isOwner}
-            isTrash={activeFilter === 'trash'}
-            {isRestoring}
-            {copiedLinkId}
-            onNavigate={navigateToContent}
-            onCopyLink={copyShareLink}
-            onOpenReview={openQuizReview}
-            onOpenEdit={openEditModal}
-            onRollback={handleRollback}
-            onDelete={openDeleteModal}
-            onRestore={handleRestoreContent}
-          />
-        {/each}
-      </div>
+      <WorkspaceUnitAccordion
+        contents={filteredContents}
+        {domains}
+        {progressByContentId}
+        {isOwner}
+        isTrash={activeFilter === 'trash'}
+        {isRestoring}
+        {copiedLinkId}
+        onNavigate={navigateToContent}
+        onCopyLink={copyShareLink}
+        onOpenReview={openQuizReview}
+        onOpenEdit={openEditModal}
+        onRollback={handleRollback}
+        onDelete={openDeleteModal}
+        onRestore={handleRestoreContent}
+      />
     {/if}
   {:else if activeViewTab === 'competencies'}
     <CompetencyDagView workspaceId={workspace.id} domainId={selectedDomainId} />

@@ -36,17 +36,34 @@
 
   let deckHtml = $state<string | null>(null);
   let simHtml = $state<string | null>(null);
-  let showDeckPane = $state(true);
+  let deckManualOverride = $state<boolean | null>(null);
   let isFullscreenDeck = $state(false);
   let hydrated = $state(false);
 
   const activeStep = $derived(steps[currentStepIndex] || steps[0]);
   const progressPct = $derived(steps.length > 0 ? Math.round(((currentStepIndex + 1) / steps.length) * 100) : 0);
 
+  // Calm mobile ergonomics: auto-collapse slide stage into a 1-tap bar on interactive steps
+  const showDeckPane = $derived.by(() => {
+    if (deckManualOverride !== null) return deckManualOverride;
+    return !activeStep?.preferCollapsedDeck;
+  });
+
+  const activeStepSolved = $derived(
+    Boolean(activeStep && completedStepIds.includes(activeStep.id))
+  );
+
   const canAdvance = $derived.by(() => {
     if (!activeStep) return false;
     if (activeStep.kind === 'anchoring_lab') return anchoringCompleted;
     if (activeStep.kind === 'stress_test') return stressTestSolved;
+    if (
+      activeStep.kind === 'hinge_check' ||
+      activeStep.kind === 'erroneous_example' ||
+      activeStep.kind === 'explain_back'
+    ) {
+      return activeStepSolved;
+    }
     return true;
   });
 
@@ -56,7 +73,6 @@
     hydrateSessionAndArtifacts();
   });
 
-  // Auto-open fullscreen deck cleanly when phone rotates to compact landscape
   $effect(() => {
     if (typeof window === 'undefined' || !deckHtml) return;
     const mq = window.matchMedia('(orientation: landscape) and (max-height: 520px)');
@@ -165,21 +181,27 @@
     if (activeStep && clamped > currentStepIndex && !completedStepIds.includes(activeStep.id)) {
       completedStepIds = [...completedStepIds, activeStep.id];
     }
+    const movingForward = clamped > currentStepIndex;
     currentStepIndex = clamped;
+    deckManualOverride = null;
     resumedBannerStep = null;
     const targetSlide = steps[clamped]?.slideIndex;
     if (typeof targetSlide === 'number') {
       currentSlideIndex = targetSlide;
     }
-    void persistProgress({ incrementStepsToday: clamped > currentStepIndex ? 1 : 0 });
+    void persistProgress({ incrementStepsToday: movingForward ? 1 : 0 });
+  }
+
+  function markStepDone(stepId: string) {
+    if (!completedStepIds.includes(stepId)) {
+      completedStepIds = [...completedStepIds, stepId];
+    }
+    void persistProgress({ incrementStepsToday: 1 });
   }
 
   function handleAnchoringDone() {
     anchoringCompleted = true;
-    if (activeStep && !completedStepIds.includes(activeStep.id)) {
-      completedStepIds = [...completedStepIds, activeStep.id];
-    }
-    void persistProgress({ incrementStepsToday: 1 });
+    if (activeStep) markStepDone(activeStep.id);
   }
 
   function handleDiagnosticResult(res: DiagnosticEvaluationResult) {
@@ -199,6 +221,7 @@
   function restartFromBeginning() {
     currentStepIndex = 0;
     currentSlideIndex = steps[0]?.slideIndex ?? 0;
+    deckManualOverride = null;
     resumedBannerStep = null;
     void persistProgress();
   }
@@ -216,10 +239,10 @@
           {#if deckHtml}
             <button
               type="button"
-              onclick={() => (showDeckPane = !showDeckPane)}
+              onclick={() => (deckManualOverride = !showDeckPane)}
               style="background: transparent; border: none; color: #0f766e; font-size: 0.8rem; font-weight: 700; padding: 4px 6px; cursor: pointer;"
             >
-              {showDeckPane ? 'Sembunyikan Slide' : 'Tampilkan Slide'}
+              {showDeckPane ? 'Lipat Slide' : `Buka Slide (${currentSlideIndex + 1})`}
             </button>
           {/if}
           <span style="font-size: 0.76rem; color: #64748b;">
@@ -248,21 +271,32 @@
       </div>
     {/if}
 
-    <!-- Optional Visual Slide Stage (Adaptive Portrait 16:9 / Landscape Fullscreen) -->
-    {#if deckHtml && showDeckPane}
-      <div style="margin-bottom: 16px;">
-        <AdaptiveDeckStage
-          rawHtml={deckHtml}
-          slideIndex={currentSlideIndex}
-          slideNotes={payload.slideNotes || []}
-          isFullscreen={isFullscreenDeck}
-          onSlideChange={(idx) => {
-            currentSlideIndex = idx;
-            void persistProgress();
-          }}
-          onToggleFullscreen={() => (isFullscreenDeck = !isFullscreenDeck)}
-        />
-      </div>
+    <!-- Visual Slide Stage (or calm 1-tap strip when auto-collapsed for interaction) -->
+    {#if deckHtml}
+      {#if showDeckPane}
+        <div style="margin-bottom: 16px;">
+          <AdaptiveDeckStage
+            rawHtml={deckHtml}
+            slideIndex={currentSlideIndex}
+            slideNotes={payload.slideNotes || []}
+            isFullscreen={isFullscreenDeck}
+            onSlideChange={(idx) => {
+              currentSlideIndex = idx;
+              void persistProgress();
+            }}
+            onToggleFullscreen={() => (isFullscreenDeck = !isFullscreenDeck)}
+          />
+        </div>
+      {:else}
+        <button
+          type="button"
+          onclick={() => (deckManualOverride = true)}
+          style="width: 100%; margin-bottom: 14px; padding: 10px 14px; border-radius: 12px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0f766e; font-size: 0.83rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer;"
+        >
+          <span>Slide visual dilipat agar fokus interaksi</span>
+          <span>Lihat Slide {currentSlideIndex + 1}</span>
+        </button>
+      {/if}
     {/if}
 
     <!-- Single-Focus Guided Instruction Card -->
@@ -280,9 +314,11 @@
         {simHtml}
         {anchoringCompleted}
         {stressTestSolved}
+        stepCompleted={activeStepSolved}
         {thetaMastery}
         onAnchoringCompleted={handleAnchoringDone}
         onDiagnosticEvaluated={handleDiagnosticResult}
+        onStepInteractionSolved={markStepDone}
       />
 
       <GlossaryDisclosure
@@ -313,8 +349,8 @@
         >
           {activeStep.kind === 'anchoring_lab' && !anchoringCompleted
             ? 'Coba dulu di atas'
-            : activeStep.kind === 'stress_test' && !stressTestSolved
-            ? 'Jawab dulu di atas'
+            : !canAdvance
+            ? 'Selesaikan dulu di atas'
             : 'Lanjut'}
         </button>
       {:else}

@@ -6,6 +6,10 @@
   } from '@flashlearn/shared';
   import AnchoringLabHost from './labs/AnchoringLabHost.svelte';
   import DiagnosticStressTestCard from './DiagnosticStressTestCard.svelte';
+  import HingeCheckpointCard from './HingeCheckpointCard.svelte';
+  import ErroneousExampleCard from './ErroneousExampleCard.svelte';
+  import IllStructuredCaseCard from './IllStructuredCaseCard.svelte';
+  import ExplainBackCard from './ExplainBackCard.svelte';
 
   interface Props {
     step: GuidedLearningStep;
@@ -13,9 +17,11 @@
     simHtml?: string | null;
     anchoringCompleted: boolean;
     stressTestSolved: boolean;
+    stepCompleted: boolean;
     thetaMastery: number;
     onAnchoringCompleted: () => void;
     onDiagnosticEvaluated: (res: DiagnosticEvaluationResult) => void;
+    onStepInteractionSolved: (stepId: string) => void;
   }
 
   let {
@@ -24,16 +30,58 @@
     simHtml = null,
     anchoringCompleted,
     stressTestSolved,
+    stepCompleted,
     thetaMastery,
     onAnchoringCompleted,
     onDiagnosticEvaluated,
+    onStepInteractionSolved,
   }: Props = $props();
 
   const uila = $derived(payload.uila);
+  let quickGuessPicked = $state<string | null>(null);
 </script>
 
 <div style="display: flex; flex-direction: column; gap: 16px;">
-  {#if step.kind === 'anomaly'}
+  {#if step.kind === 'micro_core' && payload.microKnow}
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="background: #f0fdfa; border-left: 4px solid #0f766e; border-radius: 0 12px 12px 0; padding: 16px;">
+        <p style="margin: 0; font-size: 0.98rem; font-weight: 700; color: #134e4a; line-height: 1.6;">
+          {payload.microKnow.coreIdea}
+        </p>
+      </div>
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px;">
+        <div style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #475569; margin-bottom: 4px;">
+          Kenapa Penting
+        </div>
+        <p style="margin: 0; font-size: 0.92rem; color: #334155; line-height: 1.55;">
+          {payload.microKnow.whyItMatters}
+        </p>
+      </div>
+    </div>
+
+  {:else if step.kind === 'micro_examples' && payload.microKnow}
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      {#each payload.microKnow.concreteExamples as ex}
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px;">
+          <div style="font-size: 0.9rem; font-weight: 800; color: #0f766e; margin-bottom: 4px;">{ex.label}</div>
+          <p style="margin: 0; font-size: 0.9rem; color: #334155; line-height: 1.55;">{ex.detail}</p>
+        </div>
+      {/each}
+      {#if payload.microKnow.keyTakeaways.length > 0}
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 13px 16px;">
+          <div style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #475569; margin-bottom: 6px;">
+            Ringkasan Cepat
+          </div>
+          <ul style="margin: 0; padding-left: 18px; font-size: 0.88rem; color: #0f172a; line-height: 1.55;">
+            {#each payload.microKnow.keyTakeaways as item}
+              <li>{item}</li>
+            {/each}
+          </ul>
+        </div>
+      {/if}
+    </div>
+
+  {:else if step.kind === 'anomaly'}
     <div style="display: flex; flex-direction: column; gap: 12px;">
       <div style="background: #f8fafc; border-radius: 12px; padding: 15px 16px; border: 1px solid #e2e8f0;">
         <div style="font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #475569; margin-bottom: 4px;">
@@ -53,14 +101,40 @@
         </p>
       </div>
 
-      <div style="background: #fffbeb; border-radius: 12px; padding: 15px 16px; border: 1px solid #fde68a;">
-        <div style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #b45309; margin-bottom: 4px;">
-          Titik Buntu
+      {#if uila.block1_anomaly.quickPrediction && quickGuessPicked === null}
+        <div style="background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #0f766e;">
+            Tebak Cepat (10 Detik)
+          </div>
+          <p style="margin: 0; font-size: 0.9rem; font-weight: 700; color: #134e4a; line-height: 1.5;">
+            {uila.block1_anomaly.quickPrediction.prompt}
+          </p>
+          {#each uila.block1_anomaly.quickPrediction.options as opt (opt.id)}
+            <button
+              type="button"
+              onclick={() => (quickGuessPicked = opt.id)}
+              class="fl-btn-wrap"
+              style="width: 100%; padding: 10px 13px; border-radius: 10px; text-align: left; font-size: 0.87rem; font-weight: 600; background: #ffffff; border: 1px solid #5eead4; color: #0f172a;"
+            >
+              {opt.text}
+            </button>
+          {/each}
         </div>
-        <p style="margin: 0; font-size: 0.94rem; color: #78350f; line-height: 1.6; font-weight: 500;">
-          {uila.block1_anomaly.breakdownPoint}
-        </p>
-      </div>
+      {:else}
+        <div style="background: #fffbeb; border-radius: 12px; padding: 15px 16px; border: 1px solid #fde68a;">
+          <div style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #b45309; margin-bottom: 4px;">
+            Titik Buntu
+          </div>
+          <p style="margin: 0; font-size: 0.94rem; color: #78350f; line-height: 1.6; font-weight: 500;">
+            {uila.block1_anomaly.breakdownPoint}
+          </p>
+          {#if uila.block1_anomaly.quickPrediction && quickGuessPicked !== null}
+            <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: #92400e; line-height: 1.5;">
+              {uila.block1_anomaly.quickPrediction.revealsMisconception}
+            </p>
+          {/if}
+        </div>
+      {/if}
     </div>
 
   {:else if step.kind === 'anchoring_lab' && uila.block2_grounding.anchoringLab}
@@ -78,13 +152,9 @@
           <div style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #0f766e; margin-bottom: 4px;">
             Gambaran Akrab
           </div>
-          <p style="margin: 0; font-size: 0.94rem; color: #134e4a; line-height: 1.55;">
-            {uila.block2_grounding.physicalObject}
-          </p>
+          <p style="margin: 0; font-size: 0.94rem; color: #134e4a; line-height: 1.55;">{uila.block2_grounding.physicalObject}</p>
           {#if uila.block2_grounding.isomorphicMapping}
-            <p style="margin: 8px 0 0 0; font-size: 0.88rem; color: #334155; line-height: 1.55;">
-              {uila.block2_grounding.isomorphicMapping}
-            </p>
+            <p style="margin: 8px 0 0 0; font-size: 0.88rem; color: #334155; line-height: 1.55;">{uila.block2_grounding.isomorphicMapping}</p>
           {/if}
         </div>
       {/if}
@@ -92,12 +162,8 @@
       {#if uila.block2_grounding.bridgingChain}
         {#each uila.block2_grounding.bridgingChain as bridge}
           <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 16px;">
-            <h4 style="margin: 0 0 6px 0; font-size: 0.96rem; font-weight: 800; color: #0f172a;">
-              {bridge.stepTitle}
-            </h4>
-            <p style="margin: 0 0 12px 0; font-size: 0.9rem; color: #334155; line-height: 1.55;">
-              {bridge.bridgeScenario}
-            </p>
+            <h4 style="margin: 0 0 6px 0; font-size: 0.96rem; font-weight: 800; color: #0f172a;">{bridge.stepTitle}</h4>
+            <p style="margin: 0 0 12px 0; font-size: 0.9rem; color: #334155; line-height: 1.55;">{bridge.bridgeScenario}</p>
             <div style="display: flex; flex-direction: column; gap: 8px;">
               {#each bridge.structuralMapping as row}
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; font-size: 0.86rem; line-height: 1.45;">
@@ -139,6 +205,13 @@
       {/each}
     </div>
 
+  {:else if step.kind === 'hinge_check' && payload.hingeCheck}
+    <HingeCheckpointCard
+      check={payload.hingeCheck}
+      alreadySolved={stepCompleted}
+      onSolved={() => onStepInteractionSolved(step.id)}
+    />
+
   {:else if step.kind === 'mechanics'}
     <div style="display: flex; flex-direction: column; gap: 14px;">
       <div style="background: #f0fdfa; border-left: 4px solid #0f766e; border-radius: 0 12px 12px 0; padding: 14px 16px;">
@@ -154,17 +227,16 @@
         <div style="display: flex; flex-direction: column; gap: 10px;">
           {#each uila.block3_coreMechanics.contrastingCases as cc}
             <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;">
-              <div style="font-size: 0.86rem; color: #9f1239; line-height: 1.45;">
-                <strong>Sering keliru:</strong> {cc.beginnerMisconception}
-              </div>
-              <div style="font-size: 0.88rem; color: #166534; line-height: 1.45;">
-                <strong>Yang sebenarnya terjadi:</strong> {cc.physicalReality}
-              </div>
+              <div style="font-size: 0.86rem; color: #9f1239; line-height: 1.45;"><strong>Sering keliru:</strong> {cc.beginnerMisconception}</div>
+              <div style="font-size: 0.88rem; color: #166534; line-height: 1.45;"><strong>Yang sebenarnya terjadi:</strong> {cc.physicalReality}</div>
             </div>
           {/each}
         </div>
       {/if}
     </div>
+
+  {:else if step.kind === 'ill_structured_case' && payload.illStructuredCase}
+    <IllStructuredCaseCard caseSpec={payload.illStructuredCase} />
 
   {:else if step.kind === 'notation'}
     <div style="display: flex; flex-direction: column; gap: 14px;">
@@ -193,12 +265,26 @@
       {/if}
     </div>
 
+  {:else if step.kind === 'erroneous_example' && payload.erroneousExample}
+    <ErroneousExampleCard
+      example={payload.erroneousExample}
+      alreadySolved={stepCompleted}
+      onSolved={() => onStepInteractionSolved(step.id)}
+    />
+
   {:else if step.kind === 'stress_test'}
     <DiagnosticStressTestCard
       probe={uila.block5_stressTest}
       currentTheta={thetaMastery}
       alreadySolved={stressTestSolved}
       onEvaluated={onDiagnosticEvaluated}
+    />
+
+  {:else if step.kind === 'explain_back' && payload.explainBack}
+    <ExplainBackCard
+      spec={payload.explainBack}
+      alreadySolved={stepCompleted}
+      onSolved={() => onStepInteractionSolved(step.id)}
     />
 
   {:else if step.kind === 'summary'}

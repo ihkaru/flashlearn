@@ -1,5 +1,8 @@
 import { readFileSync } from 'node:fs';
-import type { ContentArtifactKind } from '@flashlearn/shared';
+import {
+  validateInteractiveModulePayload,
+  type ContentArtifactKind,
+} from '@flashlearn/shared';
 import type { ApiClient } from '../core/client';
 import { CliError, ExitCode, type NextAction } from '../core/envelope';
 import {
@@ -129,10 +132,32 @@ export async function handleContentCommand(
         questions = Array.isArray(parsed) ? parsed : parsed.questions;
       }
 
+      let interactivePayload: any;
+      if (flags.manifest) {
+        interactivePayload = JSON.parse(readFileSync(flags.manifest, 'utf-8'));
+        const report = validateInteractiveModulePayload(interactivePayload);
+        if (!report.valid) {
+          throw new CliError({
+            code: 'VALIDATION_ERROR',
+            message: `Invalid interactive manifest: ${report.issues
+              .filter((i) => i.severity === 'error')
+              .map((i) => i.message)
+              .join('; ')}`,
+            exitCode: ExitCode.VALIDATION_ERROR,
+            details: report.issues,
+          });
+        }
+      }
+
       const body = {
         title: flags.title,
+        slug: flags.slug,
+        domainId: flags['domain-id'],
+        type: flags.type || (interactivePayload ? 'interactive_module' : undefined),
+        readingTimeMinutes: flags['reading-time'] ? Number(flags['reading-time']) : undefined,
         body: bodyText,
         questions,
+        interactivePayload,
         summary: flags.summary,
         isPublished: flags.published !== undefined ? flags.published === 'true' || flags.published === true : undefined,
       };
@@ -271,10 +296,46 @@ export async function handleContentCommand(
       return { data };
     }
 
+    case 'delete-artifact': {
+      const contentId = args[0] || flags['content-id'];
+      const kind = (flags.kind || 'slide_deck_html') as ContentArtifactKind;
+      if (!contentId) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Usage: `flashlearn content delete-artifact <content-id> --kind slide_deck_html --yes`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+      if (!flags['dry-run'] && !flags.yes && !flags.y && !flags.force) {
+        throw new CliError({
+          code: 'CONFIRMATION_REQUIRED',
+          message: 'Destructive action requires --yes or --force flag.',
+          exitCode: ExitCode.USAGE_ERROR,
+        });
+      }
+      const data = await client.request(`/api/v1/contents/${contentId}/artifacts/${kind}`, {
+        method: 'DELETE',
+      });
+      return { data };
+    }
+
+    case 'restore': {
+      const id = args[0];
+      if (!id) {
+        throw new CliError({
+          code: 'MISSING_ARGUMENT',
+          message: 'Content ID is required: `flashlearn content restore <id>`',
+          exitCode: ExitCode.VALIDATION_ERROR,
+        });
+      }
+      const data = await client.request(`/api/v1/contents/${id}/restore`, { method: 'POST' });
+      return { data };
+    }
+
     default:
       throw new CliError({
         code: 'UNKNOWN_ACTION',
-        message: `Unknown action '${action}' for noun 'content'. Available: list, get, create, update, delete, rollback, import-interactive, upload-artifact.`,
+        message: `Unknown action '${action}' for noun 'content'. Available: list, get, create, update, delete, restore, rollback, import-interactive, upload-artifact, delete-artifact.`,
         exitCode: ExitCode.USAGE_ERROR,
       });
   }

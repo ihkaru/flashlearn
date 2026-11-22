@@ -123,6 +123,37 @@ export const interactiveController = new Elysia({ prefix: '/api/v1/contents' })
       },
     }
   )
+  .delete(
+    '/:id/artifacts/:kind',
+    async ({ headers, params, set }) => {
+      const auth = await resolveAuth(headers);
+      if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
+        set.status = 403;
+        return { error: 'Forbidden: Only creators and superadmins can delete content artifacts' };
+      }
+      try {
+        return await container.deleteContentArtifactUseCase.execute(
+          auth.user.id,
+          auth.role,
+          params.id,
+          params.kind as ContentArtifactKind
+        );
+      } catch (err: any) {
+        set.status = err.message?.startsWith('Forbidden') ? 403 : 404;
+        return { error: err.message };
+      }
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+        kind: t.Union([t.Literal('slide_deck_html'), t.Literal('anchoring_sim_html')]),
+      }),
+      detail: {
+        tags: ['Contents'],
+        summary: 'Delete Sandboxed HTML Artifact (Slide Deck / Micro-Sim)',
+      },
+    }
+  )
   .get(
     '/:id/progress',
     async ({ headers, params, query }) => {

@@ -6,10 +6,14 @@
     "flashlearn": "./bin/flashlearn.ts"
   },
   "scripts": {
-    "test": "bun test"
+    "test": "bun test",
+    "build:bundle": "bun build ./bin/flashlearn.ts --target=bun --outfile=./dist/flashlearn.js",
+    "build:bin": "bun build --compile ./bin/flashlearn.ts --outfile=./dist/flashlearn"
   },
   "dependencies": {
-    "@flashlearn/shared": "workspace:*"
+    "@flashlearn/shared": "workspace:*",
+    "fflate": "^0.8.3",
+    "unpdf": "^2.2.1"
   },
   "devDependencies": {
     "@types/bun": "^1.4.4",

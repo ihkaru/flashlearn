@@ -72,15 +72,20 @@ export const authController = new Elysia({ prefix: '/api/v1/auth' })
     '/demo-login',
     async ({ body, set }) => {
       try {
-        const email = body?.email || 'learner@flashlearn.dev';
-        const role = (body?.role as any) || 'creator';
-        let user = await container.userRepository.findByEmail(email);
+        const requestedEmail = (body?.email || 'learner@flashlearn.dev').trim().toLowerCase();
+        const existing = await container.userRepository.findByEmail(requestedEmail);
+        if (existing && existing.role === 'superadmin') {
+          set.status = 403;
+          return { error: 'Forbidden: Demo login cannot impersonate superadmin accounts' };
+        }
+        const safeEmail = requestedEmail === 'learner@flashlearn.dev' || !existing ? requestedEmail : existing.email;
+        let user = existing;
         if (!user) {
           user = await container.userRepository.create({
-            email,
+            email: safeEmail,
             name: body?.name || 'Pembelajar Mandiri (Demo)',
-            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`,
-            role,
+            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(safeEmail)}`,
+            role: 'creator',
             googleId: null,
           });
         }

@@ -64,6 +64,7 @@ import { RevokeApiKeyUseCase } from '../../application/use-cases/apikey/RevokeAp
 import { VerifyApiKeyUseCase } from '../../application/use-cases/apikey/VerifyApiKeyUseCase';
 import { UpsertContentArtifactUseCase } from '../../application/use-cases/interactive/UpsertContentArtifactUseCase';
 import { GetContentArtifactUseCase } from '../../application/use-cases/interactive/GetContentArtifactUseCase';
+import { DeleteContentArtifactUseCase } from '../../application/use-cases/interactive/DeleteContentArtifactUseCase';
 import { SaveLearnerProgressUseCase } from '../../application/use-cases/interactive/SaveLearnerProgressUseCase';
 import { GetLearnerProgressUseCase } from '../../application/use-cases/interactive/GetLearnerProgressUseCase';
 
@@ -200,6 +201,11 @@ export class BaseContainer {
     this.interactiveRepository
   );
   public readonly getContentArtifactUseCase = new GetContentArtifactUseCase(
+    this.contentRepository,
+    this.workspaceRepository,
+    this.interactiveRepository
+  );
+  public readonly deleteContentArtifactUseCase = new DeleteContentArtifactUseCase(
     this.contentRepository,
     this.workspaceRepository,
     this.interactiveRepository

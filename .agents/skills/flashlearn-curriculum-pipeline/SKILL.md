@@ -1,141 +1,140 @@
 ---
 name: flashlearn-curriculum-pipeline
-description: Self-contained 4-layer CLI curriculum compiler for FlashLearn. Transforms reference PDFs, papers, or SOPs into deep interactive learning modules combining curated pedagogy (CC BY-SA 4.0), Clement & Brown Bridging Analogies (Anchoring Micro-Lab -> Bridging Chain -> Analogy Breakpoint + Setup-Cost Router), HGD UILA v2 bundles (MIT), external visual HTML slide decks (e.g. guizang-ppt-skill under AGPL-3.0), MediaVault media uploads, and CLI-only ingestion into FlashLearn's guided Portrait/Landscape learner UX.
+description: Self-contained elastic 4-layer CLI curriculum compiler for FlashLearn (2-minute simple topics to 600+ page multi-book PDF/EPUB/PPTX courses). Combines 15 curated pedagogies (CC BY-SA 4.0), Clement & Brown Bridging Analogies, lossless university-lecture unit slicing (<= 2h/unit), resumable multi-session Coding Agent handoff plans (`flashlearn plan`), cross-PC remote CRUD (`push/diff/prune/pull`), external visual HTML decks (e.g. guizang-ppt-skill AGPL-3.0), and MediaVault uploads.
 ---
 
-# FlashLearn 4-Layer Accelerated Comprehension Pipeline (`flashlearn-curriculum-pipeline`)
+# FlashLearn Adaptive Elastic Curriculum Pipeline v2 (`flashlearn-curriculum-pipeline`)
 
-Gunakan skill ini saat menyusun materi pembelajaran mendalam dari PDF referensi, buku teks, paper, atau SOP langsung ke FlashLearn melalui **CLI-only admin workflow** (`flashlearn content import-interactive` atau `flashlearn domain import-curriculum`).
-
-Tujuannya adalah **mempercepat pemahaman manusia** tanpa dinding teori pasif dan tanpa membuat antarmuka pembelajar ramai atau membingungkan.
-
----
-
-## Batas Lisensi & Isolasi Arsitektur (Wajib)
-
-| Komponen | Lisensi | Aturan Integrasi |
-| :--- | :--- | :--- |
-| FlashLearn Core + UILA v2 Types & Viewer (`packages/shared`, `apps/web`) | MIT | Tertanam langsung di repositori FlashLearn. |
-| 8 Prinsip Pedagogi Terkurasi (diadaptasi dari `GarethManning/education-agent-skills`) | CC BY-SA 4.0 | Dirangkum mandiri di Layer 2 di bawah dengan atribusi eksplisit. |
-| Visual Slide Deck Authoring (mis. `guizang-ppt-skill` fork `ihkaru` dengan i18n `id`/`en`/`zh`) | GNU AGPL-3.0 | **Wajib dijalankan secara eksternal di tahap authoring CLI**. Hasil HTML diunggah sebagai artefak data ke FlashLearn (`content_artifacts`) dan diputar generik di `<iframe sandbox="allow-scripts">` tanpa `allow-same-origin`. **Dilarang menyalin template/runtime AGPL ke dalam kode sumber repositori FlashLearn.** |
+Gunakan skill ini untuk menyusun, memperbarui, maupun mengelola materi pembelajaran di FlashLearn — mulai dari **topik sederhana 2–3 menit** hingga **kompilasi 2–3 ebook PDF / EPUB / PPTX (600+ halaman)** — secara **100% lintas PC melalui HTTP CLI** (`flashlearn`) tanpa akses database lokal maupun Tailscale.
 
 ---
 
-## Layer 1: Ekstraksi Korpus PDF Presisi Tinggi
+## 1. Invarian Utama (Wajib Ditegakkan)
 
-1. Ekstrak PDF/gambar referensi ke Markdown terstruktur (tabel kompleks, persamaan, diagram terjaga) menggunakan ekstraktor VLM (`agy-doc-extract <input.pdf> -o ./work/corpus/`) atau parser dokumen pilihanmu.
-2. Pertahankan rujukan verbatim (`sourceRef` + `locationTag`: Bab / Halaman / Pasal) agar setiap klaim materi & glosarium memiliki sumber asli (*Corpus of Record*).
-3. Simpan aset gambar slide/diagram di folder `./work/ppt/images/` dengan pola `{slideNumber}-{slug}.{png|jpg}`. Saat unggah CLI dengan `--upload-media`, gambar otomatis diunggah ke MediaVault (`MEDIAVAULT_URL`) dan path relatif diubah ke URL HTTPS.
-
----
-
-## Layer 2: Perencanaan Pedagogi Mandiri (8 Prinsip Terkurasi + Clement–Brown Router)
-
-### A. 8 Prinsip Pedagogi Terkurasi *(diadaptasi dari GarethManning/education-agent-skills, CC BY-SA 4.0)*
-Sebelum menulis konten atau slide, rancang kerangka belajar memakai 8 lensa ini secara berurutan:
-1. **Backwards Design (`backwards-design-unit-planner`)**: Mulai dari kemampuan transfer akhir yang ingin dibuktikan peserta (Block 5 & Tugas Gate), baru tarik mundur prasyarat DAG dan aktivitas belajarnya.
-2. **Mental Model Mapping (`mental-model-mapper`)**: Identifikasi asumsi awam dan miskonsepsi paling sering sebelum menulis penjelasan.
-3. **Cognitive Load Analysis (`cognitive-load-analyser`)**: Pisahkan beban intrinsik vs ekstraneus; pecah dua mekanisme berbeda ke dua modul terpisah; batasi prompt pertanyaan Block 5 maksimal ~50 kata.
-4. **Concrete-Pictorial-Abstract (`cpa-sequence-designer`)**: Alirkan pemahaman dari pengalaman konkret -> representasi visual/diagram -> simbol formal (jangan pernah membalik urutan ini bagi pemula).
-5. **Dual Coding (`dual-coding-designer`)**: Pasangkan slide visual/diagram yang ringkas dengan penjelasan verbal/catatan yang saling melengkapi (jangan menyalin teks slide mentah-mentah ke catatan).
-6. **Variation Theory (`variation-theory-task-designer`)**: Gunakan kontras (*Pemula Keliru* vs *Realitas Mekanis*) di Block 3 agar peserta membedakan ciri kritis suatu konsep dari detail permukaan.
-7. **Worked Example with Completion Fading (`worked-example-fading-designer`)**: Sajikan 1 contoh terbedah singkat di Block 4 sebelum peserta berlatih mandiri di FlashLearn Sandbox & Gate Exam.
-8. **Transfer Bridge (`transfer-bridge`)**: Rancang soal Block 5 sebagai prediksi kausal pada situasi baru (*near/far transfer*), bukan hafalan definisi teks.
-
-### B. Clement & Brown Grounding Strategy Router (Wajib di Setiap Modul)
-Jangan memaksakan analogi atau simulasi untuk semua konsep. Tentukan **tepat satu** `uila.groundingDecision.mode` untuk setiap modul:
-
-| `groundingMode` | Kapan Dipilih | Kewajiban Struktur Payload (`InteractiveModulePayload`) |
-| :--- | :--- | :--- |
-| **`experiential_anchor_bridge`** | Prior knowledge **kosong** (`priorKnowledgeAssumed: "none"`), intuitif secara indrawi/sebab-akibat, **setup cost <= 60 detik**. | 1. **Fase Anchoring**: `block2_grounding.anchoringLab` interaktif (`state_machine_sandbox`, `mechanism_manipulator`, `wave_field_tapper`, `bridge_morph_slider`, atau HTML micro-sim terisolasi).<br>2. **Fase Bridging**: `bridgingChain` (pemetaan elemen jangkar -> konsep inti, boleh multi-tahap jika lompatannya jauh).<br>3. **Wajib `analogyBreakpoint`**: jelaskan di mana analogi berhenti berlaku + mekanisme nyatanya. |
-| **`direct_analogy`** | Peserta **sudah punya pengalaman harian** yang sepadan (`familiar` / `partial`). | `physicalObject` + `isomorphicMapping` + **wajib `analogyBreakpoint`** (tanpa perlu membangun simulasi berat). |
-| **`thought_experiment`** | **Batas skala/dimensi** melampaui simulasi fisik (4D, relativitas, konsensus jutaan node). | `thoughtExperimentSteps` (>= 2 langkah bertahap) + `analogyBreakpoint` (jika memakai metafora seperti Jenderal Bizantium). |
-| **`direct_formalism`** | **Setup cost simulasi/analogi > belajar aturan langsung** (aturan formal 5 menit, formula langsung, sintaks kontrak). | Lewati analogi paksaan; fokus pada `block1_anomaly` -> `block3_coreMechanics` (Contrasting Cases) -> `block4_notationContract` (Worked Example). |
+1. **Zero Lossy Summarization (Pemecahan Lossless ala Kuliah)**:
+   - Jangan memangkas detail, kasus tepi, bukti, tabel penting, atau sub-mekanisme dari buku panjang.
+   - Pecah secara *lossless* menjadi **Unit Pertemuan Kuliah** berdurasi maksimal **<= 120 menit (<= 2 jam)** (target ideal **45–90 menit**), dan pecah tiap Unit menjadi **modul sesi 4–15 menit** agar pembelajar bisa berhenti dan melanjutkan kapan saja.
+   - Pastikan `curriculum-plan.json` memiliki **`coverage.unmappedSliceIds = []`** (100% irisan buku tercakup).
+2. **Elastisitas Skala & Multi-Sesi Coding Agent**:
+   - **Skala S** (1 artikel / topik / <= 15 hal): 1 sesi langsung (`import-interactive`), profil `micro_know` atau `bridging_understand`.
+   - **Skala M** (1 paper / SOP / 16–100 hal): 1–2 sesi memakai `flashlearn plan` (1–3 Unit Kuliah).
+   - **Skala L** (2–3 ebook PDF/EPUB/PPTX, 100–600+ hal): **WAJIB Multi-Sesi** via `flashlearn plan init` → `plan next --count 2` (konteks agen tetap < 15k token!) → author & audit batch 2–3 modul → `plan push` → serah terima bersih lewat `HANDOFF.md` & `glossary-master.json` untuk Coding Agent berikutnya.
+3. **Batas Lisensi & Isolasi Arsitektur**:
+   - **FlashLearn Core, UILA v2, CLI PDF (`unpdf`) & EPUB/PPTX (`fflate`)**: MIT (lintas OS Windows/macOS/Linux/Termux, nol Poppler wajib, nol AGPL).
+   - **15 Prinsip Pedagogi Terkurasi** *(diadaptasi dari `GarethManning/education-agent-skills`, CC BY-SA 4.0)*: dirangkum mandiri di Layer 2 dengan atribusi eksplisit.
+   - **Visual Slide Deck Eksternal** *(mis. `guizang-ppt-skill`, GNU AGPL-3.0)*: wajib dijalankan di luar repositori FlashLearn saat authoring; output HTML diunggah sebagai data (`content_artifacts`) dan diputar terisolasi dalam `<iframe sandbox="allow-scripts">`. **Dilarang menyalin kode AGPL ke dalam repo FlashLearn.**
 
 ---
 
-## Layer 3: Sintesis Dual-Artifact & Gerbang Audit Pra-Unggah
+## 2. Konfigurasi CLI Lintas PC (Hanya Base URL & API Key)
 
-### Artefak A — Manifest Interaktif UILA v2 (`uila-v2.json`)
-Susun JSON sesuai kontrak `InteractiveModulePayload` di `packages/shared/src/types/interactive.ts`:
-- `schemaVersion: "uila-v2"`, `estimatedMinutes`, `learningObjective`.
-- `uila.groundingDecision` + `block1_anomaly` + `block2_grounding` + `block3_coreMechanics` + `block4_notationContract` + `block5_stressTest` (>= 3 opsi, tepat 1 `isCorrect: true`, setiap distraktor memiliki `diagnosticAxis` + `causalRationale`, plus 4 tingkat `hintLadder`).
-- Opsional `glossary` (dengan `highSchoolAnchor` setingkat SMA) dan `sourceCitations` (kutipan verbatim dari Layer 1).
-- Seluruh entitas/simbol di `block5_stressTest` wajib sudah diperkenalkan di Blok 1–4 (*Zero Orphan Probe Entity*).
-
-### Artefak B — Visual Slide Deck HTML (Eksternal, mis. `guizang-ppt-skill`)
-Jika modul dilengkapi deck visual (disarankan 4–10 slide yang sinkron dengan `slideIndex` tiap langkah):
-1. Bangun deck secara eksternal memakai `guizang-ppt-skill` (Style B Swiss Internationalist untuk STEM/teknik/data; Style A Magazine untuk humaniora/strategi).
-2. Set bahasa Indonesia (`<html lang="id" data-ui-lang="id">`) dan isi `SPEAKER_NOTES` (`window.__SPEAKER_NOTES__`) sesuai urutan `data-slide-id`.
-3. Validasi eksternal sebelum impor:
-   - `node <guizang-skill-dir>/scripts/validate-presenter-mode.mjs ./work/ppt/index.html`
-   - `node <guizang-skill-dir>/scripts/validate-swiss-deck.mjs ./work/ppt/index.html` *(khusus Style B Swiss)*
-4. FlashLearn akan otomatis membungkus HTML saat render dengan bridge MIT aman (`buildSandboxedDeckHtml`), menyetel `low-power` di HP, menskalakan 1280x720 secara proporsional 16:9 di Portrait/Landscape, dan membaca `window.__SPEAKER_NOTES__` ke tombol **Catatan**.
-
----
-
-## Layer 4: Ingesti CLI-Only ke FlashLearn (Idempoten & Non-Interaktif)
-
-### Konfigurasi Base URL & API Key CLI (Infisical atau Lokal)
-CLI membaca konfigurasi dengan urutan prioritas: **Flag (`--base-url` / `--api-url`, `--api-key`) > Environment (`FLASHLEARN_BASE_URL` / `FLASHLEARN_API_URL`, `FLASHLEARN_API_KEY` / `FLASHLEARN_SUPERADMIN_API_KEY`) > File Lokal (`~/.flashlearn/config.json`, `chmod 600`)**.
+Seluruh operasi *create, update, push, delete, restore, rollback, diff, prune, pull* berjalan murni lewat HTTP API menggunakan konfigurasi CLI dengan urutan prioritas **Flag (`--base-url`, `--api-key`) > Environment (`FLASHLEARN_BASE_URL`, `FLASHLEARN_API_KEY` / `FLASHLEARN_SUPERADMIN_API_KEY`) > File Lokal (`~/.flashlearn/config.json`, `chmod 600`)**.
 
 ```bash
-# Simpan base URL & API key lokal sekali jalan
-flashlearn config set --base-url https://learn.dvlpid.my.id --api-key "$FLASHLEARN_SUPERADMIN_API_KEY"
-flashlearn config get
+# 1. Set sekali di PC mana pun (Windows / macOS / Linux / Termux)
+flashlearn config set --base-url https://learn.dvlpid.my.id --api-key "<fl_live_...>"
 flashlearn auth whoami
 
-# Atau jalankan langsung dengan injeksi environment (mis. via secret manager)
-# env: FLASHLEARN_BASE_URL + FLASHLEARN_API_KEY (atau FLASHLEARN_SUPERADMIN_API_KEY)
+# Atau jalankan dengan injeksi secret manager (tanpa menyimpan key di disk)
+# env: FLASHLEARN_BASE_URL + FLASHLEARN_SUPERADMIN_API_KEY
 flashlearn auth whoami
 ```
 
-### Opsi 1 — Impor 1 Modul Interaktif (Idempoten via `--slug`)
-```bash
-# 1. Dry-run: validasi UILA v2, Clement-Brown router, audit keamanan HTML, & cek aset gambar
-bun run cli content import-interactive \
-  --workspace-id <WORKSPACE_UUID> \
-  --title "Judul Modul Mendalam" \
-  --slug "judul-modul-stabil" \
-  --manifest ./work/uila-v2.json \
-  --deck ./work/ppt/index.html \
-  --upload-media \
-  --dry-run
+---
 
-# 2. Unggah permanen ke FlashLearn (otomatis create atau update jika slug sudah ada)
-bun run cli content import-interactive \
-  --workspace-id <WORKSPACE_UUID> \
-  --title "Judul Modul Mendalam" \
-  --slug "judul-modul-stabil" \
-  --manifest ./work/uila-v2.json \
-  --deck ./work/ppt/index.html \
-  --upload-media
+## 3. Layer 1: Ekstraksi Multi-Format Lossless & Pembuatan Rencana Kerja
+
+```bash
+# Indeks 1 atau banyak buku (PDF + EPUB + PPTX + MD) & buat rencana kuliah <= 2 jam/unit
+flashlearn plan init \
+  --input "./books/ebook1.pdf,./books/ebook2.epub,./books/slides.pptx" \
+  --dir "./work/nama-kursus" \
+  --title "Judul Mata Kuliah / Topik" \
+  --max-unit-minutes 90 \
+  --decks selective
+
+# Cek cakupan lossless (unmappedSliceIds harus 0) & status seluruh Unit
+flashlearn plan status --dir "./work/nama-kursus"
 ```
 
-### Opsi 2 — Ganti / Unggah Slide Deck Saja pada Modul yang Sudah Ada
-```bash
-bun run cli content upload-artifact <CONTENT_UUID> \
-  --kind slide_deck_html \
-  --file ./work/ppt/index.html \
-  --upload-media \
-  --dry-run
-
-bun run cli content upload-artifact <CONTENT_UUID> \
-  --kind slide_deck_html \
-  --file ./work/ppt/index.html \
-  --upload-media
-```
-
-### Opsi 3 — Impor Paket Kurikulum Atomik (Blueprint + Banyak Modul)
-Siapkan `curriculum-package.json` (contoh lengkap di `docs/samples/bridging-mastery-package/`):
-```bash
-bun run cli domain import-curriculum --dir ./work/compiled-package --upload-media --dry-run
-bun run cli domain import-curriculum --dir ./work/compiled-package --upload-media
-```
+- Jika ada halaman PDF bertanda `needsVlmTriage: true` (halaman scan/diagram padat), jalankan ekstraktor VLM opsional hanya pada halaman tersebut agar presisi tabel & rumus tetap terjaga tanpa memindai 600 halaman mentah.
+- Untuk melanjutkan pengerjaan dari **PC lain** atas workspace yang sudah ada di produksi:
+  ```bash
+  flashlearn plan pull --workspace-id "<workspace-id-atau-slug>" --dir "./work/nama-kursus"
+  ```
 
 ---
 
-## Invarian UX Pembelajar (Jangan Dilanggar Saat Authoring)
-- **Satu Arahan Per Layar**: Tulis tiap blok ringkas, konkret, dan bebas jargon mendadak agar `InteractiveModuleViewer.svelte` tetap terasa tenang di layar HP.
-- **Lanjutkan Kapan Saja**: Semua langkah, slide, simulasi, dan percobaan diagnostik tersimpan otomatis (login maupun guest) dan muncul di strip **"Lanjutkan Belajar"**.
-- **Istilah & Rujukan Tidak Mengganggu**: Taruh definisi latar di `glossary` dan pasal/halaman PDF di `sourceCitations` agar tetap terlipat rapi sampai pembelajar mengetuknya.
+## 4. Layer 2: Perencanaan Pedagogi Elastis (15 Prinsip + 4 Profil KUD + Clement–Brown)
+
+### A. Pilih Profil Pengetahuan (`knowledgeProfile`) — Jangan Paksa 1 Cetakan
+| `knowledgeProfile` | Cocok Untuk | Alur Langkah di UI |
+| :--- | :--- | :--- |
+| **`micro_know`** | Fakta, klasifikasi, istilah, pengenalan 2–3 menit | **Ringkas 4 langkah**: Gagasan Inti → Contoh Nyata → Cek Cepat + Kalibrasi → Rangkuman *(tanpa paksaan titik buntu/rumus)*. |
+| **`bridging_understand`** | Konsep abstrak/mekanis sebab-akibat | **Clement–Brown + UILA v2**: Masalah Nyata (+ Tebak 10 Detik) → Anchoring Lab / Analogi / Eksperimen Pikiran → Jembatan + `analogyBreakpoint` → *(Hinge Check)* → Aturan Inti → Simbol → Uji Prediksi 5-Axis → Rangkuman. |
+| **`procedural_do`** | Langkah teknis, kode, rumus, audit SOP | Masalah Nyata → *(Hinge Check)* → Aturan Inti → Worked Example → **Erroneous Example (Temukan & Perbaiki Kesalahan)** → Uji Prediksi → *(Explain-Back)* → Rangkuman. |
+| **`ill_structured_case`** | Hukum, kebijakan, strategi, sejarah, etika | Dilema Nyata → **Silang Sumber & Multi-Perspektif + Single-Point Rubric** → Uji Keputusan → **Explain-Back** → Rangkuman *(tidak memaksa rumus matematis)*. |
+
+### B. 15 Prinsip Pedagogi Terkurasi *(diadaptasi dari GarethManning/education-agent-skills, CC BY-SA 4.0)*
+1. **Backwards Design**: tetapkan bukti transfer akhir (Block 5 / Gate) dulu sebelum memecah prasyarat.
+2. **Epistemic & KUD Routing**: petakan *Know / Understand / Do / Horizontal* ke `knowledgeProfile` yang sesuai.
+3. **Semantic Waves (Maton)**: bergerak dari konkret → abstraksi → aplikasi nyata di tiap modul.
+4. **Mental Model Mapping**: identifikasi miskonsepsi pemula sebelum menulis penjelasan.
+5. **Cognitive Load Analysis**: satu konsep inti per modul; prompt Block 5 target <= 50 kata.
+6. **Concrete–Pictorial–Abstract (CPA)**: pengalaman konkret → visual/diagram → simbol formal.
+7. **Dual Coding Anti-Duplikasi**: slide visual memuat diagram/angka kunci; kartu teks di bawah hanya memuat 1 arahan aksi & alasan kausal singkat (jangan salin-tempel teks slide ke kartu).
+8. **Variation Theory**: gunakan `contrastingCases` (*Sering keliru* vs *Yang sebenarnya terjadi*).
+9. **Worked Example + Completion Fading**: contoh terbedah singkat sebelum latihan mandiri.
+10. **Erroneous Examples**: contoh sengaja cacat (`erroneousExample`) untuk mengasah deteksi bug/kesalahan.
+11. **Productive Failure Ringan**: `quickPrediction` 10 detik di Langkah 1 sebelum titik buntu dibuka.
+12. **Hinge Question**: `hingeCheck` 20 detik di tengah modul + `remediationCard` singkat jika meleset.
+13. **Confidence Calibration**: aktif otomatis di UI (`Yakin / Ragu / Menebak`) untuk menangkap *overconfident misconception* & *lucky guess*.
+14. **Explain-Back & Vocabulary Tiering**: `explainBack` di akhir modul kompleks + glosarium berfokus pada istilah `tier: 2` (akademik lintas bidang) & `tier: 3` (teknis inti).
+15. **Transfer Bridge & Interleaving**: soal Block 5 berupa prediksi kausal situasi baru, bukan hafalan teks.
+
+### C. Clement & Brown Grounding Router (Untuk `bridging_understand`)
+- **`experiential_anchor_bridge`**: prior knowledge kosong & *setup cost* <= 60 detik → wajib `anchoringLab` + `bridgingChain` + `analogyBreakpoint`.
+- **`direct_analogy`**: pengalaman akrab sudah ada → wajib `physicalObject` + `analogyBreakpoint`.
+- **`thought_experiment`**: melampaui skala/dimensi fisik → wajib `thoughtExperimentSteps` (>= 2 langkah).
+- **`direct_formalism`**: aturan formal lebih cepat dipahami daripada membangun analogi.
+
+---
+
+## 5. Layer 3 & 4: Loop Multi-Sesi Coding Agent + Remote Full CRUD
+
+Jalankan loop ini berulang antar sesi (2–3 modul per sesi agar fokus & kualitas maksimal):
+
+```bash
+# 1. Ambil paket kerja ramping (<15k token) + glossary yang sudah diajarkan
+flashlearn plan next --dir "./work/nama-kursus" --count 2
+
+# 2. Tulis manifest `modules/<slug>.uila-v2.json`
+#    (Jika `needsSlideDeck: true`, buat deck HTML eksternal dgn guizang-ppt-skill ke `decks/<slug>.html`,
+#     set `<html lang="id" data-ui-lang="id">`, isi `window.__SPEAKER_NOTES__`, dan petakan `slideIndex` 1:1)
+
+# 3. Validasi dry-run & tandai checkpoint
+flashlearn plan push --dir "./work/nama-kursus" --module "<slug>" --upload-media --dry-run
+flashlearn plan mark --dir "./work/nama-kursus" --module "<slug>" --state audited
+
+# 4. Push ke produksi (create/update workspace, unit/domain, modul, slide deck, & media)
+flashlearn plan push --dir "./work/nama-kursus" --module "<slug>" --upload-media
+```
+
+### Manajemen Remote CRUD Penuh di Produksi (Dari PC Mana Pun)
+```bash
+# Bandingkan plan lokal vs server produksi (new / modified / in_sync / remote_only)
+flashlearn plan diff --dir "./work/nama-kursus"
+
+# Hapus modul di produksi yang sudah dihapus dari plan lokal (cek dry-run dulu)
+flashlearn plan prune --dir "./work/nama-kursus" --dry-run
+flashlearn plan prune --dir "./work/nama-kursus" --yes
+
+# Operasi CRUD satuan langsung ke server produksi
+flashlearn workspace update <ws-id> --name "Judul Baru" --description "Deskripsi baru"
+flashlearn content update <content-id> --manifest ./modules/<slug>.uila-v2.json --title "Judul Baru"
+flashlearn content upload-artifact <content-id> --kind slide_deck_html --file ./decks/<slug>.html --upload-media
+flashlearn content delete-artifact <content-id> --kind slide_deck_html --yes
+flashlearn content delete <content-id> --yes
+flashlearn content restore <content-id>
+flashlearn content rollback <content-id> --version 1
+```
