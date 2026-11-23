@@ -201,7 +201,7 @@ describe('Phase 13 Elastic Pedagogy Profiles & Confidence Calibration', () => {
     expect(steps[3].slideIndex).toBe(3);
   });
 
-  it('compiles procedural_do with hinge_check, erroneous_example, explain_back, and 1:1 slide indices', () => {
+  it('compiles procedural_do direct_formalism with hinge_check AFTER mechanics so learners see rules first', () => {
     const payload = createProceduralAndIllStructuredBase();
     const report = validateInteractiveModulePayload(payload);
     expect(report.valid).toBe(true);
@@ -209,8 +209,8 @@ describe('Phase 13 Elastic Pedagogy Profiles & Confidence Calibration', () => {
     const steps = buildGuidedLearningSteps(payload);
     expect(steps.map((s) => s.kind)).toEqual([
       'anomaly',
-      'hinge_check',
       'mechanics',
+      'hinge_check',
       'notation',
       'erroneous_example',
       'stress_test',
@@ -219,6 +219,57 @@ describe('Phase 13 Elastic Pedagogy Profiles & Confidence Calibration', () => {
     ]);
     expect(steps.find((s) => s.kind === 'hinge_check')?.preferCollapsedDeck).toBe(true);
     expect(steps.find((s) => s.kind === 'erroneous_example')?.preferCollapsedDeck).toBe(true);
+  });
+
+  it('keeps hinge_check BEFORE mechanics when Block 2 grounding exists and supports unbounded 1..N elastic items + slideRange', () => {
+    const payload = createProceduralAndIllStructuredBase();
+    payload.uila.groundingDecision.mode = 'direct_analogy';
+    payload.uila.block2_grounding = {
+      physicalObject: 'Tumpukan kartu absensi per 10 lembar',
+      analogyBreakpoint: {
+        whereItBreaks: 'Kartu fisik mulai dari 1, sedangkan OFFSET menghitung kartu yang dilewati (0).',
+        realMechanismInstead: 'Database menghitung skip-count mulai 0.',
+      },
+      slideIndex: 1,
+      slideEndIndex: 2,
+    };
+    payload.additionalHingeChecks = [
+      {
+        prompt: 'Untuk halaman ke-3 dengan limit 10, berapa nilai OFFSET?',
+        options: [
+          { id: 'a', text: '20', isCorrect: true, feedback: 'Benar: (3 - 1) * 10 = 20.' },
+          { id: 'b', text: '30', isCorrect: false, feedback: 'Itu melewati 3 halaman penuh.' },
+        ],
+        remediationCard: 'Kurangi nomor halaman dengan 1 sebelum mengalikan limit.',
+      },
+    ];
+    payload.additionalStressTests = [
+      {
+        ...payload.uila.block5_stressTest,
+        prompt: 'Untuk halaman ke-1 dengan limit 25, berapa nilai OFFSET?',
+      },
+    ];
+
+    const report = validateInteractiveModulePayload(payload);
+    expect(report.valid).toBe(true);
+
+    const steps = buildGuidedLearningSteps(payload);
+    expect(steps.map((s) => s.id)).toEqual([
+      'step-anomaly',
+      'step-bridging',
+      'step-hinge-check',
+      'step-hinge-check-2',
+      'step-mechanics',
+      'step-notation',
+      'step-erroneous-example',
+      'step-stress-test',
+      'step-stress-test-2',
+      'step-explain-back',
+      'step-summary',
+    ]);
+    expect(steps.find((s) => s.id === 'step-bridging')?.slideRange).toEqual([1, 2]);
+    expect(steps.find((s) => s.id === 'step-hinge-check-2')?.itemIndex).toBe(1);
+    expect(steps.find((s) => s.id === 'step-stress-test-2')?.itemIndex).toBe(1);
   });
 
   it('validates ill_structured_case without requiring a rigid math formula contract', () => {

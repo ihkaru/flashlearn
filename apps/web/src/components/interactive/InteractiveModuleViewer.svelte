@@ -55,8 +55,12 @@
 
   const canAdvance = $derived.by(() => {
     if (!activeStep) return false;
-    if (activeStep.kind === 'anchoring_lab') return anchoringCompleted;
-    if (activeStep.kind === 'stress_test') return stressTestSolved;
+    if (activeStep.kind === 'anchoring_lab') {
+      return activeStepSolved || (activeStep.id === 'step-anchoring' && anchoringCompleted);
+    }
+    if (activeStep.kind === 'stress_test') {
+      return activeStepSolved || (activeStep.id === 'step-stress-test' && stressTestSolved);
+    }
     if (
       activeStep.kind === 'hinge_check' ||
       activeStep.kind === 'erroneous_example' ||
@@ -134,7 +138,11 @@
   }
 
   async function persistProgress(extra: { incrementStepsToday?: number; incrementProbesToday?: number } = {}) {
-    const isCompleted = currentStepIndex >= steps.length - 1 && stressTestSolved;
+    const stressSteps = steps.filter((s) => s.kind === 'stress_test');
+    const allStressSolved = stressSteps.every(
+      (s) => completedStepIds.includes(s.id) || (s.id === 'step-stress-test' && stressTestSolved)
+    );
+    const isCompleted = currentStepIndex >= steps.length - 1 && allStressSolved;
     const snapshot: LearnerContentProgress = {
       contentId: content.id,
       sessionKey: getLearnerSessionKey(),
@@ -200,7 +208,7 @@
   }
 
   function handleAnchoringDone() {
-    anchoringCompleted = true;
+    if (!activeStep || activeStep.id === 'step-anchoring') anchoringCompleted = true;
     if (activeStep) markStepDone(activeStep.id);
   }
 
@@ -210,7 +218,7 @@
     lossVector = res.lossVector;
     thetaMastery = res.nextTheta;
     if (res.isCorrect) {
-      stressTestSolved = true;
+      if (!activeStep || activeStep.id === 'step-stress-test') stressTestSolved = true;
       if (activeStep && !completedStepIds.includes(activeStep.id)) {
         completedStepIds = [...completedStepIds, activeStep.id];
       }
@@ -278,6 +286,7 @@
           <AdaptiveDeckStage
             rawHtml={deckHtml}
             slideIndex={currentSlideIndex}
+            slideRange={activeStep.slideRange}
             slideNotes={payload.slideNotes || []}
             isFullscreen={isFullscreenDeck}
             onSlideChange={(idx) => {
@@ -324,6 +333,8 @@
       <GlossaryDisclosure
         glossary={payload.glossary || []}
         citations={payload.sourceCitations || []}
+        figures={payload.figures || []}
+        {steps}
       />
     </section>
 

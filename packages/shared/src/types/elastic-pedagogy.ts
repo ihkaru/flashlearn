@@ -31,6 +31,7 @@ export interface HingeCheckSpec {
   }>;
   remediationCard: string;
   slideIndex?: number;
+  slideEndIndex?: number;
 }
 
 /** Erroneous Example (McLaren & Mayer): find & fix the deliberate mistake */
@@ -54,6 +55,7 @@ export interface ErroneousExampleSpec {
   }>;
   takeaway: string;
   slideIndex?: number;
+  slideEndIndex?: number;
 }
 
 /** Ill-Structured / Horizontal Knowledge (Humanities, Law, Strategy, Ethics) */
@@ -77,6 +79,7 @@ export interface IllStructuredCaseSpec {
   corroborationQuestion: string;
   rubricCriteria: CaseRubricCriterion[];
   slideIndex?: number;
+  slideEndIndex?: number;
 }
 
 /** Explain-Back / Self-Explanation reflection at module closing */
@@ -91,6 +94,7 @@ export interface ExplainBackSpec {
     feedback: string;
   }>;
   slideIndex?: number;
+  slideEndIndex?: number;
 }
 
 /** Lightweight 3-step payload for simple / factual topics (2-3 min, zero forced overhead) */
@@ -103,6 +107,7 @@ export interface MicroKnowBlockSet {
   }>;
   keyTakeaways: string[];
   slideIndex?: number;
+  slideEndIndex?: number;
 }
 
 /** University lecture-style unit metadata (lossless slicing, max <= 120 min per unit) */

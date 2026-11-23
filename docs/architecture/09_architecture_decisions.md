@@ -12,8 +12,8 @@ tracked_paths:
 # 9. Architecture Decisions (ADRs)
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `3f27daa` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-22T14:10:12+07:00`
+> - **Verified Commit**: `e16123c` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-23T06:35:42Z`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -117,6 +117,18 @@ This section documents architecturally significant decisions (ADRs) governing th
 ## ADR-11: Lazy-Loaded Sandboxed HTML Artifact Isolation & Licensing Boundary
 - **Status**: Accepted
 - **Context**: Authoring visual slide decks externally via CLI tools (such as `guizang-ppt-skill`, licensed under GNU AGPL-3.0) produces rich interactive HTML files that contain executable `<script>` blocks and must remain license-isolated from FlashLearn's core repository while remaining XSS-safe on mobile Portrait and Landscape viewports.
-- **Decision**: Store HTML artifacts in a separate lazy-loaded `content_artifacts` table (`0010_interactive_learning_modules.sql`) audited pre-upload (`auditHtmlArtifactSafety`), never copy AGPL-3.0 template/runtime code into FlashLearn core, and render artifacts generically inside `<iframe sandbox="allow-scripts">` (without `allow-same-origin`) wrapped with FlashLearn's MIT `buildSandboxedDeckHtml` host bridge (in-memory `localStorage` fallback, automatic mobile `low-power` mode, and `event.source`-verified `postMessage` slide synchronization). Offload slide images to MediaVault via CLI (`--upload-media`).
+- **Decision**: Store HTML artifacts in a separate lazy-loaded `content_artifacts` table (`0010_interactive_learning_modules.sql`) audited pre-upload (`auditHtmlArtifactSafety`), never copy AGPL-3.0 template/runtime code into FlashLearn core, and render artifacts generically inside `<iframe sandbox="allow-scripts">` (without `allow-same-origin`) wrapped with FlashLearn's MIT `buildSandboxedDeckHtml` host bridge (in-memory `localStorage` fallback, automatic mobile `low-power` mode, and `event.source`-verified `postMessage` slide synchronization).
 - **Consequences**: Strict XSS containment, clean license separation, fast workspace listing queries, and zero-reload Portrait/Landscape slide transitions.
+- **Risks Created**: none
+
+---
+
+## ADR-12: Zero-Forced-Config Persistent Media Assets, Always-Accessible Figure Drawer & Unbounded 1..N Elastic Flow
+- **Status**: Accepted
+- **Context**: Extracting real figures/diagrams from PDFs/EPUBs/PPTXs previously risked relying on external private media servers or ephemeral container disks, while singleton step fields (`1` lab / `1` hinge check / `1` stress test) and pre-mechanics `hinge_check` placement on `direct_formalism` modules created avoidable learner friction.
+- **Decision**:
+  1. Persist module figures via pluggable `IMediaBlobStore` defaulting to zero-config PostgreSQL `media_asset_blobs` + content-addressed SHA-256 `media_assets` metadata (`0011_persistent_media_assets.sql`), with opt-in `local` volume and opt-in `mediavault` drivers (`MEDIA_STORAGE_DRIVER`).
+  2. Display context-matched figures inline via `ModuleFigureStrip.svelte` (responsive 2-column comparison when 2+ figures share a step) AND surface every module figure from any step via the **`Ilustrasi & Diagram (N)`** drawer in `GlossaryDisclosure.svelte` sharing `FigureLightboxModal.svelte`.
+  3. Place `hinge_check` **after** `mechanics` whenever `groundingDecision.mode === 'direct_formalism'` (no Block 2 grounding), and remove artificial singleton caps via backward-compatible optional arrays (`additionalAnchoringLabs`, `additionalHingeChecks`, `additionalErroneousExamples`, `additionalStressTests`, `slideEndIndex`, `figures[].stepId`) so complex modules scale cleanly (`Unbounded Composition, Bounded Attention`).
+- **Consequences**: 100% upstream-safe zero-config persistence across container redeploys, immediate visual discoverability from Step 1, and cognitively sound sequencing without working-memory overload.
 - **Risks Created**: none

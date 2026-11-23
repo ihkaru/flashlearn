@@ -5,6 +5,7 @@
   interface Props {
     rawHtml: string;
     slideIndex: number;
+    slideRange?: [number, number];
     slideNotes?: SlideNoteItem[];
     isFullscreen: boolean;
     onSlideChange: (index: number, total: number) => void;
@@ -14,6 +15,7 @@
   let {
     rawHtml,
     slideIndex,
+    slideRange,
     slideNotes = [],
     isFullscreen,
     onSlideChange,
@@ -148,6 +150,11 @@
       <span style="font-size: 0.8rem; font-weight: 700; min-width: 52px; text-align: center;">
         {slideIndex + 1} / {totalSlides}
       </span>
+      {#if slideRange}
+        <span style="font-size: 0.72rem; font-weight: 700; color: {isFullscreen ? '#99f6e4' : '#0f766e'}; background: {isFullscreen ? '#334155' : '#f0fdfa'}; border: 1px solid {isFullscreen ? '#475569' : '#99f6e4'}; padding: 2px 7px; border-radius: 999px;">
+          Tahap ini: {slideRange[0] + 1}–{slideRange[1] + 1}
+        </span>
+      {/if}
 
       <button
         type="button"

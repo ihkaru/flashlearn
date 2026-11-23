@@ -1,37 +1,35 @@
 <script lang="ts">
-  import type { GuidedStepKind, InteractiveModulePayload, ModuleFigure } from '@flashlearn/shared';
+  import type {
+    GuidedLearningStep,
+    InteractiveModulePayload,
+    ModuleFigure,
+  } from '@flashlearn/shared';
+  import { resolveAssetUrl } from '../../lib/resolveAssetUrl';
+  import FigureLightboxModal from './FigureLightboxModal.svelte';
 
   interface Props {
     payload: InteractiveModulePayload;
-    stepKind: GuidedStepKind;
+    step: GuidedLearningStep;
   }
 
-  let { payload, stepKind }: Props = $props();
+  let { payload, step }: Props = $props();
 
   const matchingFigures = $derived(
-    (payload.figures || []).filter((f) => f.stepKind === stepKind)
+    (payload.figures || []).filter((f) =>
+      f.stepId ? f.stepId === step.id : f.stepKind === step.kind
+    )
   );
 
   let zoomedFigure = $state<ModuleFigure | null>(null);
-
-  function closeZoom() {
-    zoomedFigure = null;
-  }
-
-  function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && zoomedFigure) {
-      closeZoom();
-    }
-  }
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
 {#if matchingFigures.length > 0}
-  <div style="display: flex; flex-direction: column; gap: 12px;">
+  <div
+    style="display: grid; grid-template-columns: {matchingFigures.length > 1 ? 'repeat(auto-fit, minmax(280px, 1fr))' : '1fr'}; gap: 12px;"
+  >
     {#each matchingFigures as fig (fig.id)}
       <figure
-        style="margin: 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 14px; overflow: hidden;"
+        style="margin: 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;"
       >
         <div
           style="padding: 10px 14px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;"
@@ -59,7 +57,7 @@
           style="display: block; width: 100%; padding: 12px; background: #ffffff; border: none; cursor: zoom-in; text-align: center;"
         >
           <img
-            src={fig.assetUrl}
+            src={resolveAssetUrl(fig.assetUrl)}
             alt={fig.altText}
             loading="lazy"
             decoding="async"
@@ -67,7 +65,7 @@
           />
         </button>
 
-        <figcaption style="padding: 12px 14px; border-top: 1px solid #f1f5f9; background: #ffffff;">
+        <figcaption style="padding: 12px 14px; border-top: 1px solid #f1f5f9; background: #ffffff; flex: 1;">
           <div style="font-size: 0.88rem; font-weight: 700; color: #0f172a; line-height: 1.45;">
             {fig.caption}
           </div>
@@ -95,42 +93,4 @@
   </div>
 {/if}
 
-{#if zoomedFigure}
-  <div
-    onclick={closeZoom}
-    role="dialog"
-    aria-modal="true"
-    aria-label={zoomedFigure.caption}
-    tabindex="-1"
-    onkeydown={(e) => e.key === 'Escape' && closeZoom()}
-    style="position: fixed; inset: 0; z-index: 10050; background: rgba(15, 23, 42, 0.88); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px;"
-  >
-    <div
-      onclick={(e) => e.stopPropagation()}
-      onkeydown={(e) => e.stopPropagation()}
-      role="document"
-      style="max-width: 96vw; max-height: 92vh; background: #ffffff; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 24px 60px rgba(0,0,0,0.4);"
-    >
-      <div style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
-        <div style="font-size: 0.9rem; font-weight: 700; color: #0f172a; line-height: 1.35;">
-          {zoomedFigure.caption}
-        </div>
-        <button
-          type="button"
-          onclick={closeZoom}
-          class="fl-btn fl-btn-sm"
-          style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;"
-        >
-          Tutup
-        </button>
-      </div>
-      <div style="overflow: auto; padding: 14px; background: #f8fafc; text-align: center;">
-        <img
-          src={zoomedFigure.assetUrl}
-          alt={zoomedFigure.altText}
-          style="max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto;"
-        />
-      </div>
-    </div>
-  </div>
-{/if}
+<FigureLightboxModal figure={zoomedFigure} onClose={() => (zoomedFigure = null)} />

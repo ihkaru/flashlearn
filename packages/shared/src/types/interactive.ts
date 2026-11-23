@@ -115,6 +115,8 @@ export interface AnchoringLabSpec {
   nativeKind?: NativeMicroLabKind;
   nativeConfig?: NativeMicroLabConfig;
   artifactKind?: 'anchoring_sim_html';
+  slideIndex?: number;
+  slideEndIndex?: number;
 }
 
 export interface StructuralMappingRow {
@@ -176,6 +178,7 @@ export interface UilaStressTestBlock {
   hintLadder: HintLadder;
   groundTruth: string;
   slideIndex?: number;
+  slideEndIndex?: number;
 }
 
 export interface UilaV2BlockSet {
@@ -186,6 +189,7 @@ export interface UilaV2BlockSet {
     breakdownPoint: string;
     quickPrediction?: QuickPredictionSpec;
     slideIndex?: number;
+    slideEndIndex?: number;
   };
   block2_grounding: {
     anchoringLab?: AnchoringLabSpec;
@@ -196,6 +200,7 @@ export interface UilaV2BlockSet {
     analogyBreakpoint?: AnalogyBreakpoint;
     mermaidDiagram?: string;
     slideIndex?: number;
+    slideEndIndex?: number;
   };
   block3_coreMechanics: {
     invariantProperty: string;
@@ -203,6 +208,7 @@ export interface UilaV2BlockSet {
     contrastingCases: ContrastingCaseItem[];
     mermaidDiagram?: string;
     slideIndex?: number;
+    slideEndIndex?: number;
   };
   block4_notationContract: {
     formulaOrCode: string;
@@ -210,6 +216,7 @@ export interface UilaV2BlockSet {
     termsDeconstruction: NotationTermItem[];
     workedExampleSummary?: string;
     slideIndex?: number;
+    slideEndIndex?: number;
   };
   block5_stressTest: UilaStressTestBlock;
 }
@@ -242,7 +249,15 @@ export interface InteractiveModulePayload {
   unitMeta?: UnitLectureMetadata;
   microKnow?: MicroKnowBlockSet;
   hingeCheck?: HingeCheckSpec;
+  /** Optional extra interactive labs beyond block2_grounding.anchoringLab (unbounded 1..N elasticity) */
+  additionalAnchoringLabs?: AnchoringLabSpec[];
+  /** Optional extra hinge checkpoints beyond the primary hingeCheck */
+  additionalHingeChecks?: HingeCheckSpec[];
   erroneousExample?: ErroneousExampleSpec;
+  /** Optional extra find-and-fix erroneous examples */
+  additionalErroneousExamples?: ErroneousExampleSpec[];
+  /** Optional extra diagnostic stress-test probes beyond uila.block5_stressTest */
+  additionalStressTests?: UilaStressTestBlock[];
   illStructuredCase?: IllStructuredCaseSpec;
   explainBack?: ExplainBackSpec;
   summarySlideIndex?: number;
@@ -307,7 +322,11 @@ export interface GuidedLearningStep {
   requiresInteraction: boolean;
   /** Suggests collapsing slide stage on compact portrait screens so interactive widget has room */
   preferCollapsedDeck?: boolean;
+  /** Index into primary (0) or additional (1..N) multi-element arrays for repeatable step kinds */
+  itemIndex?: number;
   slideIndex?: number;
+  /** Optional inclusive [start, end] zero-based slide range when a step spans multiple slides */
+  slideRange?: [number, number];
 }
 
 export interface LossVector {

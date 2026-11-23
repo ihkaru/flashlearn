@@ -33,8 +33,10 @@ export interface ModuleFigure {
   assetUrl: string;
   caption: string;
   altText: string;
-  /** Guided learning step where this figure should be displayed */
+  /** Guided learning step kind where this figure should be displayed */
   stepKind: GuidedStepKind;
+  /** Optional specific step ID (e.g. "step-stress-test-2") when a module has multiple steps of the same kind */
+  stepId?: string;
   sourceRef?: string;
   sourcePage?: number;
   /** Plain-language explanations for foreign/technical terms visible inside the figure image */

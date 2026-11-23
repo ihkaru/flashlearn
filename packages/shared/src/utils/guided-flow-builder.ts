@@ -10,10 +10,18 @@ import type {
   UilaStressTestBlock,
 } from '../types/interactive';
 
+function buildSlideRange(start?: number, end?: number): [number, number] | undefined {
+  if (typeof start === 'number' && typeof end === 'number' && end > start) {
+    return [start, end];
+  }
+  return undefined;
+}
+
 /**
  * Compiles an InteractiveModulePayload into a calm, linear sequence of
  * single-focus steps adapted to its knowledgeProfile (2-minute micro_know up
- * to deep bridging_understand, procedural_do, or ill_structured_case).
+ * to deep bridging_understand, procedural_do, or ill_structured_case), with
+ * unbounded 1..N support for labs, checkpoints, erroneous examples, and stress tests.
  */
 export function buildGuidedLearningSteps(
   payload: InteractiveModulePayload
@@ -23,6 +31,35 @@ export function buildGuidedLearningSteps(
   const mode = uila.groundingDecision?.mode || 'direct_formalism';
   const rawSteps: Array<Omit<GuidedLearningStep, 'stepNumber' | 'totalSteps'>> = [];
 
+  const allHingeChecks = [
+    ...(payload.hingeCheck ? [payload.hingeCheck] : []),
+    ...(payload.additionalHingeChecks || []),
+  ];
+  const allErroneousExamples = [
+    ...(payload.erroneousExample ? [payload.erroneousExample] : []),
+    ...(payload.additionalErroneousExamples || []),
+  ];
+  const allStressTests = [
+    uila.block5_stressTest,
+    ...(payload.additionalStressTests || []),
+  ];
+
+  const pushHingeSteps = () => {
+    allHingeChecks.forEach((hc, idx) => {
+      rawSteps.push({
+        id: idx === 0 ? 'step-hinge-check' : `step-hinge-check-${idx + 1}`,
+        kind: 'hinge_check',
+        itemIndex: idx,
+        title: allHingeChecks.length > 1 ? `Cek Singkat Tengah Jalan (${idx + 1}/${allHingeChecks.length})` : 'Cek Singkat Tengah Jalan',
+        actionPrompt: 'Pastikan konsep intinya sudah klik sebelum melanjutkan.',
+        requiresInteraction: true,
+        preferCollapsedDeck: true,
+        slideIndex: hc.slideIndex,
+        slideRange: buildSlideRange(hc.slideIndex, hc.slideEndIndex),
+      });
+    });
+  };
+
   if (profile === 'micro_know' && payload.microKnow) {
     rawSteps.push({
       id: 'step-micro-core',
@@ -31,6 +68,7 @@ export function buildGuidedLearningSteps(
       actionPrompt: 'Pahami poin utama ini dengan santai dalam kurang dari 1 menit.',
       requiresInteraction: false,
       slideIndex: payload.microKnow.slideIndex ?? 0,
+      slideRange: buildSlideRange(payload.microKnow.slideIndex ?? 0, payload.microKnow.slideEndIndex),
     });
     rawSteps.push({
       id: 'step-micro-examples',
@@ -41,14 +79,18 @@ export function buildGuidedLearningSteps(
       slideIndex:
         payload.microKnow.slideIndex !== undefined ? payload.microKnow.slideIndex + 1 : 1,
     });
-    rawSteps.push({
-      id: 'step-stress-test',
-      kind: 'stress_test',
-      title: 'Cek Cepat',
-      actionPrompt: 'Pilih jawaban yang paling tepat beserta tingkat keyakinanmu.',
-      requiresInteraction: true,
-      preferCollapsedDeck: true,
-      slideIndex: uila.block5_stressTest.slideIndex,
+    allStressTests.forEach((probe, idx) => {
+      rawSteps.push({
+        id: idx === 0 ? 'step-stress-test' : `step-stress-test-${idx + 1}`,
+        kind: 'stress_test',
+        itemIndex: idx,
+        title: allStressTests.length > 1 ? `Cek Cepat (${idx + 1}/${allStressTests.length})` : 'Cek Cepat',
+        actionPrompt: 'Pilih jawaban yang paling tepat beserta tingkat keyakinanmu.',
+        requiresInteraction: true,
+        preferCollapsedDeck: true,
+        slideIndex: probe.slideIndex,
+        slideRange: buildSlideRange(probe.slideIndex, probe.slideEndIndex),
+      });
     });
     rawSteps.push({
       id: 'step-summary',
@@ -66,17 +108,32 @@ export function buildGuidedLearningSteps(
       actionPrompt: 'Pahami dulu kenapa cara biasa tidak lagi memadai di situasi ini.',
       requiresInteraction: false,
       slideIndex: uila.block1_anomaly.slideIndex ?? 0,
+      slideRange: buildSlideRange(uila.block1_anomaly.slideIndex ?? 0, uila.block1_anomaly.slideEndIndex),
     });
 
+    const hasBlock2Grounding =
+      (mode === 'experiential_anchor_bridge' && Boolean(uila.block2_grounding.anchoringLab)) ||
+      mode === 'direct_analogy' ||
+      mode === 'thought_experiment';
+
     if (mode === 'experiential_anchor_bridge' && uila.block2_grounding.anchoringLab) {
-      rawSteps.push({
-        id: 'step-anchoring',
-        kind: 'anchoring_lab',
-        title: uila.block2_grounding.anchoringLab.title || 'Coba Langsung',
-        actionPrompt: uila.block2_grounding.anchoringLab.instructionPrompt,
-        requiresInteraction: true,
-        preferCollapsedDeck: true,
-        slideIndex: uila.block2_grounding.slideIndex ?? 1,
+      const allLabs = [
+        uila.block2_grounding.anchoringLab,
+        ...(payload.additionalAnchoringLabs || []),
+      ];
+      allLabs.forEach((lab, idx) => {
+        const startSlide = lab.slideIndex ?? (idx === 0 ? (uila.block2_grounding.slideIndex ?? 1) : undefined);
+        rawSteps.push({
+          id: idx === 0 ? 'step-anchoring' : `step-anchoring-${idx + 1}`,
+          kind: 'anchoring_lab',
+          itemIndex: idx,
+          title: lab.title || (allLabs.length > 1 ? `Coba Langsung (${idx + 1}/${allLabs.length})` : 'Coba Langsung'),
+          actionPrompt: lab.instructionPrompt,
+          requiresInteraction: true,
+          preferCollapsedDeck: true,
+          slideIndex: startSlide,
+          slideRange: buildSlideRange(startSlide, lab.slideEndIndex),
+        });
       });
       rawSteps.push({
         id: 'step-bridging',
@@ -95,6 +152,7 @@ export function buildGuidedLearningSteps(
         actionPrompt: 'Lihat padanan yang sudah akrab di keseharian dan di mana padanan ini berhenti berlaku.',
         requiresInteraction: false,
         slideIndex: uila.block2_grounding.slideIndex ?? 1,
+        slideRange: buildSlideRange(uila.block2_grounding.slideIndex ?? 1, uila.block2_grounding.slideEndIndex),
       });
     } else if (mode === 'thought_experiment') {
       rawSteps.push({
@@ -104,19 +162,28 @@ export function buildGuidedLearningSteps(
         actionPrompt: 'Ikuti skenario langkah demi langkah karena skalanya melampaui pengalaman fisik langsung.',
         requiresInteraction: false,
         slideIndex: uila.block2_grounding.slideIndex ?? 1,
+        slideRange: buildSlideRange(uila.block2_grounding.slideIndex ?? 1, uila.block2_grounding.slideEndIndex),
+      });
+    } else if ((payload.additionalAnchoringLabs || []).length > 0) {
+      (payload.additionalAnchoringLabs || []).forEach((lab, idx) => {
+        rawSteps.push({
+          id: `step-anchoring-${idx + 2}`,
+          kind: 'anchoring_lab',
+          itemIndex: idx + 1,
+          title: lab.title || `Eksplorasi Interaktif ${idx + 1}`,
+          actionPrompt: lab.instructionPrompt,
+          requiresInteraction: true,
+          preferCollapsedDeck: true,
+          slideIndex: lab.slideIndex,
+          slideRange: buildSlideRange(lab.slideIndex, lab.slideEndIndex),
+        });
       });
     }
 
-    if (payload.hingeCheck) {
-      rawSteps.push({
-        id: 'step-hinge-check',
-        kind: 'hinge_check',
-        title: 'Cek Singkat Tengah Jalan',
-        actionPrompt: 'Pastikan konsep dasarnya sudah klik sebelum lanjut ke aturan formal.',
-        requiresInteraction: true,
-        preferCollapsedDeck: true,
-        slideIndex: payload.hingeCheck.slideIndex,
-      });
+    // Only place hinge_check before mechanics when Block 2 already grounded the concept;
+    // in direct_formalism, learners must see core mechanics & diagrams BEFORE the hinge checkpoint.
+    if (hasBlock2Grounding) {
+      pushHingeSteps();
     }
 
     rawSteps.push({
@@ -126,7 +193,12 @@ export function buildGuidedLearningSteps(
       actionPrompt: 'Bandingkan intuisi keliru yang sering terjadi dengan mekanisme nyatanya.',
       requiresInteraction: false,
       slideIndex: uila.block3_coreMechanics.slideIndex,
+      slideRange: buildSlideRange(uila.block3_coreMechanics.slideIndex, uila.block3_coreMechanics.slideEndIndex),
     });
+
+    if (!hasBlock2Grounding) {
+      pushHingeSteps();
+    }
 
     if (profile === 'ill_structured_case' && payload.illStructuredCase) {
       rawSteps.push({
@@ -136,6 +208,7 @@ export function buildGuidedLearningSteps(
         actionPrompt: 'Bandingkan beberapa sudut pandang dan kriteria evaluasinya sebelum memutuskan.',
         requiresInteraction: false,
         slideIndex: payload.illStructuredCase.slideIndex,
+        slideRange: buildSlideRange(payload.illStructuredCase.slideIndex, payload.illStructuredCase.slideEndIndex),
       });
     } else {
       rawSteps.push({
@@ -145,29 +218,36 @@ export function buildGuidedLearningSteps(
         actionPrompt: 'Baca simbol sebagai singkatan praktis dari mekanisme yang sudah kamu pahami.',
         requiresInteraction: false,
         slideIndex: uila.block4_notationContract.slideIndex,
+        slideRange: buildSlideRange(uila.block4_notationContract.slideIndex, uila.block4_notationContract.slideEndIndex),
       });
     }
 
-    if (payload.erroneousExample) {
+    allErroneousExamples.forEach((ex, idx) => {
       rawSteps.push({
-        id: 'step-erroneous-example',
+        id: idx === 0 ? 'step-erroneous-example' : `step-erroneous-example-${idx + 1}`,
         kind: 'erroneous_example',
-        title: payload.erroneousExample.title || 'Temukan & Perbaiki Kesalahan',
+        itemIndex: idx,
+        title: ex.title || (allErroneousExamples.length > 1 ? `Temukan & Perbaiki Kesalahan (${idx + 1}/${allErroneousExamples.length})` : 'Temukan & Perbaiki Kesalahan'),
         actionPrompt: 'Cari langkah yang keliru pada contoh ini lalu pilih perbaikannya.',
         requiresInteraction: true,
         preferCollapsedDeck: true,
-        slideIndex: payload.erroneousExample.slideIndex,
+        slideIndex: ex.slideIndex,
+        slideRange: buildSlideRange(ex.slideIndex, ex.slideEndIndex),
       });
-    }
+    });
 
-    rawSteps.push({
-      id: 'step-stress-test',
-      kind: 'stress_test',
-      title: 'Uji Pemahaman Singkat',
-      actionPrompt: 'Pilih prediksi yang paling masuk akal berdasarkan aturan inti tadi.',
-      requiresInteraction: true,
-      preferCollapsedDeck: true,
-      slideIndex: uila.block5_stressTest.slideIndex,
+    allStressTests.forEach((probe, idx) => {
+      rawSteps.push({
+        id: idx === 0 ? 'step-stress-test' : `step-stress-test-${idx + 1}`,
+        kind: 'stress_test',
+        itemIndex: idx,
+        title: allStressTests.length > 1 ? `Uji Pemahaman Singkat (${idx + 1}/${allStressTests.length})` : 'Uji Pemahaman Singkat',
+        actionPrompt: 'Pilih prediksi yang paling masuk akal berdasarkan aturan inti tadi.',
+        requiresInteraction: true,
+        preferCollapsedDeck: true,
+        slideIndex: probe.slideIndex,
+        slideRange: buildSlideRange(probe.slideIndex, probe.slideEndIndex),
+      });
     });
 
     if (payload.explainBack) {
@@ -179,6 +259,7 @@ export function buildGuidedLearningSteps(
         requiresInteraction: true,
         preferCollapsedDeck: true,
         slideIndex: payload.explainBack.slideIndex,
+        slideRange: buildSlideRange(payload.explainBack.slideIndex, payload.explainBack.slideEndIndex),
       });
     }
 

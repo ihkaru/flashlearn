@@ -12,8 +12,8 @@ tracked_paths:
 # 5. Building Block View
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `3f27daa` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-22T14:10:12+07:00`
+> - **Verified Commit**: `e16123c` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-23T06:35:42Z`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -94,7 +94,15 @@ apps/api/src/
     └── di/                         # base.container.ts & container.ts (Central Constructor DI)
 
 packages/shared/src/
-├── types/                          # Shared DTOs & domain types (interactive, competency, task, gate, vc, workspace, etc.)
+├── types/                          # Shared DTOs & domain types (interactive, elastic-pedagogy, media, competency, task, gate, vc, workspace, etc.)
 └── utils/                          # blueprint-validator.ts, graph-validator.ts (Tarjan SCC), merkle-transcript.ts,
-                                    # interactive-module-validator.ts, guided-flow-builder.ts, deck-sandbox-bridge.ts
+                                    # interactive-module-validator.ts, elastic-profile-validator.ts, guided-flow-builder.ts (1..N elastic steps), deck-sandbox-bridge.ts
+
+apps/web/src/components/interactive/
+├── InteractiveModuleViewer.svelte  # Single-focus guided step runner + local/remote resume + multi-step completion tracking
+├── AdaptiveDeckStage.svelte        # Sandboxed 16:9 slide stage with optional multi-slide step range indicator
+├── GuidedStepBody.svelte           # Keyed multi-element step renderer (labs, hinge checks, erroneous examples, stress tests, figures)
+├── ModuleFigureStrip.svelte        # Context-bound figure strip (multi-figure responsive comparison grid + shared lightbox)
+├── GlossaryDisclosure.svelte       # Always-accessible bottom drawer: Ilustrasi & Diagram (N), Istilah Kunci, Rujukan Sumber
+└── FigureLightboxModal.svelte      # Shared accessible tap-to-zoom modal with source page & jargon annotations
 ```

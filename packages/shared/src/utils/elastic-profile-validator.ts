@@ -69,45 +69,72 @@ export function validateElasticProfileExtensions(
     }
   }
 
-  if (payload.hingeCheck) {
-    const opts = payload.hingeCheck.options || [];
+  const allHingeChecks = [
+    ...(payload.hingeCheck ? [{ item: payload.hingeCheck, field: 'hingeCheck' }] : []),
+    ...(payload.additionalHingeChecks || []).map((item, idx) => ({
+      item,
+      field: `additionalHingeChecks[${idx}]`,
+    })),
+  ];
+  for (const { item: hc, field } of allHingeChecks) {
+    const opts = hc.options || [];
     const correctCount = opts.filter((o) => o.isCorrect).length;
-    if (!payload.hingeCheck.prompt?.trim() || opts.length < 2 || correctCount !== 1) {
+    if (!hc.prompt?.trim() || opts.length < 2 || correctCount !== 1) {
       issues.push({
         code: 'INVALID_HINGE_CHECK',
         severity: 'error',
-        field: 'hingeCheck',
-        message: 'hingeCheck requires a prompt, at least 2 options, and exactly 1 correct option.',
+        field,
+        message: `${field} requires a prompt, at least 2 options, and exactly 1 correct option.`,
       });
     }
-    if (!payload.hingeCheck.remediationCard?.trim()) {
+    if (!hc.remediationCard?.trim()) {
       issues.push({
         code: 'MISSING_HINGE_REMEDIATION',
         severity: 'warning',
-        field: 'hingeCheck.remediationCard',
-        message: 'hingeCheck should provide a brief remediationCard for learners who miss it.',
+        field: `${field}.remediationCard`,
+        message: `${field} should provide a brief remediationCard for learners who miss it.`,
       });
     }
   }
 
-  if (payload.erroneousExample) {
-    const ex = payload.erroneousExample;
+  const allErroneous = [
+    ...(payload.erroneousExample ? [{ item: payload.erroneousExample, field: 'erroneousExample' }] : []),
+    ...(payload.additionalErroneousExamples || []).map((item, idx) => ({
+      item,
+      field: `additionalErroneousExamples[${idx}]`,
+    })),
+  ];
+  for (const { item: ex, field } of allErroneous) {
     const stepExists = (ex.steps || []).some((s) => s.stepNumber === ex.flawedStepNumber);
     const fixCorrect = (ex.fixOptions || []).filter((f) => f.isCorrect).length;
     if (!stepExists || (ex.steps || []).length < 2) {
       issues.push({
         code: 'INVALID_ERRONEOUS_EXAMPLE_STEPS',
         severity: 'error',
-        field: 'erroneousExample.steps',
-        message: 'erroneousExample needs at least 2 steps and flawedStepNumber matching one of them.',
+        field: `${field}.steps`,
+        message: `${field} needs at least 2 steps and flawedStepNumber matching one of them.`,
       });
     }
     if ((ex.fixOptions || []).length < 2 || fixCorrect !== 1) {
       issues.push({
         code: 'INVALID_ERRONEOUS_EXAMPLE_FIXES',
         severity: 'error',
-        field: 'erroneousExample.fixOptions',
-        message: 'erroneousExample requires >= 2 fixOptions with exactly 1 correct fix.',
+        field: `${field}.fixOptions`,
+        message: `${field} requires >= 2 fixOptions with exactly 1 correct fix.`,
+      });
+    }
+  }
+
+  for (const [idx, probe] of (payload.additionalStressTests || []).entries()) {
+    const field = `additionalStressTests[${idx}]`;
+    const opts = probe.options || [];
+    const correctCount = opts.filter((o) => o.isCorrect).length;
+    if (!probe.prompt?.trim() || opts.length < 2 || correctCount !== 1) {
+      issues.push({
+        code: 'INVALID_ADDITIONAL_STRESS_TEST',
+        severity: 'error',
+        field,
+        message: `${field} requires a prompt, >= 2 options, and exactly 1 correct option.`,
       });
     }
   }
@@ -213,15 +240,20 @@ function collectModuleProse(payload: InteractiveModulePayload): string {
       ...(u.block5_stressTest?.options || []).flatMap((o) => [o.text, o.causalRationale])
     );
   }
-  if (payload.hingeCheck) {
-    parts.push(payload.hingeCheck.prompt, payload.hingeCheck.remediationCard);
+  for (const hc of [payload.hingeCheck, ...(payload.additionalHingeChecks || [])]) {
+    if (hc) parts.push(hc.prompt, hc.remediationCard);
   }
-  if (payload.erroneousExample) {
-    parts.push(
-      payload.erroneousExample.scenarioPrompt,
-      payload.erroneousExample.takeaway,
-      ...(payload.erroneousExample.steps || []).map((s) => `${s.label} ${s.content}`)
-    );
+  for (const ex of [payload.erroneousExample, ...(payload.additionalErroneousExamples || [])]) {
+    if (ex) {
+      parts.push(
+        ex.scenarioPrompt,
+        ex.takeaway,
+        ...(ex.steps || []).map((s) => `${s.label} ${s.content}`)
+      );
+    }
+  }
+  for (const st of payload.additionalStressTests || []) {
+    parts.push(st.prompt, ...(st.options || []).flatMap((o) => [o.text, o.causalRationale]));
   }
   if (payload.illStructuredCase) {
     parts.push(

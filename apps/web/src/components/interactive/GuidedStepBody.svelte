@@ -40,6 +40,30 @@
 
   const uila = $derived(payload.uila);
   let quickGuessPicked = $state<string | null>(null);
+
+  const activeLab = $derived.by(() => {
+    const idx = step.itemIndex ?? 0;
+    if (idx === 0) return uila.block2_grounding.anchoringLab || null;
+    return payload.additionalAnchoringLabs?.[idx - 1] || null;
+  });
+
+  const activeHinge = $derived.by(() => {
+    const idx = step.itemIndex ?? 0;
+    if (idx === 0) return payload.hingeCheck || null;
+    return payload.additionalHingeChecks?.[idx - 1] || null;
+  });
+
+  const activeErroneous = $derived.by(() => {
+    const idx = step.itemIndex ?? 0;
+    if (idx === 0) return payload.erroneousExample || null;
+    return payload.additionalErroneousExamples?.[idx - 1] || null;
+  });
+
+  const activeStressTest = $derived.by(() => {
+    const idx = step.itemIndex ?? 0;
+    if (idx === 0) return uila.block5_stressTest;
+    return payload.additionalStressTests?.[idx - 1] || uila.block5_stressTest;
+  });
 </script>
 
 <div style="display: flex; flex-direction: column; gap: 16px;">
@@ -138,13 +162,15 @@
       {/if}
     </div>
 
-  {:else if step.kind === 'anchoring_lab' && uila.block2_grounding.anchoringLab}
-    <AnchoringLabHost
-      lab={uila.block2_grounding.anchoringLab}
-      {simHtml}
-      completed={anchoringCompleted}
-      onAhaReached={onAnchoringCompleted}
-    />
+  {:else if step.kind === 'anchoring_lab' && activeLab}
+    {#key step.id}
+      <AnchoringLabHost
+        lab={activeLab}
+        {simHtml}
+        completed={stepCompleted || (step.id === 'step-anchoring' && anchoringCompleted)}
+        onAhaReached={onAnchoringCompleted}
+      />
+    {/key}
 
   {:else if step.kind === 'bridging'}
     <div style="display: flex; flex-direction: column; gap: 14px;">
@@ -206,12 +232,14 @@
       {/each}
     </div>
 
-  {:else if step.kind === 'hinge_check' && payload.hingeCheck}
-    <HingeCheckpointCard
-      check={payload.hingeCheck}
-      alreadySolved={stepCompleted}
-      onSolved={() => onStepInteractionSolved(step.id)}
-    />
+  {:else if step.kind === 'hinge_check' && activeHinge}
+    {#key step.id}
+      <HingeCheckpointCard
+        check={activeHinge}
+        alreadySolved={stepCompleted}
+        onSolved={() => onStepInteractionSolved(step.id)}
+      />
+    {/key}
 
   {:else if step.kind === 'mechanics'}
     <div style="display: flex; flex-direction: column; gap: 14px;">
@@ -266,27 +294,33 @@
       {/if}
     </div>
 
-  {:else if step.kind === 'erroneous_example' && payload.erroneousExample}
-    <ErroneousExampleCard
-      example={payload.erroneousExample}
-      alreadySolved={stepCompleted}
-      onSolved={() => onStepInteractionSolved(step.id)}
-    />
+  {:else if step.kind === 'erroneous_example' && activeErroneous}
+    {#key step.id}
+      <ErroneousExampleCard
+        example={activeErroneous}
+        alreadySolved={stepCompleted}
+        onSolved={() => onStepInteractionSolved(step.id)}
+      />
+    {/key}
 
   {:else if step.kind === 'stress_test'}
-    <DiagnosticStressTestCard
-      probe={uila.block5_stressTest}
-      currentTheta={thetaMastery}
-      alreadySolved={stressTestSolved}
-      onEvaluated={onDiagnosticEvaluated}
-    />
+    {#key step.id}
+      <DiagnosticStressTestCard
+        probe={activeStressTest}
+        currentTheta={thetaMastery}
+        alreadySolved={stepCompleted || (step.id === 'step-stress-test' && stressTestSolved)}
+        onEvaluated={onDiagnosticEvaluated}
+      />
+    {/key}
 
   {:else if step.kind === 'explain_back' && payload.explainBack}
-    <ExplainBackCard
-      spec={payload.explainBack}
-      alreadySolved={stepCompleted}
-      onSolved={() => onStepInteractionSolved(step.id)}
-    />
+    {#key step.id}
+      <ExplainBackCard
+        spec={payload.explainBack}
+        alreadySolved={stepCompleted}
+        onSolved={() => onStepInteractionSolved(step.id)}
+      />
+    {/key}
 
   {:else if step.kind === 'summary'}
     <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 10px;">
@@ -305,5 +339,5 @@
     </div>
   {/if}
 
-  <ModuleFigureStrip {payload} stepKind={step.kind} />
+  <ModuleFigureStrip {payload} {step} />
 </div>

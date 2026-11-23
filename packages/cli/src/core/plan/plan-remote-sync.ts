@@ -45,8 +45,15 @@ function mergeModuleGlossaryIntoMaster(absDir: string, mod: PlanModuleEntry): vo
     if (terms.length === 0) return;
 
     const gPath = join(absDir, 'glossary-master.json');
-    const master: GlossaryMasterDocument = existsSync(gPath)
-      ? JSON.parse(readFileSync(gPath, 'utf-8'))
+    const rawMaster = existsSync(gPath) ? JSON.parse(readFileSync(gPath, 'utf-8')) : null;
+    const master: GlossaryMasterDocument = Array.isArray(rawMaster)
+      ? {
+          schemaVersion: 'glossary-master-v1',
+          updatedAt: new Date().toISOString(),
+          terms: rawMaster.filter((t) => t && typeof t.term === 'string'),
+        }
+      : rawMaster && Array.isArray(rawMaster.terms)
+      ? rawMaster
       : { schemaVersion: 'glossary-master-v1', updatedAt: new Date().toISOString(), terms: [] };
 
     const existing = new Set(master.terms.map((t) => t.term.toLowerCase()));

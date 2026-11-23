@@ -101,7 +101,11 @@ flashlearn plan status --dir "./work/nama-kursus"
 - **`experiential_anchor_bridge`**: prior knowledge kosong & *setup cost* <= 60 detik → wajib `anchoringLab` + `bridgingChain` + `analogyBreakpoint`.
 - **`direct_analogy`**: pengalaman akrab sudah ada → wajib `physicalObject` + `analogyBreakpoint`.
 - **`thought_experiment`**: melampaui skala/dimensi fisik → wajib `thoughtExperimentSteps` (>= 2 langkah).
-- **`direct_formalism`**: aturan formal lebih cepat dipahami daripada membangun analogi.
+- **`direct_formalism`**: aturan formal lebih cepat dipahami daripada membangun analogi (`hingeCheck` otomatis diletakkan **setelah** `mechanics` agar peserta melihat aturan inti & gambar sebelum dites).
+
+### D. Komposisi Elastis Tanpa Batas Buatan (`Unbounded Composition, Bounded Attention`)
+- **Bebas jumlahnya per modul (1..N)**: Jangan memaksakan materi padat ke 1 lab / 1 cek / 1 soal saja. Gunakan array opsional `additionalAnchoringLabs`, `additionalHingeChecks`, `additionalErroneousExamples`, `additionalStressTests`, beberapa `figures[]` (dapat memakai `stepId` spesifik atau beberapa gambar pembanding di satu langkah), serta `slideEndIndex` jika 1 tahap mencakup rentang beberapa slide (mis. Slide 2–4).
+- **Tetap fokus per layar**: Pasangkan 1 ide inti dengan pendukung visual/interaksi kontekstualnya (Dual Coding); jika ada 2+ konsep atau simulasi berbeda, pisahkan ke langkah berurutan agar tidak terjadi *split-attention*.
 
 ---
 
