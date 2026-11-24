@@ -2,24 +2,28 @@ import { Elysia, t } from 'elysia';
 import type { ContentArtifactKind } from '@flashlearn/shared';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import { assertWorkspaceReadable, requirePermission } from '../middlewares/workspace-guard';
 
 function resolveSessionKey(
   headers: Record<string, string | undefined>,
-  query?: Record<string, string | undefined>,
   bodySessionKey?: string
 ): string | undefined {
-  const fromHeader = headers['x-learner-session'];
-  const raw = bodySessionKey || fromHeader || query?.sessionKey;
-  if (!raw || raw.trim().length < 6) return undefined;
+  const fromHeader = headers['x-learner-session'] || headers['X-Learner-Session'];
+  const raw = fromHeader || bodySessionKey;
+  if (!raw || raw.trim().length < 16) return undefined;
   return raw.trim().slice(0, 128);
 }
 
 export const interactiveController = new Elysia({ prefix: '/api/v1/contents' })
   .get(
     '/resume/recent',
-    async ({ headers, query }) => {
+    async ({ headers, query, set }) => {
+      if ((query as any)?.sessionKey) {
+        set.status = 400;
+        return { error: 'sessionKey in query string is forbidden; pass x-learner-session header instead' };
+      }
       const auth = await resolveAuth(headers);
-      const sessionKey = resolveSessionKey(headers, query as any);
+      const sessionKey = resolveSessionKey(headers);
       const limit = query?.limit ? Math.min(20, Math.max(1, Number(query.limit))) : 6;
       return await container.getLearnerProgressUseCase.listRecent(
         { userId: auth.user?.id, sessionKey },
@@ -36,9 +40,18 @@ export const interactiveController = new Elysia({ prefix: '/api/v1/contents' })
   )
   .get(
     '/workspace/:workspaceId/progress',
-    async ({ headers, params, query }) => {
+    async ({ headers, params, query, set }) => {
+      if ((query as any)?.sessionKey) {
+        set.status = 400;
+        return { error: 'sessionKey in query string is forbidden; pass x-learner-session header instead' };
+      }
       const auth = await resolveAuth(headers);
-      const sessionKey = resolveSessionKey(headers, query as any);
+      const access = await assertWorkspaceReadable(params.workspaceId, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
+      }
+      const sessionKey = resolveSessionKey(headers);
       return await container.getLearnerProgressUseCase.listForWorkspace(params.workspaceId, {
         userId: auth.user?.id,
         sessionKey,
@@ -59,6 +72,11 @@ export const interactiveController = new Elysia({ prefix: '/api/v1/contents' })
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
         set.status = 403;
         return { error: 'Forbidden: Only creators and superadmins can upload content artifacts' };
+      }
+      const perm = requirePermission(auth, 'contents:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
       }
 
       try {
@@ -131,6 +149,11 @@ export const interactiveController = new Elysia({ prefix: '/api/v1/contents' })
         set.status = 403;
         return { error: 'Forbidden: Only creators and superadmins can delete content artifacts' };
       }
+      const perm = requirePermission(auth, 'contents:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
       try {
         return await container.deleteContentArtifactUseCase.execute(
           auth.user.id,
@@ -156,9 +179,13 @@ export const interactiveController = new Elysia({ prefix: '/api/v1/contents' })
   )
   .get(
     '/:id/progress',
-    async ({ headers, params, query }) => {
+    async ({ headers, params, query, set }) => {
+      if ((query as any)?.sessionKey) {
+        set.status = 400;
+        return { error: 'sessionKey in query string is forbidden; pass x-learner-session header instead' };
+      }
       const auth = await resolveAuth(headers);
-      const sessionKey = resolveSessionKey(headers, query as any);
+      const sessionKey = resolveSessionKey(headers);
       const progress = await container.getLearnerProgressUseCase.getForContent(params.id, {
         userId: auth.user?.id,
         sessionKey,
@@ -177,20 +204,21 @@ export const interactiveController = new Elysia({ prefix: '/api/v1/contents' })
     '/:id/progress',
     async ({ headers, params, body, set }) => {
       const auth = await resolveAuth(headers);
-      const sessionKey = resolveSessionKey(headers, undefined, body.sessionKey);
+      const sessionKey = resolveSessionKey(headers, body.sessionKey);
       if (!auth.user && !sessionKey) {
         set.status = 400;
-        return { error: 'Provide either Authorization token or x-learner-session / sessionKey' };
+        return { error: 'Provide either Authorization token or x-learner-session header (min 16 chars)' };
       }
 
       try {
         return await container.saveLearnerProgressUseCase.execute(
           params.id,
           { userId: auth.user?.id, sessionKey },
-          body as any
+          body as any,
+          auth.role
         );
       } catch (err: any) {
-        set.status = 400;
+        set.status = err.message?.startsWith('Forbidden') ? 403 : 400;
         return { error: err.message };
       }
     },

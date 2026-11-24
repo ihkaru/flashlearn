@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import { assertWorkspaceReadable, isWorkspaceOwner } from '../middlewares/workspace-guard';
 
 export const quizController = new Elysia({ prefix: '/api/v1/contents' })
   .post(
@@ -56,7 +57,25 @@ export const quizController = new Elysia({ prefix: '/api/v1/contents' })
   )
   .get(
     '/:id/flashcards',
-    async ({ params, set }) => {
+    async ({ headers, params, set }) => {
+      const content = await container.contentRepository.findById(params.id);
+      if (!content) {
+        set.status = 404;
+        return { error: 'Content not found' };
+      }
+      const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(content.workspaceId, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
+      }
+      if (!content.isPublished) {
+        const owner = await isWorkspaceOwner(content.workspaceId, auth);
+        if (!owner) {
+          set.status = 403;
+          return { error: 'Forbidden: Flashcards are unavailable for unpublished content' };
+        }
+      }
       try {
         const flashcards = await container.generateFlashcardsUseCase.execute(params.id);
         return flashcards;

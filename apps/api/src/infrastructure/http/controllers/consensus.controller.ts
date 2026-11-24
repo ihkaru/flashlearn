@@ -1,6 +1,20 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import {
+  assertWorkspaceOwner,
+  assertWorkspaceReadable,
+  requirePermission,
+} from '../middlewares/workspace-guard';
+
+async function resolveAttemptWorkspaceId(attemptId: string): Promise<string | null> {
+  const attempt = await container.attemptRepository.findById(attemptId);
+  if (!attempt) return null;
+  const task = await container.taskRepository.findById(attempt.taskId);
+  if (!task) return null;
+  const comp = await container.competencyRepository.findById(task.competencyId);
+  return comp?.workspaceId || null;
+}
 
 export const consensusController = new Elysia({ prefix: '/api/v1/consensus' })
   .post(
@@ -10,6 +24,21 @@ export const consensusController = new Elysia({ prefix: '/api/v1/consensus' })
       if (!auth.user) {
         set.status = 401;
         return { error: 'Unauthorized: Authentication required to assign blind reviewers' };
+      }
+      const perm = requirePermission(auth, 'consensus:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
+      const workspaceId = await resolveAttemptWorkspaceId(body.attemptId);
+      if (!workspaceId) {
+        set.status = 404;
+        return { error: 'Attempt or associated workspace not found' };
+      }
+      const ownership = await assertWorkspaceOwner(workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
       }
 
       try {
@@ -91,7 +120,18 @@ export const consensusController = new Elysia({ prefix: '/api/v1/consensus' })
   )
   .get(
     '/attempt/:attemptId/irr-report',
-    async ({ params, set }) => {
+    async ({ headers, params, set }) => {
+      const workspaceId = await resolveAttemptWorkspaceId(params.attemptId);
+      if (!workspaceId) {
+        set.status = 404;
+        return { error: `Attempt '${params.attemptId}' not found` };
+      }
+      const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(workspaceId, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
+      }
       try {
         const record = await container.reviewRepository.findConsensusRecord(params.attemptId);
         if (!record) {
@@ -122,9 +162,24 @@ export const consensusController = new Elysia({ prefix: '/api/v1/consensus' })
         set.status = 401;
         return { error: 'Unauthorized: Authentication required to arbitrate disputed evaluation' };
       }
+      const perm = requirePermission(auth, 'consensus:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
+      const workspaceId = await resolveAttemptWorkspaceId(body.attemptId);
+      if (!workspaceId) {
+        set.status = 404;
+        return { error: 'Attempt or associated workspace not found' };
+      }
+      const ownership = await assertWorkspaceOwner(workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
+      }
 
       try {
-        const arbiterId = body.arbiterId || auth.user.id;
+        const arbiterId = auth.user.id;
         const result = await container.resolveArbitrationUseCase.execute({
           attemptId: body.attemptId,
           arbiterId,

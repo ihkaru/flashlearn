@@ -5,6 +5,7 @@
   import type { Workspace } from '@flashlearn/shared';
   import type { ResumableSessionSummary } from '../stores/api/contents';
   import { getMonogram } from '../lib/monogram';
+  import { getWorkspaceTheme } from '../lib/workspaceTheme';
   import Icon from '../components/ui/Icon.svelte';
   import ChipBadge from '../components/ui/ChipBadge.svelte';
   import ResumeLearningStrip from '../components/workspace/ResumeLearningStrip.svelte';
@@ -241,6 +242,7 @@
     {:else}
       <div class="fl-grid-cards">
         {#each filteredWorkspaces as ws}
+          {@const wsTheme = getWorkspaceTheme(ws.slug || ws.id)}
           <div
             class="fl-card-hover"
             onclick={() => navigateToWorkspace(ws)}
@@ -253,7 +255,7 @@
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 8px;">
                 <span
                   class="fl-monogram"
-                  style="width: 40px; height: 40px; border-radius: 10px; font-size: 0.9rem;"
+                  style="width: 40px; height: 40px; border-radius: 10px; font-size: 0.9rem; background: {wsTheme.soft}; color: {wsTheme.accent}; border: 1px solid {wsTheme.border};"
                   aria-hidden="true"
                 >
                   {getMonogram(ws.name, ws.icon)}
@@ -276,7 +278,7 @@
               style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #f1f5f9; font-size: 0.82rem; color: #475569; gap: 8px;"
             >
               <span class="fl-truncate">{ws.creatorName || 'FlashLearn'}</span>
-              <span style="color: #0f766e; font-weight: 700; white-space: nowrap; flex-shrink: 0;">
+              <span style="color: {wsTheme.accent}; font-weight: 700; white-space: nowrap; flex-shrink: 0;">
                 Buka Workspace
               </span>
             </div>

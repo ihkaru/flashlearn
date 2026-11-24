@@ -15,9 +15,7 @@ export class LoginWithGoogleUseCase {
   ) {}
 
   private getSuperadminEmails(): string[] {
-    const raw =
-      process.env.SUPERADMIN_EMAILS ||
-      'ipds6104@gmail.com,ihza2karunia@gmail.com,admin@dvlpid.my.id';
+    const raw = process.env.SUPERADMIN_EMAILS || '';
     return raw
       .split(',')
       .map((e) => e.trim().toLowerCase())

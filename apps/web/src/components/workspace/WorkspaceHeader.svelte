@@ -39,13 +39,13 @@
 </script>
 
 <div
-  style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 20px;"
+  style="background: #ffffff; border: 1px solid #e2e8f0; border-top: 4px solid var(--ws-accent, #0f766e); border-radius: 16px; padding: 20px; margin-bottom: 20px;"
 >
   <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 14px; flex-wrap: wrap;">
     <div style="display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1 1 240px;">
       <div
         class="fl-monogram"
-        style="width: 48px; height: 48px; border-radius: 12px; font-size: 1rem;"
+        style="width: 48px; height: 48px; border-radius: 12px; font-size: 1rem; background: var(--ws-accent-soft, #f0fdfa); color: var(--ws-accent, #0f766e); border: 1px solid var(--ws-accent-border, #99f6e4);"
         aria-hidden="true"
       >
         {getMonogram(workspace.name, workspace.icon)}
@@ -55,7 +55,7 @@
           {workspace.name}
         </h1>
         <div style="font-size: 0.825rem; color: #475569;">
-          Dikelola oleh <strong style="color: #1e293b;">{workspace.creatorName || 'Creator'}</strong>
+          Dikelola oleh <strong style="color: #1e293b;">{workspace.creatorName || 'Creator'}</strong>{#if contents.length > 0} · {contents.length} modul{/if}
         </div>
       </div>
     </div>
@@ -72,7 +72,7 @@
         <button
           onclick={onCreateModule}
           class="fl-btn fl-btn-md fl-pill-btn"
-          style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
+          style="background: var(--ws-accent, #0f766e); color: #ffffff; border: none; font-weight: 700;"
         >
           <span>Buat Modul</span>
         </button>

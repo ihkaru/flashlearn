@@ -16,6 +16,7 @@ Welcome to **FlashLearn**, an active-recall learning application built with Bun,
 - **User Story Gap Auditor**: `bun run audit:stories` (See [AGENT.md](AGENT.md))
 - **Coding Agent Manual**: See [AGENT.md](AGENT.md)
 - **Run automated test suite**: `cd apps/api && bun test`
+- **Master Product, Security & UX Roadmap**: See [docs/ROADMAP.md](docs/ROADMAP.md) *(links to all Phase Implementation specs in `docs/phases/` & `docs/roadmap/`)*
 - **Cognitive Architecture Roadmap (v2.0)**: See [docs/roadmap/00_overview.md](docs/roadmap/00_overview.md)
 - **Competency Engine Roadmap (v1.0)**: See [docs/roadmap-competency-engine.md](docs/roadmap-competency-engine.md)
 - **Run Impeccable detector**: `npx impeccable detect`

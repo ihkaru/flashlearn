@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import { isWorkspaceOwner, requirePermission } from '../middlewares/workspace-guard';
 
 export const credentialController = new Elysia({ prefix: '/api/v1/credentials' })
   .post(
@@ -10,6 +11,26 @@ export const credentialController = new Elysia({ prefix: '/api/v1/credentials' }
       if (!auth.user) {
         set.status = 401;
         return { error: 'Unauthorized' };
+      }
+      const perm = requirePermission(auth, 'credentials:issue');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
+
+      const gate = await container.gateRepository.findById(body.gateId);
+      if (!gate) {
+        set.status = 404;
+        return { error: 'Gate not found' };
+      }
+
+      const canIssue =
+        body.userId === auth.user.id ||
+        auth.role === 'superadmin' ||
+        (await isWorkspaceOwner(gate.workspaceId, auth));
+      if (!canIssue) {
+        set.status = 403;
+        return { error: 'Forbidden: You can only issue credentials for yourself or within your own workspace' };
       }
 
       try {
@@ -38,10 +59,7 @@ export const credentialController = new Elysia({ prefix: '/api/v1/credentials' }
     '/verify',
     async ({ body, set }) => {
       try {
-        const result = await container.verifyVerifiableCredentialUseCase.execute(
-          body.credential,
-          { publicKeyPem: body.publicKeyPem }
-        );
+        const result = await container.verifyVerifiableCredentialUseCase.execute(body.credential);
         return result;
       } catch (err: any) {
         set.status = 400;
@@ -51,7 +69,6 @@ export const credentialController = new Elysia({ prefix: '/api/v1/credentials' }
     {
       body: t.Object({
         credential: t.Any(),
-        publicKeyPem: t.Optional(t.String()),
       }),
       detail: {
         tags: ['Cryptographic Verifiable Credentials'],

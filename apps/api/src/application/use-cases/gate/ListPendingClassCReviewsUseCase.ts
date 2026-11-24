@@ -6,6 +6,7 @@ import type { AttemptEntity } from '../../../domain/entities/Attempt';
 
 export interface PendingReviewItem {
   attempt: AttemptEntity;
+  workspaceId?: string;
   taskTitle: string;
   competencyCode: string;
   competencyTitle: string;
@@ -32,6 +33,7 @@ export class ListPendingClassCReviewsUseCase {
 
       result.push({
         attempt: att,
+        workspaceId: competency?.workspaceId,
         taskTitle: task?.title || 'Unknown Task',
         competencyCode: competency?.code || 'UNKNOWN',
         competencyTitle: competency?.title || 'Unknown Competency',

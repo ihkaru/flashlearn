@@ -33,11 +33,20 @@ export function createSocraticChatController(appContainer: Container) {
   return new Elysia({ prefix: '/api/v1/socratic' })
     .get(
       '/session/:id',
-      async ({ params, set }) => {
+      async ({ headers, params, set }) => {
+        const auth = await resolveAuth(headers);
+        if (!auth.user) {
+          set.status = 401;
+          return { error: 'Unauthorized: Sign in required to read Socratic session' };
+        }
         const session = await appContainer.socraticChatRepository.findSessionById(params.id);
         if (!session) {
           set.status = 404;
           return { error: 'Socratic chat session not found' };
+        }
+        if (session.userId !== auth.user.id && auth.role !== 'superadmin') {
+          set.status = 403;
+          return { error: 'Forbidden: You do not own this Socratic chat session' };
         }
         return session;
       },
@@ -47,34 +56,46 @@ export function createSocraticChatController(appContainer: Container) {
     )
     .get(
       '/active',
-      async ({ query, set }) => {
-        if (!query.userId) {
-          set.status = 400;
-          return { error: 'userId is required' };
+      async ({ headers, query, set }) => {
+        const auth = await resolveAuth(headers);
+        if (!auth.user) {
+          set.status = 401;
+          return { error: 'Unauthorized: Sign in required to view active Socratic session' };
         }
         const session = await appContainer.socraticChatRepository.findActiveSession(
-          query.userId,
+          auth.user.id,
           query.taskId || null
         );
         return session || { active: false };
       },
       {
         query: t.Object({
-          userId: t.String(),
+          userId: t.Optional(t.String()),
           taskId: t.Optional(t.String()),
         }),
       }
     )
     .post(
       '/turn',
-      async ({ body, set }) => {
+      async ({ headers, body, set }) => {
+        const auth = await resolveAuth(headers);
+        if (!auth.user) {
+          set.status = 401;
+          return { error: 'Unauthorized: Sign in required to interact with Socratic tutor' };
+        }
+
         let session = body.sessionId
           ? await appContainer.socraticChatRepository.findSessionById(body.sessionId)
           : null;
 
+        if (session && session.userId !== auth.user.id && auth.role !== 'superadmin') {
+          set.status = 403;
+          return { error: 'Forbidden: Cannot append turns to another user Socratic session' };
+        }
+
         if (!session) {
           session = await appContainer.socraticChatRepository.createSession({
-            userId: body.userId,
+            userId: auth.user.id,
             workspaceId: body.workspaceId,
             domainId: body.domainId ?? null,
             taskId: body.taskId ?? null,
@@ -173,7 +194,7 @@ export function createSocraticChatController(appContainer: Container) {
       {
         body: t.Object({
           sessionId: t.Optional(t.String()),
-          userId: t.String(),
+          userId: t.Optional(t.String()),
           workspaceId: t.String(),
           domainId: t.Optional(t.String()),
           taskId: t.Optional(t.String()),

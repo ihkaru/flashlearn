@@ -36,14 +36,16 @@ export function auditHtmlArtifactSafety(rawHtml: string): HtmlArtifactAuditResul
     errors.push(`HTML artifact exceeds 2MB limit (${byteSize} bytes). Move media assets to MediaVault.`);
   }
 
-  // Check remote script origins
-  const scriptSrcRegex = /<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/gi;
+  // Check remote script origins (including unquoted src= and protocol-relative // URLs)
+  const scriptSrcRegex = /<script\b[^>]*\bsrc\s*=\s*(?:["']([^"']+)["']|([^\s>]+))/gi;
   let match: RegExpExecArray | null;
   while ((match = scriptSrcRegex.exec(rawHtml)) !== null) {
-    const src = match[1].trim();
-    if (/^https?:\/\//i.test(src)) {
+    const src = (match[1] ?? match[2] ?? '').trim();
+    if (!src) continue;
+    if (/^\/\//.test(src) || /^https?:\/\//i.test(src)) {
       try {
-        const host = new URL(src).hostname.toLowerCase();
+        const normalizedUrl = src.startsWith('//') ? `https:${src}` : src;
+        const host = new URL(normalizedUrl).hostname.toLowerCase();
         if (!ALLOWED_EXTERNAL_SCRIPT_HOSTS.has(host)) {
           errors.push(`Disallowed external script host "${host}". Use self-contained assets or approved CDN.`);
         }
@@ -140,7 +142,10 @@ export function buildSandboxedDeckHtml(
   const forceLowPower = options.forceLowPower === true;
   const hideChrome = options.hideInternalChrome === true;
 
-  const bridgeHeadScript = `<script data-flashlearn-bridge="1">
+  const cspMetaTag = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; img-src data: blob: https:; font-src data: https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; connect-src 'none';">`;
+
+  const bridgeHeadScript = `${cspMetaTag}
+<script data-flashlearn-bridge="1">
 (function(){
   try { window.localStorage.getItem('__fl_probe'); } catch (e) {
     var mem = Object.create(null);

@@ -1,18 +1,43 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import {
+  assertWorkspaceOwner,
+  assertWorkspaceReadable,
+  isWorkspaceOwner,
+  requirePermission,
+} from '../middlewares/workspace-guard';
+
+function serializeTaskForCaller(task: any, includeOracleSecrets: boolean) {
+  const raw = typeof task.toJSON === 'function' ? task.toJSON() : { ...(task.props || task) };
+  if (includeOracleSecrets) return raw;
+  const { oracleData: _o, adversarialSpec: _a, ...safe } = raw;
+  return safe;
+}
 
 export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
   .get(
     '/',
-    async ({ query, set }) => {
+    async ({ headers, query, set }) => {
       const competencyId = query.competencyId;
       if (!competencyId) {
         set.status = 400;
         return { error: 'competencyId query parameter is required' };
       }
+      const comp = await container.competencyRepository.findById(competencyId);
+      if (!comp) {
+        set.status = 404;
+        return { error: 'Competency not found' };
+      }
+      const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(comp.workspaceId, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
+      }
+      const owner = await isWorkspaceOwner(comp.workspaceId, auth);
       const tasks = await container.taskRepository.listByCompetency(competencyId);
-      return tasks.map((t: any) => (typeof t.toJSON === 'function' ? t.toJSON() : t.props || t));
+      return tasks.map((t: any) => serializeTaskForCaller(t, owner));
     },
     {
       query: t.Object({
@@ -26,13 +51,25 @@ export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
   )
   .get(
     '/:id',
-    async ({ params, set }) => {
+    async ({ headers, params, set }) => {
       const task = await container.taskRepository.findById(params.id);
       if (!task) {
         set.status = 404;
         return { error: 'Task not found' };
       }
-      return typeof (task as any).toJSON === 'function' ? (task as any).toJSON() : (task as any).props || task;
+      const comp = await container.competencyRepository.findById(task.competencyId);
+      if (!comp) {
+        set.status = 404;
+        return { error: 'Competency not found' };
+      }
+      const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(comp.workspaceId, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
+      }
+      const owner = await isWorkspaceOwner(comp.workspaceId, auth);
+      return serializeTaskForCaller(task, owner);
     },
     {
       params: t.Object({
@@ -51,6 +88,21 @@ export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
         set.status = 403;
         return { error: 'Forbidden: Creating tasks is restricted to creators and superadmins' };
+      }
+      const perm = requirePermission(auth, 'tasks:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
+      const comp = await container.competencyRepository.findById(body.competencyId);
+      if (!comp) {
+        set.status = 404;
+        return { error: 'Competency not found' };
+      }
+      const ownership = await assertWorkspaceOwner(comp.workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
       }
 
       try {
@@ -146,7 +198,19 @@ export const taskController = new Elysia({ prefix: '/api/v1/tasks' })
         return { error: 'Unauthorized' };
       }
 
-      return await container.attemptRepository.listByTask(params.id);
+      const task = await container.taskRepository.findById(params.id);
+      if (!task) {
+        set.status = 404;
+        return { error: 'Task not found' };
+      }
+      const comp = await container.competencyRepository.findById(task.competencyId);
+      const owner = comp
+        ? await isWorkspaceOwner(comp.workspaceId, auth)
+        : auth.role === 'superadmin';
+
+      const attempts = await container.attemptRepository.listByTask(params.id);
+      if (owner) return attempts;
+      return attempts.filter((a: any) => a.userId === auth.user!.id);
     },
     {
       params: t.Object({

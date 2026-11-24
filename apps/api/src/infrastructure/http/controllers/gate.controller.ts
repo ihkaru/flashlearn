@@ -1,6 +1,11 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import {
+  assertWorkspaceOwner,
+  assertWorkspaceReadable,
+  requirePermission,
+} from '../middlewares/workspace-guard';
 
 export const gateController = new Elysia({ prefix: '/api/v1/gates' })
   .post(
@@ -10,6 +15,16 @@ export const gateController = new Elysia({ prefix: '/api/v1/gates' })
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
         set.status = 403;
         return { success: false, error: 'Only workspace admins can create authorization gates' };
+      }
+      const perm = requirePermission(auth, 'gates:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { success: false, error: perm.error };
+      }
+      const ownership = await assertWorkspaceOwner(body.workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { success: false, error: ownership.error };
       }
 
       try {
@@ -47,7 +62,13 @@ export const gateController = new Elysia({ prefix: '/api/v1/gates' })
   )
   .get(
     '/workspace/:workspaceId',
-    async ({ params, set }) => {
+    async ({ headers, params, set }) => {
+      const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(params.workspaceId, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { success: false, error: access.error };
+      }
       try {
         const gates = await container.gateRepository.listByWorkspace(params.workspaceId);
         return { success: true, data: gates };

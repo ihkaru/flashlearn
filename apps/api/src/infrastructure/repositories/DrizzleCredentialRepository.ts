@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import { db } from '../database/db';
 import { workspaceKeypairs, issuedCredentials } from '../database/schema';
 import type {
@@ -9,6 +10,43 @@ import type {
 import { W3cCredentialCryptoEngine } from '../../domain/services/W3cCredentialCryptoEngine';
 import type { W3CVerifiableCredential20 } from '@flashlearn/shared';
 
+const ENVELOPE_PREFIX = 'enc:v1:';
+
+function deriveAes256Key(kmsKey: string): Buffer {
+  return createHash('sha256').update(kmsKey, 'utf8').digest();
+}
+
+export function encryptPrivateKeyPem(privateKeyPem: string, kmsKey = process.env.CREDENTIAL_KMS_KEY): string {
+  if (!kmsKey || !kmsKey.trim()) {
+    return privateKeyPem;
+  }
+  const key = deriveAes256Key(kmsKey.trim());
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', key, iv);
+  const ct = Buffer.concat([cipher.update(privateKeyPem, 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return `${ENVELOPE_PREFIX}${iv.toString('base64')}:${tag.toString('base64')}:${ct.toString('base64')}`;
+}
+
+export function decryptPrivateKeyPem(stored: string, kmsKey = process.env.CREDENTIAL_KMS_KEY): string {
+  if (!stored.startsWith(ENVELOPE_PREFIX)) {
+    return stored;
+  }
+  if (!kmsKey || !kmsKey.trim()) {
+    throw new Error('CREDENTIAL_KMS_KEY is required to decrypt encrypted workspace private keys');
+  }
+  const parts = stored.slice(ENVELOPE_PREFIX.length).split(':');
+  if (parts.length !== 3) {
+    throw new Error('Malformed encrypted private key envelope');
+  }
+  const [ivB64, tagB64, ctB64] = parts;
+  const key = deriveAes256Key(kmsKey.trim());
+  const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(ivB64, 'base64'));
+  decipher.setAuthTag(Buffer.from(tagB64, 'base64'));
+  const plain = Buffer.concat([decipher.update(Buffer.from(ctB64, 'base64')), decipher.final()]);
+  return plain.toString('utf8');
+}
+
 export class DrizzleCredentialRepository implements ICredentialRepository {
   private readonly cryptoEngine = new W3cCredentialCryptoEngine();
 
@@ -18,6 +56,7 @@ export class DrizzleCredentialRepository implements ICredentialRepository {
 
     const keypair = this.cryptoEngine.generateKeypair();
     const didIdentifier = `did:web:flashlearn.dvlpid.my.id:workspaces:${workspaceId}#key-1`;
+    const storedPrivateKey = encryptPrivateKeyPem(keypair.privateKeyPem);
 
     const [row] = await db
       .insert(workspaceKeypairs)
@@ -25,7 +64,7 @@ export class DrizzleCredentialRepository implements ICredentialRepository {
         workspaceId,
         publicKeyMultibase: keypair.publicKeyMultibase,
         publicKeyPem: keypair.publicKeyPem,
-        privateKeyPem: keypair.privateKeyPem,
+        privateKeyPem: storedPrivateKey,
         didIdentifier,
       })
       .returning();
@@ -35,7 +74,7 @@ export class DrizzleCredentialRepository implements ICredentialRepository {
       workspaceId: row.workspaceId,
       publicKeyMultibase: row.publicKeyMultibase,
       publicKeyPem: row.publicKeyPem,
-      privateKeyPem: row.privateKeyPem,
+      privateKeyPem: keypair.privateKeyPem,
       didIdentifier: row.didIdentifier,
       createdAt: new Date(row.createdAt),
     };
@@ -54,7 +93,7 @@ export class DrizzleCredentialRepository implements ICredentialRepository {
       workspaceId: row.workspaceId,
       publicKeyMultibase: row.publicKeyMultibase,
       publicKeyPem: row.publicKeyPem,
-      privateKeyPem: row.privateKeyPem,
+      privateKeyPem: decryptPrivateKeyPem(row.privateKeyPem),
       didIdentifier: row.didIdentifier,
       createdAt: new Date(row.createdAt),
     };

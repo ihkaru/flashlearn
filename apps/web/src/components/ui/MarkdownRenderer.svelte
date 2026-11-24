@@ -57,7 +57,10 @@
       const rawHtml = parser.parse(content) as string;
       return DOMPurify.sanitize(rawHtml, purifyConfig);
     } catch {
-      return content;
+      return content
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
     }
   });
 

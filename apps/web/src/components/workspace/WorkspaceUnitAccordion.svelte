@@ -91,6 +91,9 @@
   const totalCompleted = $derived(
     contents.filter((c) => progressByContentId[c.id]?.isCompleted).length
   );
+  const overallProgressRatio = $derived(
+    contents.length > 0 ? Math.min(1, totalCompleted / contents.length) : 0
+  );
 
   let manuallyToggled = $state<Record<string, boolean>>({});
 
@@ -108,23 +111,31 @@
 
 <div style="display: flex; flex-direction: column; gap: 14px;">
   {#if !isTrash && nextSession && contents.length > 1}
-    <div style="background: #f0fdfa; border: 1.5px solid #99f6e4; border-radius: 14px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
-      <div style="min-width: 0; flex: 1 1 220px;">
-        <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #0f766e;">
-          {nextSession.label} · {totalCompleted}/{contents.length} selesai
+    <div style="background: var(--ws-accent-soft, #f0fdfa); border: 1.5px solid var(--ws-accent-border, #99f6e4); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div style="min-width: 0; flex: 1 1 220px;">
+          <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ws-accent, #0f766e);">
+            {nextSession.label} · {totalCompleted}/{contents.length} selesai
+          </div>
+          <div style="font-size: 0.96rem; font-weight: 800; color: var(--ws-accent-ink, #115e59); margin-top: 2px;">
+            {nextSession.content.title}
+          </div>
         </div>
-        <div style="font-size: 0.96rem; font-weight: 800; color: #134e4a; margin-top: 2px;">
-          {nextSession.content.title}
-        </div>
+        <button
+          type="button"
+          onclick={() => onNavigate(nextSession.content)}
+          class="fl-btn fl-btn-md"
+          style="background: var(--ws-accent, #0f766e); color: #ffffff; border: none; font-weight: 700;"
+        >
+          Lanjutkan
+        </button>
       </div>
-      <button
-        type="button"
-        onclick={() => onNavigate(nextSession.content)}
-        class="fl-btn fl-btn-md"
-        style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
-      >
-        Lanjutkan
-      </button>
+      <div style="height: 5px; background: rgba(15, 23, 42, 0.08); border-radius: 999px; overflow: hidden;">
+        <div
+          class="fl-progress-bar-fill"
+          style="background: var(--ws-accent, #0f766e); transform: scaleX({overallProgressRatio});"
+        ></div>
+      </div>
     </div>
   {/if}
 
@@ -143,7 +154,7 @@
               {group.completedCount}/{group.items.length} sesi selesai · ±{group.totalMinutes} menit
             </div>
           </div>
-          <span style="font-size: 0.8rem; font-weight: 700; color: #0f766e; flex-shrink: 0;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--ws-accent, #0f766e); flex-shrink: 0;">
             {expanded ? 'Lipat' : 'Buka'}
           </span>
         </button>

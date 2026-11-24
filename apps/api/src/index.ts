@@ -22,24 +22,80 @@ import { socraticChatController } from './infrastructure/http/controllers/socrat
 import { interactiveController } from './infrastructure/http/controllers/interactive.controller';
 import { mediaController } from './infrastructure/http/controllers/media.controller';
 import { container } from './infrastructure/di/container';
+import { resolveAuth } from './infrastructure/http/middlewares/auth';
+import { InMemoryTokenBucketLimiter, resolveClientIp } from './infrastructure/http/middlewares/rate-limiter';
 import { BackgroundWorkerDaemon } from './worker';
 
-import { join } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
 
 const port = Number(process.env.PORT) || 3001;
 const publicDir = process.env.PUBLIC_DIR || join(import.meta.dir, '../../web/dist');
+const resolvedPublicDir = resolve(publicDir);
+const isProduction = process.env.NODE_ENV === 'production';
 
-const app = new Elysia()
+function buildCorsOrigin(): boolean | string[] | ((request: Request) => boolean) {
+  const raw = process.env.CORS_ALLOWED_ORIGINS || '';
+  const configured = raw
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  if (configured.length > 0) {
+    return configured;
+  }
+  if (isProduction) {
+    return false;
+  }
+  return (request: Request) => {
+    const origin = request.headers.get('origin');
+    if (!origin) return true;
+    return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
+  };
+}
+
+const authRateLimiter = new InMemoryTokenBucketLimiter(30, 0.5);
+const socraticRateLimiter = new InMemoryTokenBucketLimiter(60, 1);
+
+let app = new Elysia()
   .use(
     cors({
-      origin: true,
+      origin: buildCorsOrigin(),
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'x-api-key', 'x-learner-session'],
     })
   )
-  .use(
+  .onBeforeHandle(({ path, headers, set }) => {
+    if (process.env.NODE_ENV === 'test') return;
+    if (path.startsWith('/api/v1/auth/')) {
+      const check = authRateLimiter.consume(`auth:${resolveClientIp(headers)}`);
+      if (!check.allowed) {
+        set.status = 429;
+        set.headers['Retry-After'] = String(check.retryAfterSeconds);
+        return { error: 'Too Many Requests: Auth rate limit exceeded' };
+      }
+    } else if (path.startsWith('/api/v1/socratic/')) {
+      const check = socraticRateLimiter.consume(`socratic:${resolveClientIp(headers)}`);
+      if (!check.allowed) {
+        set.status = 429;
+        set.headers['Retry-After'] = String(check.retryAfterSeconds);
+        return { error: 'Too Many Requests: Socratic tutor rate limit exceeded' };
+      }
+    }
+  })
+  .onAfterHandle(({ set }) => {
+    set.headers['X-Content-Type-Options'] = 'nosniff';
+    set.headers['X-Frame-Options'] = 'DENY';
+    set.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin';
+    set.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()';
+    if (isProduction) {
+      set.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains';
+    }
+  });
+
+const enableDocs = !isProduction || process.env.ENABLE_API_DOCS === 'true';
+if (enableDocs) {
+  app = app.use(
     swagger({
       provider: 'scalar',
       path: '/docs',
@@ -73,7 +129,10 @@ const app = new Elysia()
         },
       },
     })
-  )
+  ) as any;
+}
+
+app
   .get('/health', async ({ query }) => {
     const deep = query?.deep === 'true' || query?.deep === '1';
     const aiGateway = deep && container.aiGateway.healthCheck
@@ -86,7 +145,14 @@ const app = new Elysia()
       ...(aiGateway ? { aiGateway } : {}),
     };
   })
-  .get('/api/v1/health/ai', async ({ set }) => {
+  .get('/api/v1/health/ai', async ({ headers, set }) => {
+    if (isProduction) {
+      const auth = await resolveAuth(headers);
+      if (!auth.user || auth.role !== 'superadmin') {
+        set.status = 403;
+        return { error: 'Forbidden: AI gateway health diagnostics require superadmin role in production' };
+      }
+    }
     const status = container.aiGateway.healthCheck
       ? await container.aiGateway.healthCheck()
       : { configured: false, reachable: false, baseUrl: '', defaultModel: '' };
@@ -122,10 +188,15 @@ const app = new Elysia()
     if (path.startsWith('/api') || path.startsWith('/docs') || path.startsWith('/health')) {
       return;
     }
-    if (existsSync(publicDir)) {
-      const cleanPath = path.replace(/^\//, '');
-      const candidate = join(publicDir, cleanPath);
-      if (cleanPath && existsSync(candidate) && !statSync(candidate).isDirectory()) {
+    if (existsSync(resolvedPublicDir)) {
+      const cleanPath = path.replace(/^\/+/, '');
+      const candidate = resolve(resolvedPublicDir, cleanPath);
+      if (
+        cleanPath &&
+        candidate.startsWith(resolvedPublicDir + sep) &&
+        existsSync(candidate) &&
+        !statSync(candidate).isDirectory()
+      ) {
         if (cleanPath.startsWith('assets/')) {
           set.headers['Cache-Control'] = 'public, max-age=31536000, immutable';
         } else {
@@ -134,14 +205,16 @@ const app = new Elysia()
         return Bun.file(candidate);
       }
       set.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
-      return Bun.file(join(publicDir, 'index.html'));
+      return Bun.file(join(resolvedPublicDir, 'index.html'));
     }
     return { message: '⚡ FlashLearn API Engine is operational. Web build not mounted.' };
   })
   .listen(port);
 
 console.log(`⚡ FlashLearn API is running at http://localhost:${port}`);
-console.log(`📖 OpenAPI Scalar Docs available at http://localhost:${port}/docs`);
+if (enableDocs) {
+  console.log(`📖 OpenAPI Scalar Docs available at http://localhost:${port}/docs`);
+}
 
 if (import.meta.main && process.env.DISABLE_EMBEDDED_WORKER !== 'true') {
   const intervalMs = Number(process.env.WORKER_INTERVAL_MS) || 60000;

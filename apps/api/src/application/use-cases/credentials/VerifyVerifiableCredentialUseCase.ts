@@ -9,45 +9,58 @@ export class VerifyVerifiableCredentialUseCase {
   ) {}
 
   async execute(
-    credential: W3CVerifiableCredential20,
-    options: { publicKeyPem?: string } = {}
+    credential: W3CVerifiableCredential20
   ): Promise<VerifyVcResult> {
     if (!credential || !credential.proof) {
       return { valid: false, error: 'INVALID_CREDENTIAL: Missing proof structure' };
     }
 
-    let publicKeyPem = options.publicKeyPem;
-
-    if (!publicKeyPem) {
-      // Extract workspace ID from did:web or verificationMethod
-      const vm = credential.proof.verificationMethod || '';
-      const match = vm.match(/workspaces:([a-f0-9-]+)/);
-      if (match) {
-        const workspaceId = match[1];
-        const keypair = await this.credentialRepo.findKeypairByWorkspace(workspaceId);
-        if (keypair) {
-          publicKeyPem = keypair.publicKeyPem;
-        }
-      }
-    }
-
-    if (!publicKeyPem) {
+    // Always resolve issuer public key from trusted workspace_keypairs in DB
+    const vm = credential.proof.verificationMethod || '';
+    const match = vm.match(/workspaces:([a-f0-9-]+)/);
+    if (!match) {
       return {
         valid: false,
         credentialId: credential.id,
-        error: 'UNKNOWN_ISSUER_KEY: Unable to resolve issuer public key for offline verification',
+        error: 'UNKNOWN_ISSUER_KEY: Unable to extract workspace DID from verificationMethod',
       };
     }
 
-    // Mathematical Ed25519 signature verification
-    const verification = this.cryptoEngine.verifyCredential(credential, publicKeyPem);
+    const workspaceId = match[1];
+    const keypair = await this.credentialRepo.findKeypairByWorkspace(workspaceId);
+    if (!keypair) {
+      return {
+        valid: false,
+        credentialId: credential.id,
+        error: 'UNKNOWN_ISSUER_KEY: Unable to resolve issuer public key from trusted registry',
+      };
+    }
+
+    const expectedIssuerDid = keypair.didIdentifier.split('#')[0];
+    if (!credential.issuer?.id || credential.issuer.id !== expectedIssuerDid) {
+      return {
+        valid: false,
+        credentialId: credential.id,
+        error: 'ISSUER_DID_MISMATCH: Credential issuer does not match resolved workspace DID',
+      };
+    }
+
+    // Mathematical Ed25519 signature verification against trusted DB public key
+    const verification = this.cryptoEngine.verifyCredential(credential, keypair.publicKeyPem);
     if (!verification.valid) {
       return verification;
     }
 
-    // Check revocation status in repository
+    // Require persisted active credential record in repository
     const storedRecord = await this.credentialRepo.findCredentialById(credential.id);
-    if (storedRecord && storedRecord.status !== 'active') {
+    if (!storedRecord) {
+      return {
+        valid: false,
+        credentialId: credential.id,
+        error: 'CREDENTIAL_NOT_FOUND',
+      };
+    }
+    if (storedRecord.status !== 'active') {
       return {
         valid: false,
         credentialId: credential.id,

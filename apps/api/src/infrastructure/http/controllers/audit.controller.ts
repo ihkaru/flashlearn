@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import { assertWorkspaceOwner } from '../middlewares/workspace-guard';
 
 export const auditController = new Elysia({ prefix: '/api/v1/audit' })
   .get(
@@ -16,6 +17,12 @@ export const auditController = new Elysia({ prefix: '/api/v1/audit' })
       if (!workspaceId) {
         set.status = 400;
         return { error: 'workspaceId query parameter is required' };
+      }
+
+      const ownership = await assertWorkspaceOwner(workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
       }
 
       try {
@@ -49,6 +56,12 @@ export const auditController = new Elysia({ prefix: '/api/v1/audit' })
       if (!workspaceId) {
         set.status = 400;
         return { error: 'workspaceId query parameter is required' };
+      }
+
+      const ownership = await assertWorkspaceOwner(workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
       }
 
       try {

@@ -24,6 +24,9 @@ export class GoogleAuthVerifier implements IGoogleVerifier {
       if (!payload || !payload.email) {
         throw new Error('Invalid token payload: Email missing');
       }
+      if (payload.email_verified !== true) {
+        throw new Error('Google account email is not verified');
+      }
 
       return {
         googleId: payload.sub,

@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import { requirePermission } from '../middlewares/workspace-guard';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -12,6 +13,11 @@ export const mediaController = new Elysia({ prefix: '/api/v1' })
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
         set.status = 403;
         return { error: 'Forbidden: Only creators and superadmins can upload media assets' };
+      }
+      const perm = requirePermission(auth, 'media:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
       }
 
       const file = body.file;
@@ -44,7 +50,7 @@ export const mediaController = new Elysia({ prefix: '/api/v1' })
     {
       params: t.Object({ id: t.String() }),
       body: t.Object({
-        file: t.File(),
+        file: t.File({ maxSize: '10m' }),
         caption: t.Optional(t.String()),
         altText: t.Optional(t.String()),
         sourceRef: t.Optional(t.String()),
@@ -104,14 +110,21 @@ export const mediaController = new Elysia({ prefix: '/api/v1' })
         }
 
         const etag = `"${result.asset.sha256}"`;
+        const cacheControl = result.isPublic
+          ? 'public, max-age=31536000, immutable'
+          : 'private, max-age=3600';
         const ifNoneMatch = headers['if-none-match'];
         if (ifNoneMatch && ifNoneMatch.replace(/^W\//, '') === etag) {
+          const notModHeaders: Record<string, string> = {
+            ETag: etag,
+            'Cache-Control': cacheControl,
+          };
+          if (!result.isPublic) {
+            notModHeaders['Vary'] = 'Authorization, x-api-key';
+          }
           return new Response(null, {
             status: 304,
-            headers: {
-              ETag: etag,
-              'Cache-Control': 'public, max-age=31536000, immutable',
-            },
+            headers: notModHeaders,
           });
         }
 
@@ -119,9 +132,12 @@ export const mediaController = new Elysia({ prefix: '/api/v1' })
           'Content-Type': result.asset.mimeType,
           'Content-Length': String(result.bytes.byteLength),
           ETag: etag,
-          'Cache-Control': 'public, max-age=31536000, immutable',
+          'Cache-Control': cacheControl,
           'X-Content-Type-Options': 'nosniff',
         };
+        if (!result.isPublic) {
+          contentHeaders['Vary'] = 'Authorization, x-api-key';
+        }
         if (result.asset.mimeType === 'image/svg+xml') {
           contentHeaders['Content-Security-Policy'] = "default-src 'none'; sandbox";
         }
@@ -150,6 +166,11 @@ export const mediaController = new Elysia({ prefix: '/api/v1' })
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
         set.status = 403;
         return { error: 'Forbidden: Only creators and superadmins can delete media assets' };
+      }
+      const perm = requirePermission(auth, 'media:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
       }
       try {
         return await container.deleteMediaAssetUseCase.execute(auth.user.id, auth.role, params.id);

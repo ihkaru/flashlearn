@@ -91,9 +91,11 @@
   </div>
 
   {#if lastResult}
-    <div
-      style="border-radius: 12px; padding: 14px 16px; border: 1px solid {lastResult.isCorrect ? '#86efac' : '#fde68a'}; background: {lastResult.isCorrect ? '#f0fdf4' : '#fffbeb'};"
-    >
+    {#key `${selectedId}-${lastResult.isCorrect}`}
+      <div
+        class={lastResult.isCorrect ? 'fl-feedback-correct' : 'fl-feedback-nudge'}
+        style="border-radius: 12px; padding: 14px 16px; border: 1px solid {lastResult.isCorrect ? '#86efac' : '#fde68a'}; background: {lastResult.isCorrect ? '#f0fdf4' : '#fffbeb'};"
+      >
       <div style="font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: {lastResult.isCorrect ? '#15803d' : '#92400e'}; margin-bottom: 4px;">
         {lastResult.isCorrect ? 'Tepat sekali' : 'Belum tepat, coba cek lagi'}
       </div>
@@ -122,7 +124,8 @@
           </button>
         {/if}
       {/if}
-    </div>
+      </div>
+    {/key}
   {:else if alreadySolved}
     <div style="border-radius: 10px; padding: 10px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 0.84rem; color: #166534; font-weight: 600;">
       Kamu sudah menjawab tepat sebelumnya. Kamu bisa langsung lanjut atau mencoba ulang.

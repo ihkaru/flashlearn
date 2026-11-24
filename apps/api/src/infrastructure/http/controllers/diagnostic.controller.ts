@@ -52,6 +52,16 @@ export const diagnosticController = new Elysia({ prefix: '/api/v1/diagnostic' })
         return { error: 'Unauthorized' };
       }
 
+      const session = await container.diagnosticRepository.findById(params.id);
+      if (!session) {
+        set.status = 404;
+        return { error: 'Diagnostic session not found' };
+      }
+      if (session.userId !== auth.user.id && auth.role !== 'superadmin') {
+        set.status = 403;
+        return { error: 'Forbidden: You do not own this diagnostic session' };
+      }
+
       try {
         const result = await container.getNextDiagnosticProbeUseCase.execute(params.id);
         return {
@@ -94,6 +104,16 @@ export const diagnosticController = new Elysia({ prefix: '/api/v1/diagnostic' })
       if (!auth.user) {
         set.status = 401;
         return { error: 'Unauthorized' };
+      }
+
+      const session = await container.diagnosticRepository.findById(params.id);
+      if (!session) {
+        set.status = 404;
+        return { error: 'Diagnostic session not found' };
+      }
+      if (session.userId !== auth.user.id && auth.role !== 'superadmin') {
+        set.status = 403;
+        return { error: 'Forbidden: You do not own this diagnostic session' };
       }
 
       try {

@@ -1,7 +1,7 @@
 ---
 arc42_section: 9
-verified_commit: 4bff8a7
-verified_timestamp: 2026-11-24T10:15:12Z
+verified_commit: d680042
+verified_timestamp: 2026-11-24T13:26:03Z
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 9. Architecture Decisions (ADRs)
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `55ba97f` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-24T01:07:48Z`
+> - **Verified Commit**: `d680042` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-24T13:26:03Z`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -131,4 +131,22 @@ This section documents architecturally significant decisions (ADRs) governing th
   2. Display context-matched figures inline via `ModuleFigureStrip.svelte` (responsive 2-column comparison when 2+ figures share a step) AND surface every module figure from any step via the **`Ilustrasi & Diagram (N)`** drawer in `GlossaryDisclosure.svelte` sharing `FigureLightboxModal.svelte`.
   3. Place `hinge_check` **after** `mechanics` whenever `groundingDecision.mode === 'direct_formalism'` (no Block 2 grounding), and remove artificial singleton caps via backward-compatible optional arrays (`additionalAnchoringLabs`, `additionalHingeChecks`, `additionalErroneousExamples`, `additionalStressTests`, `slideEndIndex`, `figures[].stepId`) so complex modules scale cleanly (`Unbounded Composition, Bounded Attention`).
 - **Consequences**: 100% upstream-safe zero-config persistence across container redeploys, immediate visual discoverability from Step 1, and cognitively sound sequencing without working-memory overload.
+- **Risks Created**: none
+
+---
+
+## ADR-13: Zero-Trust Multi-Tenant Authorization, Hardened Auth/Crypto & Defense-in-Depth Boundaries (Phase 21)
+- **Status**: Accepted
+- **Context**: A comprehensive source-first security audit (November 2026 OWASP API Top 10) identified high-impact boundary gaps across legacy controllers: unconditional `/demo-login`, fallback `JWT_SECRET`, untrusted `publicKeyPem` in VC verification, cross-tenant BOLA/IDOR on curriculum/audit/review routes, unauthenticated Socratic session endpoints, fail-open XSS in `MarkdownRenderer.svelte`, public cache headers on private assets, and unbounded ZIP extraction in CLI.
+- **Decision**: Centralize tenant authorization in `workspace-guard.ts` (`assertWorkspaceOwner`, `assertWorkspaceReadable`, `requirePermission`), enforce fail-fast `JWT_SECRET` + `HS256` algorithm pinning, require `email_verified === true` on Google OAuth, resolve VC issuer public keys strictly from PostgreSQL, encrypt Ed25519 private keys at rest when `CREDENTIAL_KMS_KEY` is configured, add CSP + OWASP response headers + rate limiting + non-root Docker `USER bun`, harden `MarkdownRenderer.svelte` fail-closed, delimit AI Oracle submissions against prompt injection, and bound CLI ZIP decompression (`createSafeZipFilter`).
+- **Consequences**: Eliminates cross-tenant privilege escalation, credential forgery, and stored XSS while preserving clean developer ergonomics in local test environments.
+- **Risks Created**: none
+
+---
+
+## ADR-14: Restrained Multi-Workspace Visual Identity & 120Hz GPU-Composited Learning Motion (Phase 22)
+- **Status**: Accepted
+- **Context**: Every workspace previously shared an identical hardcoded teal accent and displayed redundant UI controls (`DomainTrackSelector` duplicated lecture units on the `Topik Belajar` tab; empty `0`-count filter pills cluttered single-type workspaces).
+- **Decision**: Hide `DomainTrackSelector` outside `Peta Kompetensi`, suppress zero-count/redundant filter pills, introduce a deterministic 6-palette WCAG-AA workspace theme (`workspaceTheme.ts`) applied via restrained tonal framing (top accent edge, monogram tint, active tab, content breadcrumb), and standardize learning micro-animations (`learning-motion.css`) exclusively on GPU-composited `transform`/`opacity` with full `prefers-reduced-motion` static fallback.
+- **Consequences**: Immediate peripheral workspace orientation without visual clutter and smooth, low-cognitive-load study transitions on mobile and desktop.
 - **Risks Created**: none

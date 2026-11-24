@@ -1,15 +1,26 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import {
+  assertWorkspaceOwner,
+  assertWorkspaceReadable,
+  requirePermission,
+} from '../middlewares/workspace-guard';
 
 export const sourceController = new Elysia({ prefix: '/api/v1/sources' })
   .get(
     '/',
-    async ({ query, set }) => {
+    async ({ headers, query, set }) => {
       const workspaceId = query.workspaceId;
       if (!workspaceId) {
         set.status = 400;
         return { error: 'workspaceId query parameter is required' };
+      }
+      const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(workspaceId, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
       }
       const list = await container.sourceRepository.listByWorkspace(workspaceId);
       return list.map((s: any) => (typeof s.toJSON === 'function' ? s.toJSON() : s.props || s));
@@ -27,11 +38,17 @@ export const sourceController = new Elysia({ prefix: '/api/v1/sources' })
   )
   .get(
     '/:id',
-    async ({ params, set }) => {
+    async ({ headers, params, set }) => {
       const source = await container.sourceRepository.findById(params.id);
       if (!source) {
         set.status = 404;
         return { error: 'Source not found' };
+      }
+      const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(source.workspaceId, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
       }
       return typeof (source as any).toJSON === 'function' ? (source as any).toJSON() : (source as any).props || source;
     },
@@ -47,7 +64,18 @@ export const sourceController = new Elysia({ prefix: '/api/v1/sources' })
   )
   .get(
     '/:id/chunks',
-    async ({ params }) => {
+    async ({ headers, params, set }) => {
+      const source = await container.sourceRepository.findById(params.id);
+      if (!source) {
+        set.status = 404;
+        return { error: 'Source not found' };
+      }
+      const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(source.workspaceId, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
+      }
       const chunks = await container.sourceRepository.listChunksBySourceId(params.id);
       return chunks.map((c: any) => (typeof c.toJSON === 'function' ? c.toJSON() : c.props || c));
     },
@@ -68,6 +96,16 @@ export const sourceController = new Elysia({ prefix: '/api/v1/sources' })
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
         set.status = 403;
         return { error: 'Forbidden: Ingesting official sources is restricted to creators and superadmins' };
+      }
+      const perm = requirePermission(auth, 'sources:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
+      const ownership = await assertWorkspaceOwner(body.workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
       }
 
       try {
@@ -127,6 +165,16 @@ export const sourceController = new Elysia({ prefix: '/api/v1/sources' })
         set.status = 403;
         return { error: 'Forbidden: Generating verified lessons is restricted to creators and superadmins' };
       }
+      const perm = requirePermission(auth, 'sources:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
+      const ownership = await assertWorkspaceOwner(body.workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
+      }
 
       try {
         const result = await container.generateVerifiedLessonUseCase.execute(body);
@@ -156,6 +204,21 @@ export const sourceController = new Elysia({ prefix: '/api/v1/sources' })
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
         set.status = 403;
         return { error: 'Forbidden: Superseding a source is restricted to creators and superadmins' };
+      }
+      const perm = requirePermission(auth, 'sources:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
+      const source = await container.sourceRepository.findById(params.id);
+      if (!source) {
+        set.status = 404;
+        return { error: 'Source not found' };
+      }
+      const ownership = await assertWorkspaceOwner(source.workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
       }
 
       try {

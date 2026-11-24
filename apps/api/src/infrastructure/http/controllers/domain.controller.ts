@@ -2,13 +2,24 @@ import { Elysia, t } from 'elysia';
 import type { BaseContainer } from '../../di/base.container';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import {
+  assertWorkspaceOwner,
+  assertWorkspaceReadable,
+  requirePermission,
+} from '../middlewares/workspace-guard';
 
 export function createDomainController(container: BaseContainer) {
   return new Elysia({ prefix: '/api/v1/domains' })
     // List domains in workspace
     .get(
       '/workspace/:workspaceId',
-      async ({ params }) => {
+      async ({ headers, params, set }) => {
+        const auth = await resolveAuth(headers);
+        const access = await assertWorkspaceReadable(params.workspaceId, auth);
+        if (!access.ok) {
+          set.status = access.status;
+          return { error: access.error };
+        }
         const domainEntities = await container.domainRepository.listByWorkspace(params.workspaceId);
         return {
           workspaceId: params.workspaceId,
@@ -25,11 +36,17 @@ export function createDomainController(container: BaseContainer) {
     // Get single domain
     .get(
       '/:id',
-      async ({ params, set }) => {
+      async ({ headers, params, set }) => {
         const domainEntity = await container.domainRepository.findById(params.id);
         if (!domainEntity) {
           set.status = 404;
           return { error: 'Domain not found' };
+        }
+        const auth = await resolveAuth(headers);
+        const access = await assertWorkspaceReadable(domainEntity.workspaceId, auth);
+        if (!access.ok) {
+          set.status = access.status;
+          return { error: access.error };
         }
         return domainEntity.toJSON();
       },
@@ -47,6 +64,16 @@ export function createDomainController(container: BaseContainer) {
         if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
           set.status = 403;
           return { error: 'Forbidden: Only creators and superadmins can create domains' };
+        }
+        const perm = requirePermission(auth, 'domains:write');
+        if (!perm.ok) {
+          set.status = perm.status;
+          return { error: perm.error };
+        }
+        const ownership = await assertWorkspaceOwner(body.workspaceId, auth);
+        if (!ownership.ok) {
+          set.status = ownership.status;
+          return { error: ownership.error };
         }
         const slug = body.slug || body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         const created = await container.domainRepository.create({
@@ -91,6 +118,21 @@ export function createDomainController(container: BaseContainer) {
           set.status = 403;
           return { error: 'Forbidden: Only creators and superadmins can update domains' };
         }
+        const perm = requirePermission(auth, 'domains:write');
+        if (!perm.ok) {
+          set.status = perm.status;
+          return { error: perm.error };
+        }
+        const existing = await container.domainRepository.findById(params.id);
+        if (!existing) {
+          set.status = 404;
+          return { error: 'Domain not found' };
+        }
+        const ownership = await assertWorkspaceOwner(existing.workspaceId, auth);
+        if (!ownership.ok) {
+          set.status = ownership.status;
+          return { error: ownership.error };
+        }
         const updated = await container.domainRepository.update(params.id, body);
         return updated.toJSON();
       },
@@ -121,6 +163,21 @@ export function createDomainController(container: BaseContainer) {
         if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
           set.status = 403;
           return { error: 'Forbidden: Only creators and superadmins can delete domains' };
+        }
+        const perm = requirePermission(auth, 'domains:write');
+        if (!perm.ok) {
+          set.status = perm.status;
+          return { error: perm.error };
+        }
+        const existing = await container.domainRepository.findById(params.id);
+        if (!existing) {
+          set.status = 404;
+          return { error: 'Domain not found' };
+        }
+        const ownership = await assertWorkspaceOwner(existing.workspaceId, auth);
+        if (!ownership.ok) {
+          set.status = ownership.status;
+          return { error: ownership.error };
         }
         await container.domainRepository.delete(params.id);
         return { success: true, deletedId: params.id };

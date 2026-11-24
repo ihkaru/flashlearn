@@ -49,6 +49,12 @@ export class CreateContentUseCase {
       }
     }
 
+    if (input.slug !== undefined && input.slug !== '') {
+      if (!/^[a-z0-9-]+$/.test(input.slug)) {
+        throw new Error('Invalid slug: must contain only lowercase alphanumeric characters and hyphens (/^[a-z0-9-]+$/)');
+      }
+    }
+
     const baseSlug = input.slug || this.slugify(input.title);
     let finalSlug = baseSlug;
     let counter = 1;

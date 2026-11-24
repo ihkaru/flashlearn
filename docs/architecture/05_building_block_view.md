@@ -1,7 +1,7 @@
 ---
 arc42_section: 5
-verified_commit: 4bff8a7
-verified_timestamp: 2026-11-24T10:15:12Z
+verified_commit: d680042
+verified_timestamp: 2026-11-24T13:26:03Z
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 5. Building Block View
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `55ba97f` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-24T01:07:48Z`
+> - **Verified Commit**: `d680042` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-24T13:26:03Z`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -59,7 +59,7 @@ graph TD
 | FlashLearn API Service | Core Hexagonal backend running on Bun 1.4.2 and Elysia.js (`apps/api`). Hosts domain entities, use cases (including `UpsertContentArtifactUseCase`, `GetContentArtifactUseCase`, `SaveLearnerProgressUseCase`, `GetLearnerProgressUseCase`), `BackwardScaffoldingGenerator`, Multi-Tier Oracles, `CompetencyDriftEngine`, `W3cCredentialCryptoEngine`, `AiGatewayService`, SSE streaming endpoints, and static SPA hosting. | IF-01, IF-02, IF-03, IF-04, IF-05, IF-06 |
 | PostgreSQL Database | Relational storage engine managing workspaces, domains, sources, SHA-256 `source_chunks`, contents (including `interactive_payload`), lazy-loaded SHA-256 `content_artifacts`, resumable `learner_content_progress`, competencies, DAG edges, tasks, attempts, mastery records, spaced flashcards, Socratic Merkle sessions, blind reviews, and issued W3C credentials with compound unique constraints. | IF-03 |
 | AI Gateway Service | External OpenAI-compatible LLM proxy (9router, Lumis AI Gateway, OpenRouter, or OpenAI) consumed via `AiGatewayService` (`POST /chat/completions` JSON/SSE, `GET /models` health check) with 45s timeout and retry backoff. | IF-04 |
-| FlashLearn Agent CLI | Non-interactive CLI (`flashlearn`, invoked via `bun run cli`) providing JSON envelopes, `--fields`/`--tail`/`--filter` token optimization, `--dry-run`, schema introspection, and blueprint validation/import for AI agents and CI pipelines. | IF-02 |
+| FlashLearn Agent CLI | Non-interactive CLI (`flashlearn`, invoked via `bun run cli`) providing JSON envelopes, `--fields`/`--tail`/`--filter` token optimization, `--dry-run`, schema introspection, blueprint validation/import, multi-format lossless corpus extraction (`unpdf` PDF + `fflate` bounded EPUB/PPTX), resumable curriculum sync (`plan init/status/next/mark/push/diff/prune/pull`), and persistent asset uploads (`asset upload`). | IF-02 |
 | Public Verification Portal | Public unauthenticated route (`/#/verify/:id`, `apps/web/src/pages/verify-passport.svelte`) paired with `/api/v1/gates/verify/:grantId` and `/api/v1/credentials/verify` for verifying authority passports and Ed25519 W3C VC 2.0 signatures. | IF-05 |
 | Background Worker Daemon | Periodic scheduler (`apps/api/src/worker.ts`) embedded in `index.ts` (or runnable standalone via `bun run worker` / `--once`) executing `ProcessCompetencyDecayBatchUseCase` and workspace source monitoring every 60 seconds. | IF-06 |
 
@@ -90,22 +90,33 @@ apps/api/src/
     ├── database/                   # db.ts, migrate.ts (advisory lock), schema.ts, schemas/*, seed.ts, seeds/*
     ├── repositories/               # 18 Drizzle*Repository implementations (explicit db.select() SQL builders)
     ├── services/                   # AiGatewayService, CitationValidatorService, GoogleAuthVerifier, JwtTokenService
-    ├── http/                       # 19 Elysia controllers + middlewares/auth.ts (Bearer JWT/API Key + x-learner-session)
+    ├── http/                       # 19 Elysia controllers + middlewares/auth.ts (Bearer JWT/API Key + x-learner-session) & workspace-guard.ts (BOLA/RBAC/API-Key scopes)
     └── di/                         # base.container.ts & container.ts (Central Constructor DI)
 
 packages/shared/src/
 ├── types/                          # Shared DTOs & domain types (interactive, elastic-pedagogy, media, competency, task, gate, vc, workspace, etc.)
 └── utils/                          # blueprint-validator.ts, graph-validator.ts (Tarjan SCC), merkle-transcript.ts,
                                     # interactive-module-validator.ts, elastic-profile-validator.ts, guided-flow-builder.ts (1..N elastic steps),
-                                    # deck-sandbox-bridge.ts, interactive-markdown-formatter.ts, workspace-markdown-exporter.ts
+                                    # deck-sandbox-bridge.ts (CSP + script host audit), interactive-markdown-formatter.ts, workspace-markdown-exporter.ts
 
-apps/web/src/components/
-├── workspace/CopyMarkdownButton.svelte  # One-click AI-chat-ready Markdown copy (Workspace & Module) with clipboard + .md fallback
-└── interactive/
-    ├── InteractiveModuleViewer.svelte  # Single-focus guided step runner + local/remote resume + multi-step completion tracking
-    ├── AdaptiveDeckStage.svelte        # Sandboxed 16:9 slide stage with optional multi-slide step range indicator
-    ├── GuidedStepBody.svelte           # Keyed multi-element step renderer (labs, hinge checks, erroneous examples, stress tests, figures)
-    ├── ModuleFigureStrip.svelte        # Context-bound figure strip (multi-figure responsive comparison grid + shared lightbox)
-    ├── GlossaryDisclosure.svelte       # Always-accessible bottom drawer: Ilustrasi & Diagram (N), Istilah Kunci, Rujukan Sumber
-    └── FigureLightboxModal.svelte      # Shared accessible tap-to-zoom modal with source page & jargon annotations
+packages/cli/src/
+├── commands/                       # 18 noun-action CLI modules (plan.ts, asset.ts, workspace.ts, content.ts, corpus.ts, domain, gate, etc.)
+└── core/
+    ├── corpus/                     # corpus-indexer.ts, extract-pdf.ts (unpdf), extract-epub.ts & extract-pptx.ts (bounded fflate), xml-utils.ts
+    ├── plan/                       # plan-builder.ts, plan-remote-sync.ts (push/diff/prune), plan-remote-pull.ts (slug-contained pull)
+    ├── media-uploader.ts           # Content-addressed persistent asset upload (--upload-media) to /api/v1/workspaces/:id/assets
+    └── config.ts                   # 0700/0600 local credential store + env/flag precedence
+
+apps/web/src/
+├── lib/workspaceTheme.ts           # Deterministic 6-palette WCAG-AA workspace visual identity tokens (--ws-accent / soft / border / ink)
+├── styles/learning-motion.css      # 120Hz GPU-composited (transform/opacity) learning micro-animations + prefers-reduced-motion fallback
+└── components/
+    ├── workspace/CopyMarkdownButton.svelte  # One-click AI-chat-ready Markdown copy (Workspace & Module) with clipboard + .md fallback
+    └── interactive/
+        ├── InteractiveModuleViewer.svelte  # Single-focus guided step runner + local/remote resume + multi-step completion tracking
+        ├── AdaptiveDeckStage.svelte        # Sandboxed 16:9 slide stage with optional multi-slide step range indicator
+        ├── GuidedStepBody.svelte           # Keyed multi-element step renderer (labs, hinge checks, erroneous examples, stress tests, figures)
+        ├── ModuleFigureStrip.svelte        # Context-bound figure strip (multi-figure responsive comparison grid + shared lightbox)
+        ├── GlossaryDisclosure.svelte       # Always-accessible bottom drawer: Ilustrasi & Diagram (N), Istilah Kunci, Rujukan Sumber
+        └── FigureLightboxModal.svelte      # Shared accessible tap-to-zoom modal with source page & jargon annotations
 ```

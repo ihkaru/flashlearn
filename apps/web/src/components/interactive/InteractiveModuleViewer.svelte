@@ -261,7 +261,8 @@
 
       <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
         <div
-          style="height: 100%; width: 100%; background: #0f766e; transform-origin: left center; transform: scaleX({progressPct / 100}); transition: transform 0.22s ease-out;"
+          class="fl-progress-bar-fill"
+          style="background: var(--ws-accent, #0f766e); transform: scaleX({progressPct / 100});"
         ></div>
       </div>
     </div>
@@ -309,34 +310,36 @@
     {/if}
 
     <!-- Single-Focus Guided Instruction Card -->
-    <section style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: clamp(18px, 3vw, 26px);">
-      <h2 style="margin: 0 0 6px 0; font-size: clamp(1.2rem, 3vw, 1.45rem); font-weight: 800; color: #0f172a; line-height: 1.3;">
-        {activeStep.title}
-      </h2>
-      <p style="margin: 0 0 18px 0; font-size: 0.9rem; color: #475569; line-height: 1.55;">
-        {activeStep.actionPrompt}
-      </p>
+    {#key activeStep.id}
+      <section class="fl-step-enter" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: clamp(18px, 3vw, 26px);">
+        <h2 style="margin: 0 0 6px 0; font-size: clamp(1.2rem, 3vw, 1.45rem); font-weight: 800; color: #0f172a; line-height: 1.3;">
+          {activeStep.title}
+        </h2>
+        <p style="margin: 0 0 18px 0; font-size: 0.9rem; color: #475569; line-height: 1.55;">
+          {activeStep.actionPrompt}
+        </p>
 
-      <GuidedStepBody
-        step={activeStep}
-        {payload}
-        {simHtml}
-        {anchoringCompleted}
-        {stressTestSolved}
-        stepCompleted={activeStepSolved}
-        {thetaMastery}
-        onAnchoringCompleted={handleAnchoringDone}
-        onDiagnosticEvaluated={handleDiagnosticResult}
-        onStepInteractionSolved={markStepDone}
-      />
+        <GuidedStepBody
+          step={activeStep}
+          {payload}
+          {simHtml}
+          {anchoringCompleted}
+          {stressTestSolved}
+          stepCompleted={activeStepSolved}
+          {thetaMastery}
+          onAnchoringCompleted={handleAnchoringDone}
+          onDiagnosticEvaluated={handleDiagnosticResult}
+          onStepInteractionSolved={markStepDone}
+        />
 
-      <GlossaryDisclosure
-        glossary={payload.glossary || []}
-        citations={payload.sourceCitations || []}
-        figures={payload.figures || []}
-        {steps}
-      />
-    </section>
+        <GlossaryDisclosure
+          glossary={payload.glossary || []}
+          citations={payload.sourceCitations || []}
+          figures={payload.figures || []}
+          {steps}
+        />
+      </section>
+    {/key}
 
     <!-- Single Clear Bottom Navigation Bar -->
     <div style="margin-top: 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">

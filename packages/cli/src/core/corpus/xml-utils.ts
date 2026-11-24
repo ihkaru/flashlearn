@@ -7,11 +7,43 @@ const ENTITY_MAP: Record<string, string> = {
   nbsp: ' ',
 };
 
+function safeFromCodePoint(cp: number, fallback: string): string {
+  if (!Number.isFinite(cp) || cp < 0 || cp > 0x10ffff) return fallback;
+  return String.fromCodePoint(cp);
+}
+
 export function decodeXmlEntities(input: string): string {
   return input
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
-    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (full, hex) => safeFromCodePoint(parseInt(hex, 16), full))
+    .replace(/&#(\d+);/g, (full, dec) => safeFromCodePoint(parseInt(dec, 10), full))
     .replace(/&([a-zA-Z]+);/g, (full, name) => ENTITY_MAP[name] ?? full);
+}
+
+const DEFAULT_MAX_TOTAL_UNZIP_BYTES = 100 * 1024 * 1024; // 100 MB cap
+const DEFAULT_MAX_ZIP_RATIO = 100;
+
+/**
+ * Bounded ZIP filter preventing Zip Bomb OOM DoS during EPUB/PPTX indexing.
+ */
+export function createSafeZipFilter(
+  allowedPathPattern: RegExp,
+  maxTotalBytes = DEFAULT_MAX_TOTAL_UNZIP_BYTES,
+  maxRatio = DEFAULT_MAX_ZIP_RATIO
+): (file: { name: string; size: number; originalSize: number }) => boolean {
+  let cumulativeBytes = 0;
+  return (file) => {
+    if (!allowedPathPattern.test(file.name)) return false;
+    const orig = Math.max(0, Number(file.originalSize) || 0);
+    const comp = Math.max(1, Number(file.size) || 1);
+    if (orig > maxTotalBytes || cumulativeBytes + orig > maxTotalBytes) {
+      throw new Error(`Archive exceeds safe decompression limit (${maxTotalBytes} bytes).`);
+    }
+    if (orig > 64 * 1024 && orig / comp > maxRatio) {
+      throw new Error(`Archive entry "${file.name}" exceeds safe compression ratio (${maxRatio}:1).`);
+    }
+    cumulativeBytes += orig;
+    return true;
+  };
 }
 
 export function xhtmlToMarkdown(rawHtml: string): string {

@@ -112,9 +112,9 @@
           {@const pct = Math.min(100, Math.round(((progress.currentStepIndex + 1) / Math.max(1, progress.totalSteps)) * 100))}
           <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
             <div style="flex: 1; max-width: 180px; height: 5px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
-              <div style="height: 100%; width: 100%; background: {progress.isCompleted ? '#16a34a' : '#0f766e'}; transform-origin: left center; transform: scaleX({pct / 100});"></div>
+              <div class="fl-progress-bar-fill" style="background: {progress.isCompleted ? '#16a34a' : 'var(--ws-accent, #0f766e)'}; transform: scaleX({pct / 100});"></div>
             </div>
-            <span style="font-size: 0.76rem; font-weight: 700; color: {progress.isCompleted ? '#15803d' : '#0f766e'};">
+            <span style="font-size: 0.76rem; font-weight: 700; color: {progress.isCompleted ? '#15803d' : 'var(--ws-accent, #0f766e)'};">
               {progress.isCompleted ? 'Selesai' : `Langkah ${progress.currentStepIndex + 1}/${progress.totalSteps}`}
             </span>
           </div>
@@ -122,7 +122,7 @@
       </div>
 
       <div style="flex-shrink: 0;">
-        <span style="color: #0f766e; font-weight: 700; font-size: 0.85rem; white-space: nowrap;">
+        <span style="color: var(--ws-accent, #0f766e); font-weight: 700; font-size: 0.85rem; white-space: nowrap;">
           {progress && !progress.isCompleted ? 'Lanjutkan' : progress?.isCompleted ? 'Tinjau' : 'Mulai'}
         </span>
       </div>

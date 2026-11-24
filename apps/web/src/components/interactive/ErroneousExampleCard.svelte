@@ -89,11 +89,16 @@
   {/if}
 
   {#if selectedFix}
-    <div style="border-radius: 12px; padding: 13px 15px; border: 1px solid {selectedFix.isCorrect ? '#86efac' : '#fde68a'}; background: {selectedFix.isCorrect ? '#f0fdf4' : '#fffbeb'}; font-size: 0.87rem; line-height: 1.5; color: {selectedFix.isCorrect ? '#14532d' : '#78350f'};">
-      <p style="margin: 0;">{selectedFix.rationale}</p>
-      {#if selectedFix.isCorrect && example.takeaway}
-        <p style="margin: 8px 0 0 0; font-weight: 700;">Catatan kunci: {example.takeaway}</p>
-      {/if}
-    </div>
+    {#key selectedFix.id}
+      <div
+        class={selectedFix.isCorrect ? 'fl-feedback-correct' : 'fl-feedback-nudge'}
+        style="border-radius: 12px; padding: 13px 15px; border: 1px solid {selectedFix.isCorrect ? '#86efac' : '#fde68a'}; background: {selectedFix.isCorrect ? '#f0fdf4' : '#fffbeb'}; font-size: 0.87rem; line-height: 1.5; color: {selectedFix.isCorrect ? '#14532d' : '#78350f'};"
+      >
+        <p style="margin: 0;">{selectedFix.rationale}</p>
+        {#if selectedFix.isCorrect && example.takeaway}
+          <p style="margin: 8px 0 0 0; font-weight: 700;">Catatan kunci: {example.takeaway}</p>
+        {/if}
+      </div>
+    {/key}
   {/if}
 </div>

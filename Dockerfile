@@ -28,13 +28,15 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV PUBLIC_DIR=/app/apps/web/dist
 
-COPY --from=builder /app/package.json /app/bun.lock /app/start.sh ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/apps/api ./apps/api
-COPY --from=builder /app/apps/web/dist ./apps/web/dist
+COPY --chown=bun:bun --from=builder /app/package.json /app/bun.lock /app/start.sh ./
+COPY --chown=bun:bun --from=builder /app/node_modules ./node_modules
+COPY --chown=bun:bun --from=builder /app/packages ./packages
+COPY --chown=bun:bun --from=builder /app/apps/api ./apps/api
+COPY --chown=bun:bun --from=builder /app/apps/web/dist ./apps/web/dist
 
 RUN chmod +x /app/start.sh
+
+USER bun
 
 EXPOSE 3000
 

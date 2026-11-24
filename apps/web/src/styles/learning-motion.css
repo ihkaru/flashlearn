@@ -1,0 +1,78 @@
+/* Phase 22: 120Hz GPU-Composited Cognitive Learning Motion
+ * Strictly transform & opacity only — zero layout reflow, full reduced-motion degradation.
+ */
+
+@keyframes fl-step-enter-kf {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fl-step-enter {
+  animation: fl-step-enter-kf 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+.fl-progress-bar-fill,
+.fl-progress-fill {
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+@keyframes fl-feedback-correct-kf {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.015);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.fl-feedback-correct {
+  animation: fl-feedback-correct-kf 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes fl-feedback-nudge-kf {
+  0% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-4px);
+  }
+  65% {
+    transform: translateX(4px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.fl-feedback-nudge {
+  animation: fl-feedback-nudge-kf 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-step-enter,
+  .fl-feedback-correct,
+  .fl-feedback-nudge {
+    animation: none !important;
+    will-change: auto;
+  }
+
+  .fl-progress-bar-fill,
+  .fl-progress-fill {
+    transition: none !important;
+    will-change: auto;
+  }
+}

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 import { unzipSync } from 'fflate';
-import { decodeXmlEntities, estimateTokens } from './xml-utils';
+import { createSafeZipFilter, decodeXmlEntities, estimateTokens } from './xml-utils';
 import type { ExtractedRawSlice, ExtractedSourceResult } from './extract-epub';
 
 function extractPptxParagraphs(xml: string): string[] {
@@ -35,7 +35,9 @@ export function extractPptxSource(
   slidesPerSlice = 10
 ): ExtractedSourceResult {
   const rawBytes = new Uint8Array(readFileSync(filePath));
-  const entries = unzipSync(rawBytes);
+  const entries = unzipSync(rawBytes, {
+    filter: createSafeZipFilter(/^ppt\/(?:slides\/slide|notesSlides\/notesSlide)\d+\.xml$/i),
+  });
 
   const slidePaths = Object.keys(entries)
     .filter((k) => /^ppt\/slides\/slide\d+\.xml$/i.test(k))

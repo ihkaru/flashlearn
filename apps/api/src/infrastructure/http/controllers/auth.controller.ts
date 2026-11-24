@@ -71,20 +71,31 @@ export const authController = new Elysia({ prefix: '/api/v1/auth' })
   .post(
     '/demo-login',
     async ({ body, set }) => {
+      if (process.env.ENABLE_DEMO_LOGIN !== 'true' || process.env.NODE_ENV === 'production') {
+        set.status = 403;
+        return { error: 'Forbidden: Demo login is disabled' };
+      }
+
       try {
-        const requestedEmail = (body?.email || 'learner@flashlearn.dev').trim().toLowerCase();
-        const existing = await container.userRepository.findByEmail(requestedEmail);
-        if (existing && existing.role === 'superadmin') {
+        const FIXED_DEMO_EMAIL = 'learner@flashlearn.dev';
+        const requestedEmail = (body?.email || FIXED_DEMO_EMAIL).trim().toLowerCase();
+        if (requestedEmail !== FIXED_DEMO_EMAIL) {
           set.status = 403;
-          return { error: 'Forbidden: Demo login cannot impersonate superadmin accounts' };
+          return { error: `Forbidden: Demo login is restricted strictly to ${FIXED_DEMO_EMAIL}` };
         }
-        const safeEmail = requestedEmail === 'learner@flashlearn.dev' || !existing ? requestedEmail : existing.email;
+
+        const existing = await container.userRepository.findByEmail(FIXED_DEMO_EMAIL);
+        if (existing && (existing.role === 'superadmin' || existing.googleId)) {
+          set.status = 403;
+          return { error: 'Forbidden: Demo login cannot impersonate superadmin or Google-linked accounts' };
+        }
+
         let user = existing;
         if (!user) {
           user = await container.userRepository.create({
-            email: safeEmail,
+            email: FIXED_DEMO_EMAIL,
             name: body?.name || 'Pembelajar Mandiri (Demo)',
-            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(safeEmail)}`,
+            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(FIXED_DEMO_EMAIL)}`,
             role: 'creator',
             googleId: null,
           });

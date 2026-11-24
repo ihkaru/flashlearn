@@ -13,6 +13,7 @@
   import DomainTrackSelector from '../components/workspace/DomainTrackSelector.svelte';
   import CreateDomainModal from '../components/workspace/CreateDomainModal.svelte';
   import Icon from '../components/ui/Icon.svelte';
+  import { getWorkspaceTheme } from '../lib/workspaceTheme';
 
   interface Props {
     f7route?: any;
@@ -92,6 +93,17 @@
 
   let activeContents = $derived(contents.filter((c) => !c.deletedAt));
   let deletedContents = $derived(contents.filter((c) => !!c.deletedAt));
+  let wsTheme = $derived(getWorkspaceTheme(workspace?.slug || workspace?.id || ''));
+
+  let interactiveCount = $derived(activeContents.filter((c) => c.type === 'interactive_module').length);
+  let materiCount = $derived(activeContents.filter((c) => c.type === 'materi').length);
+  let quizCount = $derived(activeContents.filter((c) => c.type === 'quiz').length);
+  let distinctActiveTypeCount = $derived(
+    [interactiveCount, materiCount, quizCount].filter((n) => n > 0).length
+  );
+  let showFilterBar = $derived(
+    distinctActiveTypeCount >= 2 || (isOwner && deletedContents.length > 0)
+  );
 
   let filteredContents = $derived(
     activeFilter === 'trash'
@@ -192,7 +204,7 @@
 </script>
 
 <Page name="workspace">
-<div class="workspace-page" style="max-width: 900px; margin: 0 auto; padding: 20px 16px 32px;">
+<div class="workspace-page" style="max-width: 900px; margin: 0 auto; padding: 20px 16px 32px; {wsTheme.cssVars}">
   {#if isLoading}
     <div style="text-align: center; padding: 48px; color: #94a3b8; font-weight: 500;">
       Memuat detail workspace...
@@ -207,22 +219,12 @@
       onCreateModule={openCreateModal}
     />
 
-    {#if domains.length > 0}
-      <DomainTrackSelector
-        {domains}
-        {selectedDomainId}
-        onSelectDomain={(dId) => (selectedDomainId = dId)}
-        {isOwner}
-        onOpenCreateDomain={() => (showCreateDomainModal = true)}
-      />
-    {/if}
-
     <!-- Workspace Main Views Switcher -->
     <div class="fl-scroll-row" style="margin-bottom: 20px; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 10px;">
       <button
         onclick={() => (activeViewTab = 'modules')}
         class="fl-btn fl-btn-md fl-pill-btn"
-        style="border: none; font-weight: 700; background: {activeViewTab === 'modules' ? '#0f766e' : '#f1f5f9'}; color: {activeViewTab === 'modules' ? '#ffffff' : '#475569'};"
+        style="border: none; font-weight: 700; background: {activeViewTab === 'modules' ? 'var(--ws-accent, #0f766e)' : '#f1f5f9'}; color: {activeViewTab === 'modules' ? '#ffffff' : '#475569'};"
       >
         <span>Topik Belajar</span>
       </button>
@@ -230,7 +232,7 @@
       <button
         onclick={() => (activeViewTab = 'competencies')}
         class="fl-btn fl-btn-md fl-pill-btn"
-        style="border: none; font-weight: 700; background: {activeViewTab === 'competencies' ? '#0f766e' : '#f1f5f9'}; color: {activeViewTab === 'competencies' ? '#ffffff' : '#475569'};"
+        style="border: none; font-weight: 700; background: {activeViewTab === 'competencies' ? 'var(--ws-accent, #0f766e)' : '#f1f5f9'}; color: {activeViewTab === 'competencies' ? '#ffffff' : '#475569'};"
       >
         <span>Peta Kompetensi</span>
       </button>
@@ -238,59 +240,65 @@
       <button
         onclick={() => (activeViewTab = 'gates')}
         class="fl-btn fl-btn-md fl-pill-btn"
-        style="border: none; font-weight: 700; background: {activeViewTab === 'gates' ? '#0f766e' : '#f1f5f9'}; color: {activeViewTab === 'gates' ? '#ffffff' : '#475569'};"
+        style="border: none; font-weight: 700; background: {activeViewTab === 'gates' ? 'var(--ws-accent, #0f766e)' : '#f1f5f9'}; color: {activeViewTab === 'gates' ? '#ffffff' : '#475569'};"
       >
         <span>Paspor Gerbang</span>
       </button>
     </div>
 
     {#if activeViewTab === 'modules'}
-      <!-- Filters Bar (Horizontal Scrollable with Zero-Wrap Pills) -->
-    <div class="fl-scroll-row" style="margin-bottom: 18px;">
-      <button
-        onclick={() => (activeFilter = 'all')}
-        class="fl-btn fl-btn-sm fl-pill-btn"
-        style="border: 1px solid {activeFilter === 'all' ? '#0f766e' : '#e2e8f0'}; background: {activeFilter === 'all' ? '#0f766e' : '#ffffff'}; color: {activeFilter === 'all' ? '#ffffff' : '#475569'};"
-      >
-        <span>Semua ({activeContents.length})</span>
-      </button>
+      {#if showFilterBar}
+        <!-- Filters Bar (Rendered only when >= 2 active content types or owner has trashed items) -->
+        <div class="fl-scroll-row" style="margin-bottom: 18px;">
+          <button
+            onclick={() => (activeFilter = 'all')}
+            class="fl-btn fl-btn-sm fl-pill-btn"
+            style="border: 1px solid {activeFilter === 'all' ? 'var(--ws-accent, #0f766e)' : '#e2e8f0'}; background: {activeFilter === 'all' ? 'var(--ws-accent, #0f766e)' : '#ffffff'}; color: {activeFilter === 'all' ? '#ffffff' : '#475569'};"
+          >
+            <span>Semua ({activeContents.length})</span>
+          </button>
 
-      {#if activeContents.some((c) => c.type === 'interactive_module')}
-        <button
-          onclick={() => (activeFilter = 'interactive_module')}
-          class="fl-btn fl-btn-sm fl-pill-btn"
-          style="border: 1px solid {activeFilter === 'interactive_module' ? '#0f766e' : '#e2e8f0'}; background: {activeFilter === 'interactive_module' ? '#0f766e' : '#ffffff'}; color: {activeFilter === 'interactive_module' ? '#ffffff' : '#475569'};"
-        >
-          <span>Interaktif ({activeContents.filter(c => c.type === 'interactive_module').length})</span>
-        </button>
+          {#if distinctActiveTypeCount >= 2 && interactiveCount > 0}
+            <button
+              onclick={() => (activeFilter = 'interactive_module')}
+              class="fl-btn fl-btn-sm fl-pill-btn"
+              style="border: 1px solid {activeFilter === 'interactive_module' ? 'var(--ws-accent, #0f766e)' : '#e2e8f0'}; background: {activeFilter === 'interactive_module' ? 'var(--ws-accent, #0f766e)' : '#ffffff'}; color: {activeFilter === 'interactive_module' ? '#ffffff' : '#475569'};"
+            >
+              <span>Interaktif ({interactiveCount})</span>
+            </button>
+          {/if}
+
+          {#if distinctActiveTypeCount >= 2 && materiCount > 0}
+            <button
+              onclick={() => (activeFilter = 'materi')}
+              class="fl-btn fl-btn-sm fl-pill-btn"
+              style="border: 1px solid {activeFilter === 'materi' ? 'var(--ws-accent, #0f766e)' : '#e2e8f0'}; background: {activeFilter === 'materi' ? 'var(--ws-accent, #0f766e)' : '#ffffff'}; color: {activeFilter === 'materi' ? '#ffffff' : '#475569'};"
+            >
+              <span>Materi ({materiCount})</span>
+            </button>
+          {/if}
+
+          {#if distinctActiveTypeCount >= 2 && quizCount > 0}
+            <button
+              onclick={() => (activeFilter = 'quiz')}
+              class="fl-btn fl-btn-sm fl-pill-btn"
+              style="border: 1px solid {activeFilter === 'quiz' ? 'var(--ws-accent, #0f766e)' : '#e2e8f0'}; background: {activeFilter === 'quiz' ? 'var(--ws-accent, #0f766e)' : '#ffffff'}; color: {activeFilter === 'quiz' ? '#ffffff' : '#475569'};"
+            >
+              <span>Kuis ({quizCount})</span>
+            </button>
+          {/if}
+
+          {#if isOwner && deletedContents.length > 0}
+            <button
+              onclick={() => (activeFilter = 'trash')}
+              class="fl-btn fl-btn-sm fl-pill-btn"
+              style="border: 1px solid {activeFilter === 'trash' ? '#e11d48' : '#fecdd3'}; background: {activeFilter === 'trash' ? '#e11d48' : '#fff1f2'}; color: {activeFilter === 'trash' ? '#ffffff' : '#be123c'}; margin-left: auto;"
+            >
+              <span>Arsip ({deletedContents.length})</span>
+            </button>
+          {/if}
+        </div>
       {/if}
-
-      <button
-        onclick={() => (activeFilter = 'materi')}
-        class="fl-btn fl-btn-sm fl-pill-btn"
-        style="border: 1px solid {activeFilter === 'materi' ? '#0f766e' : '#e2e8f0'}; background: {activeFilter === 'materi' ? '#0f766e' : '#ffffff'}; color: {activeFilter === 'materi' ? '#ffffff' : '#475569'};"
-      >
-        <span>Materi ({activeContents.filter(c => c.type === 'materi').length})</span>
-      </button>
-
-      <button
-        onclick={() => (activeFilter = 'quiz')}
-        class="fl-btn fl-btn-sm fl-pill-btn"
-        style="border: 1px solid {activeFilter === 'quiz' ? '#0f766e' : '#e2e8f0'}; background: {activeFilter === 'quiz' ? '#0f766e' : '#ffffff'}; color: {activeFilter === 'quiz' ? '#ffffff' : '#475569'};"
-      >
-        <span>Kuis ({activeContents.filter(c => c.type === 'quiz').length})</span>
-      </button>
-
-      {#if isOwner && deletedContents.length > 0}
-        <button
-          onclick={() => (activeFilter = 'trash')}
-          class="fl-btn fl-btn-sm fl-pill-btn"
-          style="border: 1px solid {activeFilter === 'trash' ? '#e11d48' : '#fecdd3'}; background: {activeFilter === 'trash' ? '#e11d48' : '#fff1f2'}; color: {activeFilter === 'trash' ? '#ffffff' : '#be123c'}; margin-left: auto;"
-        >
-          <span>Arsip ({deletedContents.length})</span>
-        </button>
-      {/if}
-    </div>
 
     <!-- Contents List -->
     {#if filteredContents.length === 0}
@@ -304,7 +312,7 @@
           <button
             onclick={openCreateModal}
             class="fl-btn fl-btn-md"
-            style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
+            style="background: var(--ws-accent, #0f766e); color: #ffffff; border: none; font-weight: 700;"
           >
             <span>Buat Modul Sekarang</span>
           </button>
@@ -329,6 +337,15 @@
       />
     {/if}
   {:else if activeViewTab === 'competencies'}
+    {#if domains.length > 0}
+      <DomainTrackSelector
+        {domains}
+        {selectedDomainId}
+        onSelectDomain={(dId) => (selectedDomainId = dId)}
+        {isOwner}
+        onOpenCreateDomain={() => (showCreateDomainModal = true)}
+      />
+    {/if}
     <CompetencyDagView workspaceId={workspace.id} domainId={selectedDomainId} />
   {:else if activeViewTab === 'gates'}
     <GatePassportsView workspaceId={workspace.id} />

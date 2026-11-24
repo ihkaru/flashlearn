@@ -6,6 +6,7 @@ import Framework7Svelte from 'framework7-svelte';
 import 'framework7/css/bundle';
 import 'framework7-icons/css/framework7-icons.css';
 import './styles/app.css';
+import './styles/learning-motion.css';
 
 import App from './app.svelte';
 

@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 import type { CurriculumPlanDocument, PlanModuleEntry, PlanUnitEntry } from '@flashlearn/shared';
 import type { ApiClient } from '../client';
+import { slugifyText } from '../corpus/xml-utils';
 import { saveCurriculumPlan } from './plan-builder';
 
 /**
@@ -53,21 +54,27 @@ export async function pullRemoteToPlan(
       });
     }
 
+    const safeSlug = slugifyText(String(c.slug || c.title || `module-${idx + 1}`), `module-${idx + 1}`);
     const u = unitsMap.get(unitCode)!;
     const mins = c.readingTimeMinutes || c.interactivePayload?.estimatedMinutes || 5;
     u.estimatedLectureMinutes += mins;
-    u.moduleSlugs.push(c.slug);
+    u.moduleSlugs.push(safeSlug);
 
-    const manifestRel = `modules/${c.slug}.uila-v2.json`;
+    const manifestRel = `modules/${safeSlug}.uila-v2.json`;
+    const modulesRoot = resolve(absDir, 'modules') + sep;
+    const targetManifestPath = resolve(absDir, manifestRel);
+    if (!targetManifestPath.startsWith(modulesRoot)) {
+      throw new Error(`Unsafe remote content slug rejected: "${c.slug}"`);
+    }
     let contentHash: string | undefined;
     if (c.interactivePayload) {
       const jsonStr = JSON.stringify(c.interactivePayload, null, 2) + '\n';
-      writeFileSync(join(absDir, manifestRel), jsonStr, 'utf-8');
+      writeFileSync(targetManifestPath, jsonStr, 'utf-8');
       contentHash = createHash('sha256').update(jsonStr).digest('hex');
     }
 
     modules.push({
-      slug: c.slug,
+      slug: safeSlug,
       title: c.title,
       unitCode,
       moduleOrder: idx + 1,
@@ -75,10 +82,10 @@ export async function pullRemoteToPlan(
       estimatedMinutes: mins,
       needsSlideDeck: Boolean(c.hasSlideDeck),
       sourceSliceIds: c.interactivePayload?.unitMeta?.sourceSliceIds || [],
-      prerequisites: idx > 0 ? [contents[idx - 1].slug] : [],
+      prerequisites: idx > 0 ? [slugifyText(String(contents[idx - 1].slug || `module-${idx}`), `module-${idx}`)] : [],
       state: 'published',
       manifestPath: c.interactivePayload ? manifestRel : undefined,
-      deckPath: c.hasSlideDeck ? `decks/${c.slug}.html` : undefined,
+      deckPath: c.hasSlideDeck ? `decks/${safeSlug}.html` : undefined,
       remoteContentId: c.id,
       contentSha256: contentHash,
       lastUpdatedAt: c.updatedAt,

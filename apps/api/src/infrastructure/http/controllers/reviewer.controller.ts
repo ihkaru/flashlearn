@@ -1,6 +1,11 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import {
+  assertWorkspaceOwner,
+  isWorkspaceOwner,
+  requirePermission,
+} from '../middlewares/workspace-guard';
 
 export const reviewerController = new Elysia({ prefix: '/api/v1/reviewer' })
   .get('/pending', async ({ headers, set }) => {
@@ -12,7 +17,22 @@ export const reviewerController = new Elysia({ prefix: '/api/v1/reviewer' })
 
     try {
       const items = await container.listPendingClassCReviewsUseCase.execute();
-      return { success: true, data: items };
+      if (auth.role === 'superadmin') {
+        return { success: true, data: items };
+      }
+
+      const ownershipCache = new Map<string, boolean>();
+      const filtered = [];
+      for (const item of items) {
+        if (!item.workspaceId) continue;
+        let owned = ownershipCache.get(item.workspaceId);
+        if (owned === undefined) {
+          owned = await isWorkspaceOwner(item.workspaceId, auth);
+          ownershipCache.set(item.workspaceId, owned);
+        }
+        if (owned) filtered.push(item);
+      }
+      return { success: true, data: filtered };
     } catch (err: any) {
       set.status = 500;
       return { success: false, error: err.message };
@@ -25,6 +45,32 @@ export const reviewerController = new Elysia({ prefix: '/api/v1/reviewer' })
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
         set.status = 403;
         return { success: false, error: 'Access denied: Expert reviewer credentials required' };
+      }
+      const perm = requirePermission(auth, 'reviews:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { success: false, error: perm.error };
+      }
+
+      const attempt = await container.attemptRepository.findById(body.attemptId);
+      if (!attempt) {
+        set.status = 404;
+        return { success: false, error: 'Attempt not found' };
+      }
+      if (attempt.userId === auth.user.id) {
+        set.status = 403;
+        return { success: false, error: 'Forbidden: Self-review is strictly prohibited' };
+      }
+      const task = await container.taskRepository.findById(attempt.taskId);
+      const competency = task ? await container.competencyRepository.findById(task.competencyId) : null;
+      if (!competency) {
+        set.status = 404;
+        return { success: false, error: 'Associated competency not found' };
+      }
+      const ownership = await assertWorkspaceOwner(competency.workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { success: false, error: ownership.error };
       }
 
       try {

@@ -48,7 +48,11 @@
   </div>
 
   {#if pickedOpt}
-    <div style="border-radius: 12px; padding: 14px 16px; border: 1px solid {pickedOpt.isCorrect ? '#86efac' : '#fde68a'}; background: {pickedOpt.isCorrect ? '#f0fdf4' : '#fffbeb'};">
+    {#key pickedOpt.id}
+      <div
+        class={pickedOpt.isCorrect ? 'fl-feedback-correct' : 'fl-feedback-nudge'}
+        style="border-radius: 12px; padding: 14px 16px; border: 1px solid {pickedOpt.isCorrect ? '#86efac' : '#fde68a'}; background: {pickedOpt.isCorrect ? '#f0fdf4' : '#fffbeb'};"
+      >
       <div style="font-size: 0.76rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: {pickedOpt.isCorrect ? '#15803d' : '#b45309'}; margin-bottom: 4px;">
         {pickedOpt.isCorrect ? 'Siap lanjut' : 'Perbaikan singkat sebelum lanjut'}
       </div>
@@ -60,7 +64,8 @@
           <strong>Ingat intinya:</strong> {check.remediationCard}
         </p>
       {/if}
-    </div>
+      </div>
+    {/key}
   {:else if alreadySolved}
     <div style="border-radius: 10px; padding: 10px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 0.84rem; color: #166534; font-weight: 600;">
       Cek singkat ini sudah selesai. Kamu bisa lanjut ke langkah berikutnya.

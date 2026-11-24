@@ -1,7 +1,7 @@
 ---
 arc42_section: 6
-verified_commit: 4bff8a7
-verified_timestamp: 2026-11-24T10:15:12Z
+verified_commit: d680042
+verified_timestamp: 2026-11-24T13:26:03Z
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 6. Runtime View
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `55ba97f` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-24T01:07:48Z`
+> - **Verified Commit**: `d680042` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-24T13:26:03Z`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -147,4 +147,31 @@ sequenceDiagram
 ## 6.4 Scenario 4: Grounded Socratic AI Chat & SSE Streaming
 
 - **Task-Bound Socratic Guidance**: `POST /api/v1/tasks/:id/socratic-hint` and `POST /api/v1/socratic/turn` execute `AskSocraticTutorUseCase` with real `conversationHistory`, Corpus of Record chunks, and delivered lesson context. `/api/v1/socratic/turn` persists both learner and tutor turns with a chained SHA-256 Merkle root in `socratic_chat_sessions` / `socratic_chat_turns`.
-- **Contextual / Streaming Coach**: `POST /api/v1/socratic/chat` (JSON) and `POST /api/v1/socratic/stream` (SSE `text/event-stream` with `X-Accel-Buffering: no`) connect `LumisChatAssistant.svelte` directly to `AiGatewayService` for debriefing, diagnostic coaching, and drift revalidation—failing cleanly with HTTP `503` if the AI Gateway is offline rather than returning fabricated hardcoded responses.
+- **Contextual / Streaming Coach**: `POST /api/v1/socratic/chat` (JSON) and `POST /api/v1/socratic/stream` (SSE `text/event-stream` with `X-Accel-Buffering: no`) connect `LumisChatAssistant.svelte` directly to `AiGatewayService` for debriefing, diagnostic coaching, and drift revalidation—failing cleanly with HTTP `503` if the AI Gateway is offline rather than returning fabricated hardcoded responses. All Socratic endpoints require authenticated caller identity (`auth.user.id`) and enforce session ownership.
+
+---
+
+## 6.5 Scenario 5: Multi-Format Curriculum Authoring, Persistent Asset Deduplication & Cross-PC Remote Sync
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Author as Curriculum Author / Coding Agent
+    participant CLI as FlashLearn Agent CLI (packages/cli)
+    participant API as FlashLearn API Service
+    participant DB as PostgreSQL (contents / media_assets / media_asset_blobs)
+
+    Author->>CLI: flashlearn plan init --input book.epub --dir ./work/course
+    CLI->>CLI: Bounded fflate/unpdf extraction -> slices/*.md + curriculum-plan.json
+    Author->>CLI: flashlearn plan push --module ch01 --upload-media --dry-run
+    CLI->>CLI: Validate UILA v2 manifest, glossary, & local figure references
+    Author->>CLI: flashlearn plan push --module ch01 --upload-media (IF-02)
+    CLI->>API: POST /api/v1/workspaces/:id/assets (multipart WebP/PNG, magic-byte checked)
+    API->>DB: Compute SHA-256 -> deduplicate in media_assets / media_asset_blobs (IF-03)
+    API-->>CLI: 200 OK (/api/v1/assets/:assetId)
+    CLI->>API: POST/PUT /api/v1/contents (rewritten assetUrl + interactivePayload)
+    API->>DB: Upsert content + version snapshot + audit log (IF-03)
+    API-->>CLI: 200 OK (remoteContentId + contentSha256)
+    Author->>CLI: flashlearn plan diff / plan prune --yes (Cross-PC Sync)
+    CLI->>API: Compare local plan vs remote workspace & soft-delete removed modules
+```

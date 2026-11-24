@@ -17,6 +17,54 @@ const ALLOWED_IMAGE_MIMES = new Set([
 
 const DEFAULT_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
+export function verifyImageMagicBytes(mime: string, bytes: Uint8Array): boolean {
+  if (mime === 'image/png') {
+    return (
+      bytes.length >= 8 &&
+      bytes[0] === 0x89 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x4e &&
+      bytes[3] === 0x47 &&
+      bytes[4] === 0x0d &&
+      bytes[5] === 0x0a &&
+      bytes[6] === 0x1a &&
+      bytes[7] === 0x0a
+    );
+  }
+  if (mime === 'image/jpeg') {
+    return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  }
+  if (mime === 'image/gif') {
+    return (
+      bytes.length >= 6 &&
+      bytes[0] === 0x47 &&
+      bytes[1] === 0x49 &&
+      bytes[2] === 0x46 &&
+      bytes[3] === 0x38 &&
+      (bytes[4] === 0x37 || bytes[4] === 0x39) &&
+      bytes[5] === 0x61
+    );
+  }
+  if (mime === 'image/webp') {
+    return (
+      bytes.length >= 12 &&
+      bytes[0] === 0x52 &&
+      bytes[1] === 0x49 &&
+      bytes[2] === 0x46 &&
+      bytes[3] === 0x46 &&
+      bytes[8] === 0x57 &&
+      bytes[9] === 0x45 &&
+      bytes[10] === 0x42 &&
+      bytes[11] === 0x50
+    );
+  }
+  if (mime === 'image/svg+xml') {
+    const head = new TextDecoder().decode(bytes.slice(0, 512));
+    return /<svg\b/i.test(head);
+  }
+  return false;
+}
+
 function sanitizeFilename(raw: string): string {
   const base = raw.split(/[\\/]/).pop() || 'asset.bin';
   return base.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120) || 'asset.bin';
@@ -89,6 +137,10 @@ export class UploadMediaAssetUseCase {
       }
     }
 
+    if (!verifyImageMagicBytes(mime, input.bytes)) {
+      throw new Error(`Invalid file signature: bytes do not match declared MIME type "${mime}".`);
+    }
+
     const sha256 = createHash('sha256').update(input.bytes).digest('hex');
     const existing = await this.mediaRepo.findByWorkspaceAndSha(input.workspaceId, sha256);
     if (existing) {
@@ -131,7 +183,7 @@ export class GetMediaAssetUseCase {
     assetId: string,
     userId?: string,
     role?: string
-  ): Promise<{ asset: MediaAssetRecord; bytes: Uint8Array } | null> {
+  ): Promise<{ asset: MediaAssetRecord; bytes: Uint8Array; isPublic: boolean } | null> {
     const row = await this.mediaRepo.findById(assetId);
     if (!row) return null;
 
@@ -145,7 +197,7 @@ export class GetMediaAssetUseCase {
     const bytes = await store.get(row.storageKey, row.sha256);
     if (!bytes) return null;
 
-    return { asset: toPublicRecord(row), bytes };
+    return { asset: toPublicRecord(row), bytes, isPublic: Boolean(ws.isPublic) };
   }
 }
 

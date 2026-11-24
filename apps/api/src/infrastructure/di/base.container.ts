@@ -223,7 +223,8 @@ export class BaseContainer {
   public readonly saveLearnerProgressUseCase = new SaveLearnerProgressUseCase(
     this.contentRepository,
     this.interactiveRepository,
-    this.masteryRepository
+    this.masteryRepository,
+    this.workspaceRepository
   );
   public readonly getLearnerProgressUseCase = new GetLearnerProgressUseCase(
     this.interactiveRepository

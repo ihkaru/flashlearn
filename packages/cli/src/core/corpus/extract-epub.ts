@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { basename, posix } from 'node:path';
 import { unzipSync } from 'fflate';
 import {
+  createSafeZipFilter,
   decodeXmlEntities,
   estimateTokens,
   splitMarkdownByTokenBudget,
@@ -45,7 +46,13 @@ function parseOpfManifest(opfXml: string): {
     const id = attrs.match(/\bid\s*=\s*["']([^"']+)["']/i)?.[1];
     const href = attrs.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1];
     if (id && href) {
-      manifest.set(id, decodeURIComponent(href));
+      let decodedHref = href;
+      try {
+        decodedHref = decodeURIComponent(href);
+      } catch {
+        decodedHref = href;
+      }
+      manifest.set(id, decodedHref);
     }
   }
 
@@ -77,7 +84,9 @@ export function extractEpubSource(
   maxTokensPerSlice = 3200
 ): ExtractedSourceResult {
   const rawBytes = new Uint8Array(readFileSync(filePath));
-  const entries = unzipSync(rawBytes);
+  const entries = unzipSync(rawBytes, {
+    filter: createSafeZipFilter(/\.(xml|opf|ncx|xhtml|html|htm)$/i),
+  });
 
   const containerXml = readZipText(entries, 'META-INF/container.xml');
   const opfPath =

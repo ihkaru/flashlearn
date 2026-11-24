@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import { assertWorkspaceReadable, requirePermission } from '../middlewares/workspace-guard';
 
 export const workspaceController = new Elysia({ prefix: '/api/v1/workspaces' })
   .get(
@@ -41,6 +42,11 @@ export const workspaceController = new Elysia({ prefix: '/api/v1/workspaces' })
         set.status = 403;
         return { error: 'Forbidden: Only creators and superadmins can create workspaces' };
       }
+      const perm = requirePermission(auth, 'workspaces:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
 
       try {
         const workspace = await container.createWorkspaceUseCase.execute(auth.user.id, body);
@@ -73,6 +79,11 @@ export const workspaceController = new Elysia({ prefix: '/api/v1/workspaces' })
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
         set.status = 403;
         return { error: 'Forbidden: Only creators and superadmins can import domain blueprints' };
+      }
+      const perm = requirePermission(auth, 'workspaces:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
       }
 
       try {
@@ -277,7 +288,13 @@ export const workspaceController = new Elysia({ prefix: '/api/v1/workspaces' })
   )
   .get(
     '/:id/describe',
-    async ({ params, set }) => {
+    async ({ headers, params, set }) => {
+      const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(params.id, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
+      }
       try {
         return await container.describeDomainReadinessUseCase.execute(params.id);
       } catch (err: any) {
@@ -298,7 +315,13 @@ export const workspaceController = new Elysia({ prefix: '/api/v1/workspaces' })
   )
   .get(
     '/:id/diagnose',
-    async ({ params, set }) => {
+    async ({ headers, params, set }) => {
+      const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(params.id, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
+      }
       try {
         return await container.describeDomainReadinessUseCase.execute(params.id);
       } catch (err: any) {

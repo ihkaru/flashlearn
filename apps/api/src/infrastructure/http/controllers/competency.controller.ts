@@ -1,6 +1,11 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import {
+  assertWorkspaceOwner,
+  assertWorkspaceReadable,
+  requirePermission,
+} from '../middlewares/workspace-guard';
 
 export const competencyController = new Elysia({ prefix: '/api/v1/competencies' })
   .get(
@@ -13,6 +18,11 @@ export const competencyController = new Elysia({ prefix: '/api/v1/competencies' 
       }
 
       const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(workspaceId, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
+      }
       const userId = auth.user?.id || null;
 
       try {
@@ -36,11 +46,17 @@ export const competencyController = new Elysia({ prefix: '/api/v1/competencies' 
   )
   .get(
     '/:id',
-    async ({ params, set }) => {
+    async ({ headers, params, set }) => {
       const node = await container.competencyRepository.findById(params.id);
       if (!node) {
         set.status = 404;
         return { error: 'Competency node not found' };
+      }
+      const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(node.workspaceId, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
       }
       return node;
     },
@@ -56,7 +72,18 @@ export const competencyController = new Elysia({ prefix: '/api/v1/competencies' 
   )
   .get(
     '/:id/learning-bundle',
-    async ({ params, set }) => {
+    async ({ headers, params, set }) => {
+      const node = await container.competencyRepository.findById(params.id);
+      if (!node) {
+        set.status = 404;
+        return { error: 'Competency node not found' };
+      }
+      const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(node.workspaceId, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
+      }
       try {
         return await container.getCompetencyLearningBundleUseCase.execute(params.id);
       } catch (err: any) {
@@ -83,6 +110,16 @@ export const competencyController = new Elysia({ prefix: '/api/v1/competencies' 
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
         set.status = 403;
         return { error: 'Forbidden: Creating competency nodes is restricted to creators and superadmins' };
+      }
+      const perm = requirePermission(auth, 'competencies:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
+      const ownership = await assertWorkspaceOwner(body.workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
       }
 
       try {
@@ -120,6 +157,21 @@ export const competencyController = new Elysia({ prefix: '/api/v1/competencies' 
         set.status = 403;
         return { error: 'Forbidden: Modifying graph prerequisites is restricted to creators and superadmins' };
       }
+      const perm = requirePermission(auth, 'competencies:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
+      const targetNode = await container.competencyRepository.findById(body.competencyId);
+      if (!targetNode) {
+        set.status = 404;
+        return { error: 'Competency node not found' };
+      }
+      const ownership = await assertWorkspaceOwner(targetNode.workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
+      }
 
       try {
         return await container.linkPrerequisiteUseCase.execute(body);
@@ -148,6 +200,21 @@ export const competencyController = new Elysia({ prefix: '/api/v1/competencies' 
         set.status = 403;
         return { error: 'Forbidden: Approving competency nodes requires expert or superadmin role' };
       }
+      const perm = requirePermission(auth, 'competencies:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
+      const targetNode = await container.competencyRepository.findById(params.id);
+      if (!targetNode) {
+        set.status = 404;
+        return { error: 'Competency node not found' };
+      }
+      const ownership = await assertWorkspaceOwner(targetNode.workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
+      }
 
       try {
         return await container.approveCompetencyUseCase.execute(params.id, auth.user.id);
@@ -174,6 +241,21 @@ export const competencyController = new Elysia({ prefix: '/api/v1/competencies' 
       if (!auth.user) {
         set.status = 401;
         return { error: 'Unauthorized: Sign in required to update mastery status' };
+      }
+      const perm = requirePermission(auth, 'competencies:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
+      const targetNode = await container.competencyRepository.findById(params.id);
+      if (!targetNode) {
+        set.status = 404;
+        return { error: 'Competency node not found' };
+      }
+      const ownership = await assertWorkspaceOwner(targetNode.workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
       }
 
       try {
@@ -215,6 +297,21 @@ export const competencyController = new Elysia({ prefix: '/api/v1/competencies' 
       if (!auth.user) {
         set.status = 401;
         return { error: 'Unauthorized: Sign in required to record unaided practice checkpoint' };
+      }
+      const perm = requirePermission(auth, 'competencies:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
+      const targetNode = await container.competencyRepository.findById(params.id);
+      if (!targetNode) {
+        set.status = 404;
+        return { error: 'Competency node not found' };
+      }
+      const ownership = await assertWorkspaceOwner(targetNode.workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
       }
 
       try {

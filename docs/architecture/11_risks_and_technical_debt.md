@@ -1,7 +1,7 @@
 ---
 arc42_section: 11
-verified_commit: 4bff8a7
-verified_timestamp: 2026-11-24T10:15:12Z
+verified_commit: d680042
+verified_timestamp: 2026-11-24T13:26:03Z
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 11. Risks and Technical Debt
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `55ba97f` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-24T01:07:48Z`
+> - **Verified Commit**: `d680042` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-24T13:26:03Z`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -32,6 +32,7 @@ This section catalogues known architectural risks and active technical debt in F
 | RISK-05 | Key management, rotation, and decentralized revocation for Ed25519 W3C credentials | High | Low | Store runtime secrets in Infisical/Coolify, validate credential `status` (`active`/`revoked`/`drift_suspended`) in PostgreSQL during verification. Planned: public `/.well-known/did.json` resolver and W3C Bitstring Status List (`DEBT-03`). | Security & Compliance |
 | RISK-06 | Learner friction when AI Tutor is disabled during Unaided Practice & Gate Exam | Medium | Medium | Provide DB-grounded `CorpusReferenceCard`, Job Aid checklists, formulas, and causal priming probes before entering the unaided Gate Exam. | UX & Cognitive Design |
 | RISK-07 | Hallucinated statutory citations or unsolvable parameters in agent-generated blueprints | High | Low | Enforce SHA-256 hashing of ingested source chunks, deterministic verbatim quote checks (`CitationValidatorService`), Tarjan SCC acyclicity, 100%-weighted rubric validation (`validateDomainBlueprint`), and Class A fail-fast config checks. | CLI & Automation |
+| RISK-08 | Upstream transitive dependency CVEs (e.g. `vite`, `zod`, `shell-quote`, `xlsx`) | Medium | Medium | Run `osv-scanner scan source -r .` during release gates, upgrade patched dependencies promptly, and isolate unpatched optional libraries (`xlsx`). | Platform Core |
 
 ---
 
@@ -45,6 +46,8 @@ This section catalogues known architectural risks and active technical debt in F
 | DEBT-04 | Live Load & DB Integration CI | Integration tests `apps/api/tests/phase01`–`phase16.test.ts` require a running PostgreSQL instance, and 50-VU load benchmarks for `QS-03` have not yet been automated in CI. | Full DB integration and `QS-03` performance telemetry cannot run in DB-less sandboxes. | Provision ephemeral Postgres service container + k6 load benchmark in CI alongside hermetic `llm_and_oracle_integrity.test.ts`. | v1.1.0 |
 | DEBT-05 | Credential Execution Artifact Hash | Column `issued_credentials.execution_artifact_hash` exists in schema (`0009`), but `IssueVerifiableCredentialUseCase` does not yet populate it with the aggregated Merkle hash of verified attempt transcripts. | W3C VCs do not yet embed attempt transcript Merkle digests automatically. | Compute and attach aggregated attempt `conversationHash` / artifact digest in `IssueVerifiableCredentialUseCase`. | v1.1.0 |
 | DEBT-06 | Turnkey Bootstrap Seeds | Five canonical domain seed modules remain under `apps/api/src/infrastructure/database/seeds/` executed by `start.sh` for turnkey onboarding. | Couples starter domain content to backend container startup rather than pure CLI ingestion. | Export the 5 canonical seeds into versioned JSON blueprint files ingested via `flashlearn domain import-blueprint`. | v1.2.0 |
+| DEBT-07 | `packages/cli` Soft-Delete Filtering in `plan diff` | `flashlearn plan diff` currently lists soft-deleted remote contents (`status: 'deleted'`) as `remoteOnly` even after `plan prune` succeeds. | Creates noisy diff output after pruning legacy modules. | Filter out `deleted`/`archived` records in `plan-remote-sync.ts` unless `--include-deleted` is passed. | v1.1.0 |
+| DEBT-08 | Native CLI Enforcement of `chapter-ledger.json` & Recall Ratchet | The v3 Two-Phase Curriculum Harness (`chapter-ledger.json`, `Key Point Recall >= 85%`) is currently enforced at the agent-skill layer rather than as a deterministic CLI gate. | Relies on authoring agent discipline rather than hard CLI validation during `plan push`. | Add `flashlearn plan audit --min-recall 0.85` and ledger verification into `packages/cli` (Phase 23). | v1.2.0 |
 
 ---
 

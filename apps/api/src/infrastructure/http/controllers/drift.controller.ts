@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import { assertWorkspaceOwner, requirePermission } from '../middlewares/workspace-guard';
 
 export const driftController = new Elysia({ prefix: '/api/v1/drift' })
   .get(
@@ -10,6 +11,11 @@ export const driftController = new Elysia({ prefix: '/api/v1/drift' })
       if (!auth.user) {
         set.status = 401;
         return { error: 'Unauthorized' };
+      }
+      const ownership = await assertWorkspaceOwner(params.workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
       }
 
       try {
@@ -44,6 +50,15 @@ export const driftController = new Elysia({ prefix: '/api/v1/drift' })
         set.status = 401;
         return { error: 'Unauthorized' };
       }
+      if (auth.role !== 'superadmin') {
+        set.status = 403;
+        return { error: 'Forbidden: Batch competency decay processing is restricted to superadmins' };
+      }
+      const perm = requirePermission(auth, 'drift:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
 
       try {
         const result = await container.processCompetencyDecayBatchUseCase.execute();
@@ -67,6 +82,21 @@ export const driftController = new Elysia({ prefix: '/api/v1/drift' })
       if (!auth.user) {
         set.status = 401;
         return { error: 'Unauthorized' };
+      }
+      const perm = requirePermission(auth, 'drift:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
+      const comp = await container.competencyRepository.findById(body.competencyId);
+      if (!comp) {
+        set.status = 404;
+        return { error: 'Competency not found' };
+      }
+      const ownership = await assertWorkspaceOwner(comp.workspaceId, auth);
+      if (!ownership.ok) {
+        set.status = ownership.status;
+        return { error: ownership.error };
       }
 
       try {

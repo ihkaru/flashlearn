@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import { requirePermission } from '../middlewares/workspace-guard';
 
 export const contentController = new Elysia({ prefix: '/api/v1/contents' })
   .get(
@@ -31,6 +32,11 @@ export const contentController = new Elysia({ prefix: '/api/v1/contents' })
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
         set.status = 403;
         return { error: 'Forbidden: Only creators and superadmins can create contents' };
+      }
+      const perm = requirePermission(auth, 'contents:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
       }
 
       try {
@@ -138,6 +144,11 @@ export const contentController = new Elysia({ prefix: '/api/v1/contents' })
         set.status = 401;
         return { error: 'Unauthorized: Authentication required' };
       }
+      const perm = requirePermission(auth, 'contents:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
+      }
 
       try {
         const updated = await container.updateContentUseCase.execute(
@@ -190,6 +201,11 @@ export const contentController = new Elysia({ prefix: '/api/v1/contents' })
       if (!auth.user) {
         set.status = 401;
         return { error: 'Unauthorized: Authentication required' };
+      }
+      const perm = requirePermission(auth, 'contents:write');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
       }
 
       try {

@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
+import { requirePermission } from '../middlewares/workspace-guard';
 
 export const apiKeyController = new Elysia({ prefix: '/api/v1/api-keys' })
   .get(
@@ -10,6 +11,11 @@ export const apiKeyController = new Elysia({ prefix: '/api/v1/api-keys' })
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
         set.status = 403;
         return { error: 'Forbidden: API key management is reserved for creators and superadmins' };
+      }
+      const perm = requirePermission(auth, 'apikeys:manage');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
       }
 
       return await container.listApiKeysUseCase.execute(auth.user.id, auth.role);
@@ -30,6 +36,11 @@ export const apiKeyController = new Elysia({ prefix: '/api/v1/api-keys' })
       if (!auth.user || (auth.role !== 'creator' && auth.role !== 'superadmin')) {
         set.status = 403;
         return { error: 'Forbidden: API key generation is reserved for creators and superadmins' };
+      }
+      const perm = requirePermission(auth, 'apikeys:manage');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
       }
 
       try {
@@ -62,6 +73,11 @@ export const apiKeyController = new Elysia({ prefix: '/api/v1/api-keys' })
       if (!auth.user) {
         set.status = 401;
         return { error: 'Unauthorized: Authentication required' };
+      }
+      const perm = requirePermission(auth, 'apikeys:manage');
+      if (!perm.ok) {
+        set.status = perm.status;
+        return { error: perm.error };
       }
 
       try {

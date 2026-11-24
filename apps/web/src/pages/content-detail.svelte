@@ -2,7 +2,8 @@
   import { Page } from 'framework7-svelte';
   import { api } from '../stores/api';
   import { auth } from '../stores/auth.svelte';
-  import { exportContentToMarkdown, type Content } from '@flashlearn/shared';
+  import { exportContentToMarkdown, type Content, type Workspace } from '@flashlearn/shared';
+  import { getWorkspaceTheme } from '../lib/workspaceTheme';
   import MaterialViewer from '../components/MaterialViewer.svelte';
   import QuizRunner from '../components/QuizRunner.svelte';
   import CombinedModule from '../components/CombinedModule.svelte';
@@ -24,12 +25,16 @@
   const id = $derived(contentId || f7route?.params?.id || '');
 
   let content = $state<Content | null>(null);
+  let workspace = $state<Workspace | null>(null);
   let isLoading = $state(true);
   let errorMessage = $state<string | null>(null);
   let showEditModal = $state(false);
   let showReviewModal = $state(false);
 
   let canEdit = $derived(auth.isSuperadmin || auth.isCreator);
+  const wsTheme = $derived(
+    getWorkspaceTheme(workspace?.slug || workspace?.id || content?.workspaceId || '')
+  );
 
   $effect(() => {
     if (id) {
@@ -41,7 +46,11 @@
     isLoading = true;
     errorMessage = null;
     try {
-      content = await api.contents.get(id);
+      const loaded = await api.contents.get(id);
+      content = loaded;
+      workspace = loaded.workspaceId
+        ? await api.workspaces.get(loaded.workspaceId).catch(() => null)
+        : null;
     } catch (err: any) {
       errorMessage = err.message;
     } finally {
@@ -80,18 +89,32 @@
 </script>
 
 <Page name="content-detail">
-<div class="content-detail-page" style="min-height: 100vh; padding-bottom: 40px;">
+<div class="content-detail-page" style="min-height: 100vh; padding-bottom: 40px; {wsTheme.cssVars}">
   <!-- Sub-navbar Back Bar -->
   <div style="background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 10px 16px;">
     <div style="max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-      <button
-        onclick={goBack}
-        class="fl-btn fl-btn-sm"
-        style="background: none; border: none; font-size: 0.88rem; font-weight: 700; color: #0f766e;"
-      >
-        <Icon name="arrow-left" size={15} />
-        <span>Kembali ke Workspace</span>
-      </button>
+      <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex-wrap: wrap;">
+        <button
+          onclick={goBack}
+          class="fl-btn fl-btn-sm"
+          style="background: none; border: none; font-size: 0.88rem; font-weight: 700; color: var(--ws-accent, #0f766e);"
+        >
+          <Icon name="arrow-left" size={15} />
+          <span>Kembali ke Workspace</span>
+        </button>
+
+        {#if workspace}
+          <span
+            style="display: inline-flex; align-items: center; gap: 7px; max-width: 280px; padding: 4px 10px; border-radius: 999px; background: var(--ws-accent-soft, #f0fdfa); border: 1px solid var(--ws-accent-border, #99f6e4); color: var(--ws-accent-ink, #115e59); font-size: 0.78rem; font-weight: 700;"
+          >
+            <span
+              style="width: 8px; height: 8px; border-radius: 50%; background: var(--ws-accent, #0f766e); flex-shrink: 0;"
+              aria-hidden="true"
+            ></span>
+            <span class="fl-truncate">{workspace.name}</span>
+          </span>
+        {/if}
+      </div>
 
       {#if content}
         <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap;">
@@ -123,7 +146,7 @@
               type="button"
               class="fl-btn fl-btn-sm fl-pill-btn"
               onclick={() => (showEditModal = true)}
-              style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
+              style="background: var(--ws-accent, #0f766e); color: #ffffff; border: none; font-weight: 700;"
             >
               Edit Modul
             </button>
