@@ -181,6 +181,7 @@ export interface PlanModuleEntry {
   title: string;
   unitCode: string;
   moduleOrder: number;
+  contentType?: 'interactive_module' | 'quiz';
   knowledgeProfile: KnowledgeProfile;
   estimatedMinutes: number;
   needsSlideDeck: boolean;

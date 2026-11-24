@@ -1,7 +1,7 @@
 ---
 arc42_section: 9
-verified_commit: d680042
-verified_timestamp: 2026-11-24T13:26:03Z
+verified_commit: 417e66c
+verified_timestamp: 2026-11-24T15:22:23Z
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 9. Architecture Decisions (ADRs)
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `d680042` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-24T13:26:03Z`
+> - **Verified Commit**: `417e66c` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-24T15:22:23Z`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -149,4 +149,13 @@ This section documents architecturally significant decisions (ADRs) governing th
 - **Context**: Every workspace previously shared an identical hardcoded teal accent and displayed redundant UI controls (`DomainTrackSelector` duplicated lecture units on the `Topik Belajar` tab; empty `0`-count filter pills cluttered single-type workspaces).
 - **Decision**: Hide `DomainTrackSelector` outside `Peta Kompetensi`, suppress zero-count/redundant filter pills, introduce a deterministic 6-palette WCAG-AA workspace theme (`workspaceTheme.ts`) applied via restrained tonal framing (top accent edge, monogram tint, active tab, content breadcrumb), and standardize learning micro-animations (`learning-motion.css`) exclusively on GPU-composited `transform`/`opacity` with full `prefers-reduced-motion` static fallback.
 - **Consequences**: Immediate peripheral workspace orientation without visual clutter and smooth, low-cognitive-load study transitions on mobile and desktop.
+- **Risks Created**: none
+
+---
+
+## ADR-15: Scalable Interleaved Quiz & Flashcard Drill Modules (10–600+ Questions, Phase 23)
+- **Status**: Accepted
+- **Context**: Technical interview & quantitative finance books contain dozens to 600+ practice problems that need to sit cleanly alongside conceptual modules (or interleaved after specific lecture units) without rendering 600+ DOM nodes at once or penalizing partial micro-sessions.
+- **Decision**: Extend `QuizQuestion`/`FlashcardItem` with optional `topic`/`sourceRef`, add `POST /api/v1/contents/:id/check-question` for zero-leak single-question Active Practice, add `sessionMode: 'subset'` scoring in `SubmitQuizUseCase`, support `contentType: 'quiz'` (`quiz-drill-v1`) in `packages/cli` (`quiz-drill-pusher.ts`) + filter soft-deleted items in `plan diff` (`DEBT-07`), and build a chunked 3-mode frontend (`QuizDrillSetupCard`, `ActivePracticeRunner` with Confidence Calibration & KaTeX, `FlashcardDeck` with Leitner Re-Queue & keyboard shortcuts, and `PaginatedExamView`).
+- **Consequences**: Effortless active recall and interleaved drilling for 10 to 600+ question banks at locked 120Hz performance on mobile and desktop.
 - **Risks Created**: none

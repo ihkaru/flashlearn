@@ -1,7 +1,7 @@
 ---
 arc42_section: 11
-verified_commit: d680042
-verified_timestamp: 2026-11-24T13:26:03Z
+verified_commit: 417e66c
+verified_timestamp: 2026-11-24T15:22:23Z
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 11. Risks and Technical Debt
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `d680042` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-24T13:26:03Z`
+> - **Verified Commit**: `417e66c` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-24T15:22:23Z`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -46,7 +46,7 @@ This section catalogues known architectural risks and active technical debt in F
 | DEBT-04 | Live Load & DB Integration CI | Integration tests `apps/api/tests/phase01`–`phase16.test.ts` require a running PostgreSQL instance, and 50-VU load benchmarks for `QS-03` have not yet been automated in CI. | Full DB integration and `QS-03` performance telemetry cannot run in DB-less sandboxes. | Provision ephemeral Postgres service container + k6 load benchmark in CI alongside hermetic `llm_and_oracle_integrity.test.ts`. | v1.1.0 |
 | DEBT-05 | Credential Execution Artifact Hash | Column `issued_credentials.execution_artifact_hash` exists in schema (`0009`), but `IssueVerifiableCredentialUseCase` does not yet populate it with the aggregated Merkle hash of verified attempt transcripts. | W3C VCs do not yet embed attempt transcript Merkle digests automatically. | Compute and attach aggregated attempt `conversationHash` / artifact digest in `IssueVerifiableCredentialUseCase`. | v1.1.0 |
 | DEBT-06 | Turnkey Bootstrap Seeds | Five canonical domain seed modules remain under `apps/api/src/infrastructure/database/seeds/` executed by `start.sh` for turnkey onboarding. | Couples starter domain content to backend container startup rather than pure CLI ingestion. | Export the 5 canonical seeds into versioned JSON blueprint files ingested via `flashlearn domain import-blueprint`. | v1.2.0 |
-| DEBT-07 | `packages/cli` Soft-Delete Filtering in `plan diff` | `flashlearn plan diff` currently lists soft-deleted remote contents (`status: 'deleted'`) as `remoteOnly` even after `plan prune` succeeds. | Creates noisy diff output after pruning legacy modules. | Filter out `deleted`/`archived` records in `plan-remote-sync.ts` unless `--include-deleted` is passed. | v1.1.0 |
+| DEBT-07 | `packages/cli` Soft-Delete Filtering in `plan diff` | **Resolved (Phase 23)**: `diffPlanWithRemote` now filters out `deleted`/`archived` remote items so pruned legacy modules no longer clutter diff output. | Closed | Completed in `plan-remote-sync.ts`. | v1.1.0 |
 | DEBT-08 | Native CLI Enforcement of `chapter-ledger.json` & Recall Ratchet | The v3 Two-Phase Curriculum Harness (`chapter-ledger.json`, `Key Point Recall >= 85%`) is currently enforced at the agent-skill layer rather than as a deterministic CLI gate. | Relies on authoring agent discipline rather than hard CLI validation during `plan push`. | Add `flashlearn plan audit --min-recall 0.85` and ledger verification into `packages/cli` (Phase 23). | v1.2.0 |
 
 ---

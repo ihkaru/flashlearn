@@ -15,6 +15,8 @@ export interface QuizQuestion {
   explanation: string;
   hint?: string;
   difficulty?: 'easy' | 'medium' | 'hard';
+  topic?: string;
+  sourceRef?: string;
 }
 
 export interface Content {
@@ -60,6 +62,20 @@ export interface QuizAnswerSubmission {
 export interface QuizSubmissionRequest {
   guestName: string;
   answers: QuizAnswerSubmission[];
+  sessionMode?: 'full' | 'subset';
+}
+
+export interface CheckQuestionRequest {
+  questionId: string;
+  selectedOptionId: string;
+}
+
+export interface CheckQuestionResponse {
+  questionId: string;
+  isCorrect: boolean;
+  correctOptionId: string;
+  explanation: string;
+  hint?: string;
 }
 
 export interface QuestionReviewItem {
@@ -89,6 +105,8 @@ export interface FlashcardItem {
   explanation: string;
   hint?: string;
   difficulty?: 'easy' | 'medium' | 'hard';
+  topic?: string;
+  sourceRef?: string;
 }
 
 export interface CreateContentRequest {

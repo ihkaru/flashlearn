@@ -1,64 +1,107 @@
 <script lang="ts">
-  import type { FlashcardItem } from '@flashlearn/shared';
-  import { Progressbar } from 'framework7-svelte';
+  import type { DrillFlashcard } from '../lib/quizMasteryStore';
 
-  interface Props {
-    flashcards: FlashcardItem[];
-    title?: string;
-    onClose?: () => void;
+  type Rating = 'again' | 'hard' | 'good' | 'easy';
+  interface QueueEntry {
+    card: DrillFlashcard;
+    retryCount: number;
   }
 
-  let { flashcards = [], title = 'Flashcard Study Deck', onClose }: Props = $props();
+  interface Props {
+    flashcards: DrillFlashcard[];
+    title?: string;
+    onClose?: () => void;
+    onCardRated?: (questionId: string, rating: Rating) => void;
+  }
 
+  let { flashcards = [], title = 'Flashcard Study Deck', onClose, onCardRated }: Props = $props();
+
+  let queue = $state<QueueEntry[]>([]);
   let currentIndex = $state(0);
   let isFlipped = $state(false);
-  let studiedCount = $state(0);
   let masteredCount = $state(0);
+  let requeuedCount = $state(0);
   let isFinished = $state(false);
+  let isTransitioning = $state(false);
 
-  let currentCard = $derived(flashcards[currentIndex]);
-  let progress = $derived(
-    flashcards.length > 0 ? Math.round(((currentIndex + 1) / flashcards.length) * 100) : 0
+  $effect(() => {
+    queue = flashcards.map((card) => ({ card, retryCount: 0 }));
+    currentIndex = 0;
+    isFlipped = false;
+    masteredCount = 0;
+    requeuedCount = 0;
+    isFinished = false;
+    isTransitioning = false;
+  });
+
+  let currentEntry = $derived(queue[currentIndex]);
+  let currentCard = $derived(currentEntry?.card);
+  let progressRatio = $derived(
+    queue.length > 0 ? (isFinished ? 1 : (currentIndex + 1) / queue.length) : 0
   );
 
   function flipCard() {
+    if (isFinished || isTransitioning || !currentCard) return;
     isFlipped = !isFlipped;
   }
 
-  function handleRating(rating: 'again' | 'hard' | 'good' | 'easy') {
-    studiedCount++;
+  function handleRating(rating: Rating) {
+    if (isFinished || isTransitioning || !currentEntry) return;
+    isTransitioning = true;
+    onCardRated?.(currentEntry.card.questionId, rating);
+
     if (rating === 'good' || rating === 'easy') {
       masteredCount++;
+    } else if (rating === 'again' && currentEntry.retryCount < 2) {
+      queue = [...queue, { card: currentEntry.card, retryCount: currentEntry.retryCount + 1 }];
+      requeuedCount++;
     }
 
     isFlipped = false;
-
-    // Small delay for flip animation before moving to next card
     setTimeout(() => {
-      if (currentIndex + 1 < flashcards.length) {
+      if (currentIndex + 1 < queue.length) {
         currentIndex++;
       } else {
         isFinished = true;
       }
-    }, 200);
+      isTransitioning = false;
+    }, 180);
   }
 
   function restart() {
+    queue = flashcards.map((card) => ({ card, retryCount: 0 }));
     currentIndex = 0;
     isFlipped = false;
-    studiedCount = 0;
     masteredCount = 0;
+    requeuedCount = 0;
     isFinished = false;
+    isTransitioning = false;
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (isFinished || !currentCard) return;
+    const tag = (e.target as HTMLElement | null)?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    const keyMap: Record<string, Rating> = { '1': 'again', '2': 'hard', '3': 'good', '4': 'easy' };
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      flipCard();
+    } else if (keyMap[e.key]) {
+      e.preventDefault();
+      handleRating(keyMap[e.key]);
+    }
   }
 </script>
 
-<div class="flashcard-deck-container" style="padding: 16px; max-width: 600px; margin: 0 auto;">
-  <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;">
+<svelte:window onkeydown={handleKeydown} />
+
+<div class="flashcard-deck-container" style="padding: 12px 0; max-width: 600px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;">
     <div>
-      <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #0f766e;">{title}</h3>
-      <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #475569;">
-        {#if !isFinished}
-          Kartu {currentIndex + 1} dari {flashcards.length}
+      <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--ws-accent, #0f766e);">{title}</h3>
+      <p style="margin: 3px 0 0 0; font-size: 0.84rem; color: #475569;">
+        {#if !isFinished && queue.length > 0}
+          Kartu {currentIndex + 1} dari {queue.length}
         {:else}
           Sesi Selesai
         {/if}
@@ -66,164 +109,147 @@
     </div>
     {#if onClose}
       <button
+        type="button"
         onclick={onClose}
         class="fl-btn fl-btn-sm"
-        style="background: #f1f5f9; border: 1px solid #e2e8f0; color: #334155;"
+        style="background: #f1f5f9; border: 1px solid #e2e8f0; color: #334155; font-weight: 600;"
       >
         Tutup
       </button>
     {/if}
   </div>
 
-  {#if !isFinished && flashcards.length > 0}
-    <!-- Progress Bar -->
-    <div style="margin-bottom: 20px;">
-      <Progressbar progress={progress} color="teal" />
+  {#if !isFinished && currentCard}
+    <div style="height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-bottom: 18px;">
+      <div
+        class="fl-progress-bar-fill"
+        style="background: var(--ws-accent, #0f766e); transform: scaleX({progressRatio});"
+      ></div>
     </div>
 
-    <!-- 3D Flippable Flashcard -->
     <div
       class="flashcard-scene"
       onclick={flipCard}
       role="button"
       tabindex="0"
-      onkeydown={(e) => (e.key === ' ' || e.key === 'Enter') && flipCard()}
+      aria-label="Balik kartu flashcard"
+      onkeydown={(e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          flipCard();
+        }
+      }}
     >
       <div class="flashcard-card" class:flipped={isFlipped}>
-        <!-- FRONT FACE -->
         <div class="flashcard-face flashcard-front">
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-            <span
-              style="background: #e0f2fe; color: #0369a1; font-size: 0.74rem; font-weight: 700; text-transform: uppercase; padding: 3px 8px; border-radius: 6px;"
-            >
-              Pertanyaan
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span style="background: #f0fdfa; color: var(--ws-accent, #0f766e); border: 1px solid #99f6e4; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; padding: 3px 8px; border-radius: 6px;">
+                Pertanyaan
+              </span>
+              {#if currentCard.topic}
+                <span style="background: #f1f5f9; color: #334155; font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 999px;">
+                  {currentCard.topic}
+                </span>
+              {/if}
+              {#if currentEntry.retryCount > 0}
+                <span style="background: #fef3c7; color: #92400e; font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;">
+                  Diulang
+                </span>
+              {/if}
+            </div>
+            <span style="font-size: 0.76rem; color: #475569;">
+              Ketuk / <kbd class="fl-kbd-badge">Space</kbd>
             </span>
-            <span style="font-size: 0.78rem; color: #475569;">Ketuk untuk lihat jawaban</span>
           </div>
 
-          <div style="flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 12px 0;">
-            <h2 style="font-size: 1.25rem; line-height: 1.45; color: #0f172a; margin: 0;">
+          <div style="flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 12px 0; overflow-y: auto;">
+            <h2 style="font-size: 1.18rem; line-height: 1.45; color: #0f172a; margin: 0;">
               {currentCard.front}
             </h2>
           </div>
 
           {#if currentCard.hint}
-            <div style="background: #f8fafc; border-left: 3px solid #0f766e; padding: 8px 12px; border-radius: 4px; font-size: 0.85rem; color: #334155;">
+            <div style="background: #f8fafc; border-left: 3px solid var(--ws-accent, #0f766e); padding: 8px 12px; border-radius: 4px; font-size: 0.84rem; color: #334155;">
               <strong>Petunjuk:</strong> {currentCard.hint}
             </div>
           {:else}
-            <div style="font-size: 0.78rem; color: #64748b; text-align: center;">
-              Active Recall Mode
-            </div>
+            <div style="font-size: 0.76rem; color: #64748b; text-align: center;">Active Recall Mode</div>
           {/if}
         </div>
 
-        <!-- BACK FACE -->
         <div class="flashcard-face flashcard-back">
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-            <span
-              style="background: #dcfce7; color: #15803d; font-size: 0.74rem; font-weight: 700; text-transform: uppercase; padding: 3px 8px; border-radius: 6px;"
-            >
+            <span style="background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; padding: 3px 8px; border-radius: 6px;">
               Jawaban Benar
             </span>
-            <span style="font-size: 0.78rem; color: #0f766e; font-weight: 600;">Ketuk untuk balik</span>
+            <span style="font-size: 0.76rem; color: var(--ws-accent, #0f766e); font-weight: 600;">Ketuk untuk balik</span>
           </div>
 
-          <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 12px 0;">
-            <h2 style="font-size: 1.25rem; font-weight: 700; color: #0f766e; margin: 0 0 12px 0;">
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 10px 0; overflow-y: auto;">
+            <h2 style="font-size: 1.18rem; font-weight: 700; color: var(--ws-accent, #0f766e); margin: 0 0 10px 0;">
               {currentCard.back}
             </h2>
             {#if currentCard.explanation}
-              <p style="font-size: 0.9rem; line-height: 1.5; color: #334155; margin: 0; background: #ffffff; padding: 10px 14px; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <p style="font-size: 0.88rem; line-height: 1.5; color: #334155; margin: 0; background: #ffffff; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
                 {currentCard.explanation}
               </p>
             {/if}
           </div>
 
-          <div style="font-size: 0.76rem; color: #475569; text-align: center;">
-            Evaluasi daya ingatmu di bawah ini:
+          <div style="font-size: 0.75rem; color: #475569; text-align: center;">
+            Nilai daya ingatmu (atau tekan tombol 1–4):
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Rating Actions Bar (Spaced Repetition Buttons) -->
-    <div style="margin-top: 22px;">
-      <div style="font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 8px; text-align: center;">
-        Tingkat Penguasaan Materi:
-      </div>
+    <div style="margin-top: 20px;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
-        <button
-          onclick={() => handleRating('again')}
-          class="fl-btn fl-btn-md"
-          style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 700;"
-        >
-          Ulangi
+        <button type="button" onclick={() => handleRating('again')} class="fl-btn fl-btn-md" style="background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; font-weight: 700; justify-content: space-between;">
+          <span>Ulangi</span><kbd class="fl-kbd-badge">1</kbd>
         </button>
-        <button
-          onclick={() => handleRating('hard')}
-          class="fl-btn fl-btn-md"
-          style="background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; font-weight: 700;"
-        >
-          Sulit
+        <button type="button" onclick={() => handleRating('hard')} class="fl-btn fl-btn-md" style="background: #ffedd5; color: #9a3412; border: 1px solid #fdba74; font-weight: 700; justify-content: space-between;">
+          <span>Sulit</span><kbd class="fl-kbd-badge">2</kbd>
         </button>
-        <button
-          onclick={() => handleRating('good')}
-          class="fl-btn fl-btn-md"
-          style="background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; font-weight: 700;"
-        >
-          Bagus
+        <button type="button" onclick={() => handleRating('good')} class="fl-btn fl-btn-md" style="background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; font-weight: 700; justify-content: space-between;">
+          <span>Bagus</span><kbd class="fl-kbd-badge">3</kbd>
         </button>
-        <button
-          onclick={() => handleRating('easy')}
-          class="fl-btn fl-btn-md"
-          style="background: #dcfce7; color: #15803d; border: 1px solid #86efac; font-weight: 700;"
-        >
-          Mudah
+        <button type="button" onclick={() => handleRating('easy')} class="fl-btn fl-btn-md" style="background: #dcfce7; color: #166534; border: 1px solid #86efac; font-weight: 700; justify-content: space-between;">
+          <span>Mudah</span><kbd class="fl-kbd-badge">4</kbd>
         </button>
       </div>
     </div>
   {:else if isFinished}
-    <!-- Session Complete Card -->
-    <div style="background: #ffffff; border-radius: 16px; padding: 28px 22px; text-align: center; border: 1px solid #e2e8f0;">
-      <h2 style="margin: 0 0 8px 0; color: #0f766e; font-size: 1.4rem;">Sesi Belajar Tuntas</h2>
-      <p style="color: #475569; font-size: 0.92rem; margin: 0 0 20px 0;">
-        Kamu telah mereview seluruh {flashcards.length} kartu soal dengan metode active recall.
+    <div class="fl-step-enter" style="background: #ffffff; border-radius: 16px; padding: 26px 20px; text-align: center; border: 1px solid #e2e8f0;">
+      <h2 style="margin: 0 0 8px 0; color: var(--ws-accent, #0f766e); font-size: 1.35rem; font-weight: 800;">Sesi Belajar Tuntas</h2>
+      <p style="color: #475569; font-size: 0.9rem; margin: 0 0 18px 0;">
+        Kamu telah meninjau {flashcards.length} kartu ({requeuedCount > 0 ? `${requeuedCount} kali pengulangan Leitner` : 'tanpa pengulangan'}).
       </p>
-
-      <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
-        <div style="background: #f0fdfa; padding: 12px 20px; border-radius: 12px; border: 1px solid #ccfbf1;">
-          <div style="font-size: 1.45rem; font-weight: 800; color: #0f766e;">{masteredCount}</div>
+      <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 20px; flex-wrap: wrap;">
+        <div style="background: #f0fdfa; padding: 12px 18px; border-radius: 12px; border: 1px solid #ccfbf1;">
+          <div style="font-size: 1.4rem; font-weight: 800; color: var(--ws-accent, #0f766e);">{masteredCount}</div>
           <div style="font-size: 0.76rem; color: #115e59; font-weight: 600;">Dikuasai</div>
         </div>
-        <div style="background: #f8fafc; padding: 12px 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
-          <div style="font-size: 1.45rem; font-weight: 800; color: #334155;">{flashcards.length}</div>
-          <div style="font-size: 0.76rem; color: #475569; font-weight: 600;">Total Kartu</div>
+        <div style="background: #f8fafc; padding: 12px 18px; border-radius: 12px; border: 1px solid #e2e8f0;">
+          <div style="font-size: 1.4rem; font-weight: 800; color: #334155;">{flashcards.length}</div>
+          <div style="font-size: 0.76rem; color: #475569; font-weight: 600;">Kartu Unik</div>
         </div>
       </div>
-
       <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-        <button
-          onclick={restart}
-          class="fl-btn fl-btn-md"
-          style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
-        >
+        <button type="button" onclick={restart} class="fl-btn fl-btn-md" style="background: var(--ws-accent, #0f766e); color: #ffffff; border: none; font-weight: 700;">
           Review Lagi
         </button>
         {#if onClose}
-          <button
-            onclick={onClose}
-            class="fl-btn fl-btn-md"
-            style="background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; font-weight: 600;"
-          >
+          <button type="button" onclick={onClose} class="fl-btn fl-btn-md" style="background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; font-weight: 600;">
             Selesai
           </button>
         {/if}
       </div>
     </div>
   {:else}
-    <div style="text-align: center; padding: 40px; color: #94a3b8;">
-      Tidak ada kartu flashcard yang tersedia.
+    <div style="text-align: center; padding: 36px; color: #64748b;">
+      Tidak ada kartu flashcard yang tersedia untuk filter ini.
     </div>
   {/if}
 </div>

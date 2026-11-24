@@ -136,6 +136,33 @@ Segera setelah `plan init`, buat file `./work/nama-kursus/chapter-ledger.json` y
 - **Bebas jumlahnya per modul (1..N)**: Jangan memaksakan bab padat ke 1 lab / 1 cek / 1 soal saja. Gunakan array opsional `additionalAnchoringLabs`, `additionalHingeChecks`, `additionalErroneousExamples`, `additionalStressTests`, beberapa `figures[]` (dapat memakai `stepId` spesifik atau beberapa gambar pembanding di satu langkah), serta `slideEndIndex` jika 1 tahap mencakup rentang beberapa slide (mis. Slide 2–4).
 - **Tetap fokus per layar**: Pasangkan 1 ide inti dengan pendukung visual/interaksi kontekstualnya (Dual Coding); jika ada 2+ konsep atau simulasi berbeda, pisahkan ke langkah berurutan agar tidak terjadi *split-attention*.
 
+### E. Modul Khusus Latihan Kuis & Flashcard 3D (`contentType: "quiz"`, 10–600+ Soal, Interleaved)
+- Untuk buku berbasis soal latihan/wawancara (mis. *quant finance interviews*, ujian sertifikasi, atau bank soal per unit), sisipkan modul khusus `contentType: "quiz"` di `curriculum-plan.json` (dapat ditempatkan setelah materi tertentu di unit mana pun, atau sebagai bank latihan mandiri).
+- **Format Manifest (`schemaVersion: "quiz-drill-v1"`)**:
+  ```json
+  {
+    "schemaVersion": "quiz-drill-v1",
+    "summary": "Latihan aktif & flashcard 3D ...",
+    "questions": [
+      {
+        "id": "q-001",
+        "topic": "Conditional Probability",
+        "difficulty": "medium",
+        "question": "Teks soal (mendukung Markdown & LaTeX $E[X]$)...",
+        "hint": "Petunjuk singkat tanpa membocorkan jawaban",
+        "options": [
+          { "id": "a", "text": "...", "isCorrect": true },
+          { "id": "b", "text": "...", "isCorrect": false }
+        ],
+        "explanation": "Penjelasan kausal langkah demi langkah...",
+        "sourceRef": "Bab 4.3 · hal. 78"
+      }
+    ]
+  }
+  ```
+- **Skala & Pedagogi**: Mendukung **10 hingga 600+ soal** per modul tanpa lag (UI otomatis menyediakan sesi mikro `10/20/30/50/Semua`, filter `topic`, *Active Practice* 1-per-layar + *Confidence Calibration*, *Flashcard 3D* dengan *Leitner Re-Queue*, dan *Mode Ujian* terpaginasi). Tidak wajib memaksa ratusan soal — utamakan soal berkualitas yang benar-benar memicu pemahaman & *active recall*.
+- **Push CLI**: Jalankan `flashlearn plan push --dir ... --module <slug>` seperti biasa (`quiz-drill-pusher.ts` otomatis mendeteksi `contentType: "quiz"` / `quiz-drill-v1`).
+
 ---
 
 ## 5. Layer 3 & 4: Phase 2 Incremental Worker Loop (Extract-then-Author + Coverage Ratchet)

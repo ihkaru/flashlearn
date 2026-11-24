@@ -1,9 +1,31 @@
 import type { IContentRepository } from '../../../domain/ports/IContentRepository';
 import type {
+  CheckQuestionResponse,
+  QuizQuestion,
   QuizSubmissionRequest,
   QuizResultResponse,
   QuestionReviewItem,
 } from '@flashlearn/shared';
+
+export function checkSingleQuizQuestion(
+  questions: QuizQuestion[],
+  questionId: string,
+  selectedOptionId: string
+): CheckQuestionResponse {
+  const target = questions.find((q) => q.id === questionId);
+  if (!target) {
+    throw new Error(`Question '${questionId}' not found in this quiz`);
+  }
+  const correctOption = target.options.find((opt) => opt.isCorrect);
+  const correctOptionId = correctOption ? correctOption.id : '';
+  return {
+    questionId: target.id,
+    isCorrect: selectedOptionId === correctOptionId,
+    correctOptionId,
+    explanation: target.explanation || 'No explanation provided.',
+    hint: target.hint,
+  };
+}
 
 export class SubmitQuizUseCase {
   constructor(private readonly contentRepository: IContentRepository) {}
@@ -29,10 +51,28 @@ export class SubmitQuizUseCase {
       answerMap.set(ans.questionId, ans.selectedOptionId);
     }
 
+    let targetQuestions: QuizQuestion[];
+    if (submission.sessionMode === 'subset' && submission.answers.length > 0) {
+      const questionById = new Map<string, QuizQuestion>();
+      for (const q of content.questions) {
+        questionById.set(q.id, q);
+      }
+      targetQuestions = [];
+      for (const questionId of answerMap.keys()) {
+        const matched = questionById.get(questionId);
+        if (matched) targetQuestions.push(matched);
+      }
+      if (targetQuestions.length === 0) {
+        throw new Error('No valid questions matched the submitted subset');
+      }
+    } else {
+      targetQuestions = content.questions;
+    }
+
     let correctCount = 0;
     const reviews: QuestionReviewItem[] = [];
 
-    for (const q of content.questions) {
+    for (const q of targetQuestions) {
       const selectedOptionId = answerMap.get(q.id) || '';
       const correctOption = q.options.find((opt) => opt.isCorrect);
       const correctOptionId = correctOption ? correctOption.id : '';
@@ -52,23 +92,25 @@ export class SubmitQuizUseCase {
       });
     }
 
-    const totalQuestions = content.questions.length;
+    const totalQuestions = targetQuestions.length;
     const percentage = Math.round((correctCount / totalQuestions) * 100);
 
     // Persist submission for leaderboard / creator insights
-    import('../../../infrastructure/database/db').then(async ({ db }) => {
-      const { quizSubmissions } = await import('../../../infrastructure/database/schema');
-      db.insert(quizSubmissions)
-        .values({
-          contentId,
-          guestName: trimmedName,
-          score: correctCount,
-          totalQuestions,
-          percentage,
-          answers: submission.answers,
-        })
-        .catch(() => {});
-    });
+    import('../../../infrastructure/database/db')
+      .then(async ({ db }) => {
+        const { quizSubmissions } = await import('../../../infrastructure/database/schema');
+        db.insert(quizSubmissions)
+          .values({
+            contentId,
+            guestName: trimmedName,
+            score: correctCount,
+            totalQuestions,
+            percentage,
+            answers: submission.answers,
+          })
+          .catch(() => {});
+      })
+      .catch(() => {});
 
     return {
       guestName: trimmedName,

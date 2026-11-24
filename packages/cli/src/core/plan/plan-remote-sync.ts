@@ -10,6 +10,7 @@ import {
   type GlossaryMasterDocument,
 } from './plan-builder';
 import { slugifyText } from '../corpus/xml-utils';
+import { isQuizDrillModule, pushQuizDrillModule } from './quiz-drill-pusher';
 
 export { pullRemoteToPlan } from './plan-remote-pull';
 
@@ -146,9 +147,12 @@ export async function diffPlanWithRemote(client: ApiClient, workDir: string) {
   const absDir = resolve(workDir);
   const plan = loadCurriculumPlan(absDir);
   const wsId = await resolveRemoteWorkspaceId(client, plan, false);
-  const remoteContents: any[] = wsId
+  const rawRemoteContents: any[] = wsId
     ? await client.request<any[]>(`/api/v1/contents/workspace/${wsId}`).catch(() => [])
     : [];
+  const remoteContents = (Array.isArray(rawRemoteContents) ? rawRemoteContents : []).filter(
+    (c) => !c.deletedAt && c.status !== 'deleted'
+  );
   const remoteBySlug = new Map(remoteContents.map((c) => [c.slug, c]));
   const localSlugs = new Set(plan.modules.map((m) => m.slug));
 
@@ -243,33 +247,50 @@ export async function pushPlanToRemote(
       !options.dryRun && unit ? await ensureRemoteUnitDomain(client, wsId, unit) : unit?.remoteDomainId;
 
     const manifestAbs = join(absDir, mod.manifestPath!);
-    const deckAbs = mod.deckPath && existsSync(join(absDir, mod.deckPath)) ? join(absDir, mod.deckPath) : undefined;
-    const simAbs = mod.simPath && existsSync(join(absDir, mod.simPath)) ? join(absDir, mod.simPath) : undefined;
+    const parsedManifest = JSON.parse(readFileSync(manifestAbs, 'utf-8'));
 
-    const res = await importInteractiveModule(client, {
-      workspaceId: wsId,
-      domainId,
-      title: mod.title,
-      slug: mod.slug,
-      readingTimeMinutes: mod.estimatedMinutes,
-      manifestPath: manifestAbs,
-      deckPath: deckAbs,
-      simPath: simAbs,
-      dryRun: Boolean(options.dryRun),
-      mediaOpts: {
-        enabled: Boolean(options.uploadMedia),
+    let res: any;
+    if (isQuizDrillModule(mod, parsedManifest)) {
+      res = await pushQuizDrillModule(client, {
+        workspaceId: wsId,
+        domainId,
+        mod,
+        parsed: parsedManifest,
         dryRun: Boolean(options.dryRun),
-        vaultUrl: options.vaultUrl,
-        apiKey: options.vaultKey,
-      },
-    });
+      });
+    } else {
+      const deckAbs =
+        mod.deckPath && existsSync(join(absDir, mod.deckPath)) ? join(absDir, mod.deckPath) : undefined;
+      const simAbs =
+        mod.simPath && existsSync(join(absDir, mod.simPath)) ? join(absDir, mod.simPath) : undefined;
+
+      res = await importInteractiveModule(client, {
+        workspaceId: wsId,
+        domainId,
+        title: mod.title,
+        slug: mod.slug,
+        readingTimeMinutes: mod.estimatedMinutes,
+        manifestPath: manifestAbs,
+        deckPath: deckAbs,
+        simPath: simAbs,
+        dryRun: Boolean(options.dryRun),
+        mediaOpts: {
+          enabled: Boolean(options.uploadMedia),
+          dryRun: Boolean(options.dryRun),
+          vaultUrl: options.vaultUrl,
+          apiKey: options.vaultKey,
+        },
+      });
+    }
 
     if (!options.dryRun) {
       mod.state = 'published';
       mod.remoteContentId = (res as any).contentId || mod.remoteContentId;
       mod.contentSha256 = computeLocalModuleHash(absDir, mod) || undefined;
       mod.lastUpdatedAt = new Date().toISOString();
-      mergeModuleGlossaryIntoMaster(absDir, mod);
+      if (!isQuizDrillModule(mod, parsedManifest)) {
+        mergeModuleGlossaryIntoMaster(absDir, mod);
+      }
     }
 
     results.push({ slug: mod.slug, unitCode: mod.unitCode, ...res });

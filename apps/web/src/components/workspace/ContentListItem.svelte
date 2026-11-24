@@ -89,7 +89,9 @@
             <ChipBadge variant="neutral" label="Slide Visual" />
           {/if}
 
-          {#if c.questions && c.questions.length > 0}
+          {#if c.type === 'quiz' && c.questions && c.questions.length > 0}
+            <ChipBadge variant="neutral" label="Latihan & Flashcard · {c.questions.length} soal" />
+          {:else if c.questions && c.questions.length > 0}
             <ChipBadge variant="neutral" label="{c.questions.length} Soal" />
           {/if}
 

@@ -20,6 +20,18 @@ export interface ResumableSessionSummary extends LearnerContentProgress {
   workspaceName: string;
 }
 
+export interface CheckQuestionResponse {
+  questionId: string;
+  selectedOptionId: string;
+  correctOptionId: string;
+  isCorrect: boolean;
+  explanation: string;
+}
+
+export type QuizSubmissionPayload = QuizSubmissionRequest & {
+  sessionMode?: 'full' | 'subset';
+};
+
 export const contentApi = {
   listByWorkspace: (workspaceId: string): Promise<Content[]> =>
     fetchWithAuth(`/api/v1/contents/workspace/${workspaceId}`),
@@ -66,10 +78,19 @@ export const contentApi = {
       method: 'POST',
       body: JSON.stringify({ name }),
     }),
-  submitQuiz: (id: string, submission: QuizSubmissionRequest): Promise<QuizResultResponse> =>
+  submitQuiz: (id: string, submission: QuizSubmissionPayload): Promise<QuizResultResponse> =>
     fetchWithAuth(`/api/v1/contents/${id}/submit-quiz`, {
       method: 'POST',
       body: JSON.stringify(submission),
+    }),
+  checkQuestion: (
+    contentId: string,
+    questionId: string,
+    selectedOptionId: string
+  ): Promise<CheckQuestionResponse> =>
+    fetchWithAuth(`/api/v1/contents/${contentId}/check-question`, {
+      method: 'POST',
+      body: JSON.stringify({ questionId, selectedOptionId }),
     }),
   getFlashcards: (id: string): Promise<FlashcardItem[]> =>
     fetchWithAuth(`/api/v1/contents/${id}/flashcards`),

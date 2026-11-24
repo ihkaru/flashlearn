@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia';
 import { container } from '../../di/container';
+import { checkSingleQuizQuestion } from '../../../application/use-cases/content/SubmitQuizUseCase';
 import { resolveAuth } from '../middlewares/auth';
 import { assertWorkspaceReadable, isWorkspaceOwner } from '../middlewares/workspace-guard';
 
@@ -40,6 +41,7 @@ export const quizController = new Elysia({ prefix: '/api/v1/contents' })
       }),
       body: t.Object({
         guestName: t.String({ minLength: 2, description: 'Participant name (required, min 2 chars)' }),
+        sessionMode: t.Optional(t.Union([t.Literal('full'), t.Literal('subset')])),
         answers: t.Array(
           t.Object({
             questionId: t.String(),
@@ -52,6 +54,54 @@ export const quizController = new Elysia({ prefix: '/api/v1/contents' })
         summary: 'Submit Quiz Answers',
         description:
           'Submits user answers to the quiz, validates correct choices, and returns score percentage with detailed feedback.',
+      },
+    }
+  )
+  .post(
+    '/:id/check-question',
+    async ({ headers, params, body, set }) => {
+      const content = await container.contentRepository.findById(params.id);
+      if (!content) {
+        set.status = 404;
+        return { error: 'Content not found' };
+      }
+      const auth = await resolveAuth(headers);
+      const access = await assertWorkspaceReadable(content.workspaceId, auth);
+      if (!access.ok) {
+        set.status = access.status;
+        return { error: access.error };
+      }
+      if (!content.isPublished) {
+        const owner = await isWorkspaceOwner(content.workspaceId, auth);
+        if (!owner) {
+          set.status = 403;
+          return { error: 'Forbidden: Quiz check is unavailable for unpublished content' };
+        }
+      }
+      if (!content.hasQuiz() || !content.questions || content.questions.length === 0) {
+        set.status = 400;
+        return { error: 'This content does not contain a quiz' };
+      }
+      try {
+        return checkSingleQuizQuestion(content.questions, body.questionId, body.selectedOptionId);
+      } catch (err: any) {
+        set.status = 404;
+        return { error: err.message };
+      }
+    },
+    {
+      params: t.Object({
+        id: t.String({ description: 'Content UUID with quiz' }),
+      }),
+      body: t.Object({
+        questionId: t.String({ minLength: 1 }),
+        selectedOptionId: t.String({ minLength: 1 }),
+      }),
+      detail: {
+        tags: ['Quiz & Flashcards'],
+        summary: 'Check Single Quiz Question',
+        description:
+          'Verifies a single question server-side for Active Practice Mode without exposing other answer keys.',
       },
     }
   )

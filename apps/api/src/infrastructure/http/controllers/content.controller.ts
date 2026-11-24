@@ -3,6 +3,25 @@ import { container } from '../../di/container';
 import { resolveAuth } from '../middlewares/auth';
 import { requirePermission } from '../middlewares/workspace-guard';
 
+const quizQuestionSchema = t.Object({
+  id: t.String(),
+  question: t.String(),
+  options: t.Array(
+    t.Object({
+      id: t.String(),
+      text: t.String(),
+      isCorrect: t.Optional(t.Boolean()),
+    })
+  ),
+  explanation: t.String(),
+  hint: t.Optional(t.String()),
+  difficulty: t.Optional(
+    t.Union([t.Literal('easy'), t.Literal('medium'), t.Literal('hard')])
+  ),
+  topic: t.Optional(t.String()),
+  sourceRef: t.Optional(t.String()),
+});
+
 export const contentController = new Elysia({ prefix: '/api/v1/contents' })
   .get(
     '/workspace/:workspaceId',
@@ -74,26 +93,7 @@ export const contentController = new Elysia({ prefix: '/api/v1/contents' })
         readingTimeMinutes: t.Optional(t.Integer()),
         body: t.Optional(t.String({ description: 'Markdown body for materi & combined' })),
         interactivePayload: t.Optional(t.Any()),
-        questions: t.Optional(
-          t.Array(
-            t.Object({
-              id: t.String(),
-              question: t.String(),
-              options: t.Array(
-                t.Object({
-                  id: t.String(),
-                  text: t.String(),
-                  isCorrect: t.Optional(t.Boolean()),
-                })
-              ),
-              explanation: t.String(),
-              hint: t.Optional(t.String()),
-              difficulty: t.Optional(
-                t.Union([t.Literal('easy'), t.Literal('medium'), t.Literal('hard')])
-              ),
-            })
-          )
-        ),
+        questions: t.Optional(t.Array(quizQuestionSchema)),
         isPublished: t.Optional(t.Boolean({ default: true })),
       }),
       detail: {
@@ -183,7 +183,7 @@ export const contentController = new Elysia({ prefix: '/api/v1/contents' })
         summary: t.Optional(t.String()),
         readingTimeMinutes: t.Optional(t.Integer()),
         body: t.Optional(t.String()),
-        questions: t.Optional(t.Array(t.Any())),
+        questions: t.Optional(t.Array(quizQuestionSchema)),
         interactivePayload: t.Optional(t.Any()),
         isPublished: t.Optional(t.Boolean()),
       }),

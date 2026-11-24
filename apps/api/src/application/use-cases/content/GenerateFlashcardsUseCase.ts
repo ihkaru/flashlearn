@@ -27,6 +27,8 @@ export class GenerateFlashcardsUseCase {
         explanation: q.explanation || '',
         hint: q.hint,
         difficulty: q.difficulty || 'medium',
+        topic: q.topic,
+        sourceRef: q.sourceRef,
       };
     });
 
