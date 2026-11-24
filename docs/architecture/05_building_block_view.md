@@ -1,7 +1,7 @@
 ---
 arc42_section: 5
-verified_commit: fede817
-verified_timestamp: 2026-11-22T12:13:31Z
+verified_commit: 55ba97f
+verified_timestamp: 2026-11-24T01:07:48Z
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 5. Building Block View
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `e16123c` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-23T06:35:42Z`
+> - **Verified Commit**: `55ba97f` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-24T01:07:48Z`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -96,13 +96,16 @@ apps/api/src/
 packages/shared/src/
 ├── types/                          # Shared DTOs & domain types (interactive, elastic-pedagogy, media, competency, task, gate, vc, workspace, etc.)
 └── utils/                          # blueprint-validator.ts, graph-validator.ts (Tarjan SCC), merkle-transcript.ts,
-                                    # interactive-module-validator.ts, elastic-profile-validator.ts, guided-flow-builder.ts (1..N elastic steps), deck-sandbox-bridge.ts
+                                    # interactive-module-validator.ts, elastic-profile-validator.ts, guided-flow-builder.ts (1..N elastic steps),
+                                    # deck-sandbox-bridge.ts, interactive-markdown-formatter.ts, workspace-markdown-exporter.ts
 
-apps/web/src/components/interactive/
-├── InteractiveModuleViewer.svelte  # Single-focus guided step runner + local/remote resume + multi-step completion tracking
-├── AdaptiveDeckStage.svelte        # Sandboxed 16:9 slide stage with optional multi-slide step range indicator
-├── GuidedStepBody.svelte           # Keyed multi-element step renderer (labs, hinge checks, erroneous examples, stress tests, figures)
-├── ModuleFigureStrip.svelte        # Context-bound figure strip (multi-figure responsive comparison grid + shared lightbox)
-├── GlossaryDisclosure.svelte       # Always-accessible bottom drawer: Ilustrasi & Diagram (N), Istilah Kunci, Rujukan Sumber
-└── FigureLightboxModal.svelte      # Shared accessible tap-to-zoom modal with source page & jargon annotations
+apps/web/src/components/
+├── workspace/CopyMarkdownButton.svelte  # One-click AI-chat-ready Markdown copy (Workspace & Module) with clipboard + .md fallback
+└── interactive/
+    ├── InteractiveModuleViewer.svelte  # Single-focus guided step runner + local/remote resume + multi-step completion tracking
+    ├── AdaptiveDeckStage.svelte        # Sandboxed 16:9 slide stage with optional multi-slide step range indicator
+    ├── GuidedStepBody.svelte           # Keyed multi-element step renderer (labs, hinge checks, erroneous examples, stress tests, figures)
+    ├── ModuleFigureStrip.svelte        # Context-bound figure strip (multi-figure responsive comparison grid + shared lightbox)
+    ├── GlossaryDisclosure.svelte       # Always-accessible bottom drawer: Ilustrasi & Diagram (N), Istilah Kunci, Rujukan Sumber
+    └── FigureLightboxModal.svelte      # Shared accessible tap-to-zoom modal with source page & jargon annotations
 ```

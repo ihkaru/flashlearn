@@ -199,7 +199,13 @@
     </div>
   {:else if workspace}
     <!-- Workspace Header Subcomponent -->
-    <WorkspaceHeader {workspace} {isOwner} onCreateModule={openCreateModal} />
+    <WorkspaceHeader
+      {workspace}
+      contents={activeContents}
+      {domains}
+      {isOwner}
+      onCreateModule={openCreateModal}
+    />
 
     {#if domains.length > 0}
       <DomainTrackSelector

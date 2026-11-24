@@ -1,14 +1,41 @@
 <script lang="ts">
-  import type { Workspace } from '@flashlearn/shared';
+  import {
+    exportWorkspaceToMarkdown,
+    type Content,
+    type Domain,
+    type Workspace,
+  } from '@flashlearn/shared';
   import { getMonogram } from '../../lib/monogram';
+  import CopyMarkdownButton from './CopyMarkdownButton.svelte';
 
   interface Props {
     workspace: Workspace;
+    contents?: Content[];
+    domains?: Domain[];
     isOwner: boolean;
     onCreateModule: () => void;
   }
 
-  let { workspace, isOwner, onCreateModule }: Props = $props();
+  let { workspace, contents = [], domains = [], isOwner, onCreateModule }: Props = $props();
+
+  function buildWorkspaceExport() {
+    const assetOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+    const res = exportWorkspaceToMarkdown({
+      workspace,
+      contents,
+      domains,
+      assetOrigin,
+    });
+    const kbLabel =
+      res.charCount >= 1000
+        ? `${(res.charCount / 1000).toFixed(1)}K kar`
+        : `${res.charCount} kar`;
+    return {
+      markdown: res.markdown,
+      metaLabel: `${res.moduleCount} modul · ${kbLabel}`,
+      filename: `${workspace.slug || 'workspace'}-full-materi.md`,
+    };
+  }
 </script>
 
 <div
@@ -33,15 +60,24 @@
       </div>
     </div>
 
-    {#if isOwner}
-      <button
-        onclick={onCreateModule}
-        class="fl-btn fl-btn-md fl-pill-btn"
-        style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
-      >
-        <span>Buat Modul</span>
-      </button>
-    {/if}
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      {#if contents.length > 0}
+        <CopyMarkdownButton
+          label="Salin Full Materi (MD)"
+          getExport={buildWorkspaceExport}
+        />
+      {/if}
+
+      {#if isOwner}
+        <button
+          onclick={onCreateModule}
+          class="fl-btn fl-btn-md fl-pill-btn"
+          style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
+        >
+          <span>Buat Modul</span>
+        </button>
+      {/if}
+    </div>
   </div>
 
   {#if workspace.description}

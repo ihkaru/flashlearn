@@ -2,13 +2,14 @@
   import { Page } from 'framework7-svelte';
   import { api } from '../stores/api';
   import { auth } from '../stores/auth.svelte';
-  import type { Content } from '@flashlearn/shared';
+  import { exportContentToMarkdown, type Content } from '@flashlearn/shared';
   import MaterialViewer from '../components/MaterialViewer.svelte';
   import QuizRunner from '../components/QuizRunner.svelte';
   import CombinedModule from '../components/CombinedModule.svelte';
   import InteractiveModuleViewer from '../components/interactive/InteractiveModuleViewer.svelte';
   import ContentEditorModal from '../components/ContentEditorModal.svelte';
   import QuizReviewModal from '../components/QuizReviewModal.svelte';
+  import CopyMarkdownButton from '../components/workspace/CopyMarkdownButton.svelte';
   import Icon from '../components/ui/Icon.svelte';
   import ChipBadge from '../components/ui/ChipBadge.svelte';
 
@@ -61,6 +62,21 @@
     content = updated;
     loadContent();
   }
+
+  function buildModuleExport() {
+    if (!content) return { markdown: '' };
+    const assetOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+    const markdown = exportContentToMarkdown(content, { assetOrigin });
+    const kbLabel =
+      markdown.length >= 1000
+        ? `${(markdown.length / 1000).toFixed(1)}K kar`
+        : `${markdown.length} kar`;
+    return {
+      markdown,
+      metaLabel: kbLabel,
+      filename: `${content.slug || 'modul'}.md`,
+    };
+  }
 </script>
 
 <Page name="content-detail">
@@ -82,6 +98,13 @@
           <ChipBadge
             variant={content.type === 'quiz' ? 'quiz' : content.type === 'materi' ? 'materi' : 'combined'}
             label={content.type === 'interactive_module' ? 'PANDUAN INTERAKTIF' : content.type.toUpperCase()}
+          />
+
+          <CopyMarkdownButton
+            compact
+            label="Salin MD"
+            title="Salin seluruh isi modul ini sebagai Markdown"
+            getExport={buildModuleExport}
           />
 
           {#if canEdit}
@@ -134,7 +157,9 @@
     {:else if content.type === 'combined'}
       <CombinedModule {content} />
     {:else if content.type === 'interactive_module'}
-      <InteractiveModuleViewer {content} onFinished={goBack} />
+      {#key content.id}
+        <InteractiveModuleViewer {content} onFinished={goBack} />
+      {/key}
     {/if}
   {/if}
 </div>
