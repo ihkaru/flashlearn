@@ -10,6 +10,8 @@
   import ErroneousExampleCard from './ErroneousExampleCard.svelte';
   import IllStructuredCaseCard from './IllStructuredCaseCard.svelte';
   import ExplainBackCard from './ExplainBackCard.svelte';
+  import NotationContractCard from './NotationContractCard.svelte';
+  import MarkdownRenderer from '../ui/MarkdownRenderer.svelte';
   import ModuleFigureStrip from './ModuleFigureStrip.svelte';
 
   interface Props {
@@ -243,17 +245,38 @@
 
   {:else if step.kind === 'mechanics'}
     <div style="display: flex; flex-direction: column; gap: 14px;">
-      <div style="background: #f0fdfa; border-left: 4px solid #0f766e; border-radius: 0 12px 12px 0; padding: 14px 16px;">
-        <div style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #0f766e; margin-bottom: 4px;">
+      <div style="background: var(--ws-accent-soft, #f0fdfa); border-left: 4px solid var(--ws-accent, #0f766e); border-radius: 0 12px 12px 0; padding: 14px 16px;">
+        <div style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ws-accent, #0f766e); margin-bottom: 4px;">
           Aturan Inti yang Selalu Berlaku
         </div>
-        <p style="margin: 0; font-size: 0.95rem; font-weight: 600; color: #134e4a; line-height: 1.55;">
-          {uila.block3_coreMechanics.invariantProperty}
-        </p>
+        <div style="font-size: 0.95rem; font-weight: 600; color: var(--ws-accent-ink, #134e4a); line-height: 1.55;">
+          <MarkdownRenderer content={uila.block3_coreMechanics.invariantProperty} />
+        </div>
       </div>
+
+      {#if uila.block3_coreMechanics.variableComponents && uila.block3_coreMechanics.variableComponents.length > 0}
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #475569;">
+            Bedah Mekanisme & Komponen Kunci ({uila.block3_coreMechanics.variableComponents.length})
+          </div>
+          {#each uila.block3_coreMechanics.variableComponents as comp, idx}
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 13px 15px; display: flex; gap: 12px; align-items: flex-start;">
+              <span style="width: 24px; height: 24px; border-radius: 7px; background: var(--ws-accent-soft, #f0fdfa); color: var(--ws-accent-ink, #115e59); border: 1px solid var(--ws-accent-border, #99f6e4); font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+                {idx + 1}
+              </span>
+              <div style="font-size: 0.9rem; color: #1e293b; line-height: 1.6; min-width: 0; flex: 1;">
+                <MarkdownRenderer content={comp} />
+              </div>
+            </div>
+          {/each}
+        </div>
+      {/if}
 
       {#if uila.block3_coreMechanics.contrastingCases.length > 0}
         <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #475569;">
+            Perbandingan Miskonsepsi vs Realitas
+          </div>
           {#each uila.block3_coreMechanics.contrastingCases as cc}
             <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;">
               <div style="font-size: 0.86rem; color: #9f1239; line-height: 1.45;"><strong>Sering keliru:</strong> {cc.beginnerMisconception}</div>
@@ -268,31 +291,7 @@
     <IllStructuredCaseCard caseSpec={payload.illStructuredCase} />
 
   {:else if step.kind === 'notation'}
-    <div style="display: flex; flex-direction: column; gap: 14px;">
-      <div style="background: #0f172a; color: #f8fafc; border-radius: 12px; padding: 16px; font-family: monospace; font-size: 0.96rem; line-height: 1.6; overflow-x: auto;">
-        {uila.block4_notationContract.formulaOrCode}
-      </div>
-      <p style="margin: 0; font-size: 0.92rem; color: #334155; line-height: 1.6;">
-        {uila.block4_notationContract.minimalFormalization}
-      </p>
-      {#if uila.block4_notationContract.termsDeconstruction.length > 0}
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          {#each uila.block4_notationContract.termsDeconstruction as item}
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; font-size: 0.88rem; line-height: 1.45;">
-              <code style="font-weight: 800; color: #0f766e; background: #ccfbf1; padding: 2px 6px; border-radius: 5px; margin-right: 8px;">
-                {item.symbol}
-              </code>
-              <span style="color: #1e293b;">{item.physicalMeaning}</span>
-            </div>
-          {/each}
-        </div>
-      {/if}
-      {#if uila.block4_notationContract.workedExampleSummary}
-        <div style="background: #f8fafc; border-left: 3px solid #0f766e; border-radius: 0 10px 10px 0; padding: 12px 14px; font-size: 0.88rem; color: #334155; line-height: 1.55;">
-          <strong>Contoh Singkat:</strong> {uila.block4_notationContract.workedExampleSummary}
-        </div>
-      {/if}
-    </div>
+    <NotationContractCard notation={uila.block4_notationContract} />
 
   {:else if step.kind === 'erroneous_example' && activeErroneous}
     {#key step.id}
