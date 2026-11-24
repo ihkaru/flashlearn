@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { DrillFlashcard } from '../lib/quizMasteryStore';
+  import { learningFeedback } from '../lib/learningFeedback.svelte';
 
   type Rating = 'again' | 'hard' | 'good' | 'easy';
   interface QueueEntry {
@@ -21,6 +22,7 @@
   let isFlipped = $state(false);
   let masteredCount = $state(0);
   let requeuedCount = $state(0);
+  let streak = $state(0);
   let isFinished = $state(false);
   let isTransitioning = $state(false);
 
@@ -30,6 +32,7 @@
     isFlipped = false;
     masteredCount = 0;
     requeuedCount = 0;
+    streak = 0;
     isFinished = false;
     isTransitioning = false;
   });
@@ -52,9 +55,21 @@
 
     if (rating === 'good' || rating === 'easy') {
       masteredCount++;
-    } else if (rating === 'again' && currentEntry.retryCount < 2) {
-      queue = [...queue, { card: currentEntry.card, retryCount: currentEntry.retryCount + 1 }];
-      requeuedCount++;
+      streak++;
+      if (currentEntry.retryCount > 0) {
+        learningFeedback.onRedemption();
+      } else {
+        learningFeedback.onCorrect(streak, rating === 'easy');
+      }
+    } else if (rating === 'again') {
+      streak = 0;
+      learningFeedback.onMiss();
+      if (currentEntry.retryCount < 2) {
+        queue = [...queue, { card: currentEntry.card, retryCount: currentEntry.retryCount + 1 }];
+        requeuedCount++;
+      }
+    } else {
+      streak = 0;
     }
 
     isFlipped = false;
@@ -63,6 +78,10 @@
         currentIndex++;
       } else {
         isFinished = true;
+        learningFeedback.onCelebration(
+          'Dek Flashcard Tuntas!',
+          `${masteredCount} kartu berhasil dikuasai dalam sesi ini`
+        );
       }
       isTransitioning = false;
     }, 180);

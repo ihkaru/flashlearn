@@ -1,7 +1,7 @@
 ---
 arc42_section: 9
-verified_commit: 417e66c
-verified_timestamp: 2026-11-24T15:22:23Z
+verified_commit: f0f442d
+verified_timestamp: 2026-11-24T23:39:40Z
 branch: main
 tracked_paths:
   - apps/
@@ -12,8 +12,8 @@ tracked_paths:
 # 9. Architecture Decisions (ADRs)
 
 > [!INFO] **Architecture Provenance & Freshness**
-> - **Verified Commit**: `417e66c` (branch: `main`)
-> - **Verified Timestamp**: `2026-11-24T15:22:23Z`
+> - **Verified Commit**: `f0f442d` (branch: `main`)
+> - **Verified Timestamp**: `2026-11-24T23:39:40Z`
 > - **Tracked Paths**: `apps/`, `packages/`, `scripts/`
 > - **Drift Status**: `verified`
 
@@ -158,4 +158,13 @@ This section documents architecturally significant decisions (ADRs) governing th
 - **Context**: Technical interview & quantitative finance books contain dozens to 600+ practice problems that need to sit cleanly alongside conceptual modules (or interleaved after specific lecture units) without rendering 600+ DOM nodes at once or penalizing partial micro-sessions.
 - **Decision**: Extend `QuizQuestion`/`FlashcardItem` with optional `topic`/`sourceRef`, add `POST /api/v1/contents/:id/check-question` for zero-leak single-question Active Practice, add `sessionMode: 'subset'` scoring in `SubmitQuizUseCase`, support `contentType: 'quiz'` (`quiz-drill-v1`) in `packages/cli` (`quiz-drill-pusher.ts`) + filter soft-deleted items in `plan diff` (`DEBT-07`), and build a chunked 3-mode frontend (`QuizDrillSetupCard`, `ActivePracticeRunner` with Confidence Calibration & KaTeX, `FlashcardDeck` with Leitner Re-Queue & keyboard shortcuts, and `PaginatedExamView`).
 - **Consequences**: Effortless active recall and interleaved drilling for 10 to 600+ question banks at locked 120Hz performance on mobile and desktop.
+- **Risks Created**: none
+
+---
+
+## ADR-16: Tactile Learning Feedback — Progressive Web Audio & Mastery Milestones (Phase 24)
+- **Status**: Accepted
+- **Context**: Extended technical study sessions benefit from immediate multi-sensory momentum cues (progressive pitch escalation, calibrated streak milestones, Leitner redemption) without triggering cognitive overload, auditory fatigue, or the overjustification effect.
+- **Decision**: Synthesize brief (`<320ms`, `<2kHz`) pentatonic/chord earcons procedurally via Web Audio API (`learningFeedback.svelte.ts`, 0 KB external audio assets, muted by default with 1-click persistent `SoundToggleButton`) paired with non-blocking workspace-themed `LearningMilestoneToast` banners (`pointer-events: none`) and GPU-composited `.fl-milestone-pop`/`.fl-streak-pop` transitions respecting `prefers-reduced-motion`.
+- **Consequences**: Engaging, zero-latency mastery reinforcement during Active Practice, 3D Flashcards, and Interactive Module completion with zero reading disruption.
 - **Risks Created**: none

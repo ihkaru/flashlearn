@@ -13,6 +13,8 @@
   import CopyMarkdownButton from '../components/workspace/CopyMarkdownButton.svelte';
   import Icon from '../components/ui/Icon.svelte';
   import ChipBadge from '../components/ui/ChipBadge.svelte';
+  import SoundToggleButton from '../components/ui/SoundToggleButton.svelte';
+  import LearningMilestoneToast from '../components/ui/LearningMilestoneToast.svelte';
 
   interface Props {
     f7route?: any;
@@ -90,6 +92,7 @@
 
 <Page name="content-detail">
 <div class="content-detail-page" style="min-height: 100vh; padding-bottom: 40px; {wsTheme.cssVars}">
+  <LearningMilestoneToast />
   <!-- Sub-navbar Back Bar -->
   <div style="background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 10px 16px;">
     <div style="max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
@@ -122,6 +125,8 @@
             variant={content.type === 'quiz' ? 'quiz' : content.type === 'materi' ? 'materi' : 'combined'}
             label={content.type === 'interactive_module' ? 'PANDUAN INTERAKTIF' : content.type.toUpperCase()}
           />
+
+          <SoundToggleButton />
 
           <CopyMarkdownButton
             compact

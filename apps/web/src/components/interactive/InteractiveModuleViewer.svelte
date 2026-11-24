@@ -7,6 +7,7 @@
     type LearnerContentProgress,
   } from '@flashlearn/shared';
   import { api } from '../../stores/api';
+  import { learningFeedback } from '../../lib/learningFeedback.svelte';
   import { readLocalProgress, writeLocalProgress, getLearnerSessionKey } from '../../lib/learnerSession';
   import AdaptiveDeckStage from './AdaptiveDeckStage.svelte';
   import GuidedStepBody from './GuidedStepBody.svelte';
@@ -222,6 +223,17 @@
       if (activeStep && !completedStepIds.includes(activeStep.id)) {
         completedStepIds = [...completedStepIds, activeStep.id];
       }
+      const stressSteps = steps.filter((s) => s.kind === 'stress_test');
+      const allSolved = stressSteps.every(
+        (s) => completedStepIds.includes(s.id) || (s.id === 'step-stress-test' && stressTestSolved)
+      );
+      if (allSolved) {
+        learningFeedback.onCelebration('Uji Pemahaman Tuntas!', content.title);
+      } else {
+        learningFeedback.onCorrect(Math.max(1, completedStepIds.length), true);
+      }
+    } else {
+      learningFeedback.onMiss();
     }
     void persistProgress({ incrementProbesToday: res.isCorrect ? 1 : 0 });
   }

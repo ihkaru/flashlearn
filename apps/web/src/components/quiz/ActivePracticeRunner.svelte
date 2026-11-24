@@ -10,6 +10,7 @@
     type QuizMasteryMap,
   } from '../../lib/quizMasteryStore';
   import MarkdownRenderer from '../ui/MarkdownRenderer.svelte';
+  import { learningFeedback } from '../../lib/learningFeedback.svelte';
 
   interface Props {
     contentId: string;
@@ -31,6 +32,7 @@
   let checkError = $state<string | null>(null);
   let checkResult = $state<CheckQuestionResponse | null>(null);
   let correctCount = $state(0);
+  let streak = $state(0);
   let wrongIds = $state<string[]>([]);
   let isFinished = $state(false);
 
@@ -43,6 +45,7 @@
     checkResult = null;
     checkError = null;
     correctCount = 0;
+    streak = 0;
     wrongIds = [];
     isFinished = false;
   }
@@ -64,8 +67,15 @@
     try {
       const res = await api.contents.checkQuestion(contentId, currentQuestion.id, selectedOptionId);
       checkResult = res;
-      if (res.isCorrect) correctCount++;
-      else if (!wrongIds.includes(currentQuestion.id)) wrongIds = [...wrongIds, currentQuestion.id];
+      if (res.isCorrect) {
+        correctCount++;
+        streak++;
+        learningFeedback.onCorrect(streak, confidence === 'sure');
+      } else {
+        streak = 0;
+        learningFeedback.onMiss();
+        if (!wrongIds.includes(currentQuestion.id)) wrongIds = [...wrongIds, currentQuestion.id];
+      }
       const updated = recordQuestionMastery(contentId, currentQuestion.id, res.isCorrect, confidence ?? undefined);
       onMasteryUpdated?.(updated);
     } catch (err: any) {
@@ -85,6 +95,13 @@
       checkError = null;
     } else {
       isFinished = true;
+      const pct = activeQuestions.length > 0 ? Math.round((correctCount / activeQuestions.length) * 100) : 0;
+      if (pct >= 80) {
+        learningFeedback.onCelebration(
+          pct === 100 ? 'Sesi Sempurna 100%!' : `Sesi Tuntas · ${pct}%`,
+          `${correctCount} dari ${activeQuestions.length} soal dikuasai`
+        );
+      }
     }
   }
 </script>
@@ -94,8 +111,20 @@
     <button type="button" onclick={onBackToSetup} style="background: none; border: none; color: var(--ws-accent, #0f766e); font-weight: 700; font-size: 0.9rem; cursor: pointer; padding: 0;">
       ← Pengaturan Sesi
     </button>
-    <div style="font-size: 0.84rem; font-weight: 700; color: #334155;">
-      {!isFinished && activeQuestions.length > 0 ? `Soal ${currentIndex + 1} / ${activeQuestions.length}` : 'Ringkasan Latihan'}
+    <div style="display: flex; align-items: center; gap: 8px;">
+      {#if !isFinished && streak >= 2}
+        {#key streak}
+          <span
+            class="fl-streak-pop"
+            style="font-size: 0.76rem; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: var(--ws-accent-soft, #f0fdfa); color: var(--ws-accent-ink, #115e59); border: 1px solid var(--ws-accent-border, #99f6e4);"
+          >
+            Streak {streak}x
+          </span>
+        {/key}
+      {/if}
+      <div style="font-size: 0.84rem; font-weight: 700; color: #334155;">
+        {!isFinished && activeQuestions.length > 0 ? `Soal ${currentIndex + 1} / ${activeQuestions.length}` : 'Ringkasan Latihan'}
+      </div>
     </div>
   </div>
 
