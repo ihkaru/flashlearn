@@ -7,7 +7,11 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun --filter ./apps/api dev & bun --filter ./apps/web dev",
+    "dev": "bun --filter './apps/*' --parallel --no-exit-on-error dev",
+    "dev:db": "docker compose -f compose.dev.yml up -d --wait",
+    "dev:db:down": "docker compose -f compose.dev.yml down",
+    "dev:setup": "bun run dev:db && bun --filter @flashlearn/api db:migrate && bun --filter @flashlearn/api db:seed",
+    "dev:up": "bun run dev:setup && bun run dev",
     "dev:api": "bun --filter ./apps/api dev",
     "dev:web": "bun --filter ./apps/web dev",
     "build": "bun --filter \"*\" build",
