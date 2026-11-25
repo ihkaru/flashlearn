@@ -2,11 +2,13 @@
   import { Page } from 'framework7-svelte';
   import { api } from '../stores/api';
   import { auth } from '../stores/auth.svelte';
+  import { progressSync } from '../stores/progressSync.svelte';
   import type { Workspace, Content, Domain, LearnerContentProgress } from '@flashlearn/shared';
   import ContentEditorModal from '../components/ContentEditorModal.svelte';
   import ConfirmDeleteModal from '../components/ConfirmDeleteModal.svelte';
   import QuizReviewModal from '../components/QuizReviewModal.svelte';
   import WorkspaceHeader from '../components/workspace/WorkspaceHeader.svelte';
+  import WorkspaceFilterBar from '../components/workspace/WorkspaceFilterBar.svelte';
   import WorkspaceUnitAccordion from '../components/workspace/WorkspaceUnitAccordion.svelte';
   import CompetencyDagView from '../components/competency/CompetencyDagView.svelte';
   import GatePassportsView from '../components/competency/GatePassportsView.svelte';
@@ -58,6 +60,29 @@
       loadWorkspaceData();
     }
   });
+
+  function refreshWorkspaceProgress() {
+    if (!id) return;
+    api.contents
+      .listWorkspaceProgress(id)
+      .then((progressList) => {
+        if (Array.isArray(progressList)) {
+          progressByContentId = Object.fromEntries(progressList.map((p) => [p.contentId, p]));
+        }
+      })
+      .catch(() => {});
+  }
+
+  $effect(() => {
+    const _v = progressSync.version;
+    if (_v === 0 || !id) return;
+    progressByContentId = { ...progressByContentId, ...progressSync.latestByContentId };
+    refreshWorkspaceProgress();
+  });
+
+  function handlePageAfterIn() {
+    refreshWorkspaceProgress();
+  }
 
   async function loadWorkspaceData() {
     isLoading = true;
@@ -203,7 +228,7 @@
   }
 </script>
 
-<Page name="workspace">
+<Page name="workspace" onPageAfterIn={handlePageAfterIn}>
 <div class="workspace-page" style="max-width: 900px; margin: 0 auto; padding: 20px 16px 32px; {wsTheme.cssVars}">
   {#if isLoading}
     <div style="text-align: center; padding: 48px; color: #94a3b8; font-weight: 500;">
@@ -248,56 +273,17 @@
 
     {#if activeViewTab === 'modules'}
       {#if showFilterBar}
-        <!-- Filters Bar (Rendered only when >= 2 active content types or owner has trashed items) -->
-        <div class="fl-scroll-row" style="margin-bottom: 18px;">
-          <button
-            onclick={() => (activeFilter = 'all')}
-            class="fl-btn fl-btn-sm fl-pill-btn"
-            style="border: 1px solid {activeFilter === 'all' ? 'var(--ws-accent, #0f766e)' : '#e2e8f0'}; background: {activeFilter === 'all' ? 'var(--ws-accent, #0f766e)' : '#ffffff'}; color: {activeFilter === 'all' ? '#ffffff' : '#475569'};"
-          >
-            <span>Semua ({activeContents.length})</span>
-          </button>
-
-          {#if distinctActiveTypeCount >= 2 && interactiveCount > 0}
-            <button
-              onclick={() => (activeFilter = 'interactive_module')}
-              class="fl-btn fl-btn-sm fl-pill-btn"
-              style="border: 1px solid {activeFilter === 'interactive_module' ? 'var(--ws-accent, #0f766e)' : '#e2e8f0'}; background: {activeFilter === 'interactive_module' ? 'var(--ws-accent, #0f766e)' : '#ffffff'}; color: {activeFilter === 'interactive_module' ? '#ffffff' : '#475569'};"
-            >
-              <span>Interaktif ({interactiveCount})</span>
-            </button>
-          {/if}
-
-          {#if distinctActiveTypeCount >= 2 && materiCount > 0}
-            <button
-              onclick={() => (activeFilter = 'materi')}
-              class="fl-btn fl-btn-sm fl-pill-btn"
-              style="border: 1px solid {activeFilter === 'materi' ? 'var(--ws-accent, #0f766e)' : '#e2e8f0'}; background: {activeFilter === 'materi' ? 'var(--ws-accent, #0f766e)' : '#ffffff'}; color: {activeFilter === 'materi' ? '#ffffff' : '#475569'};"
-            >
-              <span>Materi ({materiCount})</span>
-            </button>
-          {/if}
-
-          {#if distinctActiveTypeCount >= 2 && quizCount > 0}
-            <button
-              onclick={() => (activeFilter = 'quiz')}
-              class="fl-btn fl-btn-sm fl-pill-btn"
-              style="border: 1px solid {activeFilter === 'quiz' ? 'var(--ws-accent, #0f766e)' : '#e2e8f0'}; background: {activeFilter === 'quiz' ? 'var(--ws-accent, #0f766e)' : '#ffffff'}; color: {activeFilter === 'quiz' ? '#ffffff' : '#475569'};"
-            >
-              <span>Kuis ({quizCount})</span>
-            </button>
-          {/if}
-
-          {#if isOwner && deletedContents.length > 0}
-            <button
-              onclick={() => (activeFilter = 'trash')}
-              class="fl-btn fl-btn-sm fl-pill-btn"
-              style="border: 1px solid {activeFilter === 'trash' ? '#e11d48' : '#fecdd3'}; background: {activeFilter === 'trash' ? '#e11d48' : '#fff1f2'}; color: {activeFilter === 'trash' ? '#ffffff' : '#be123c'}; margin-left: auto;"
-            >
-              <span>Arsip ({deletedContents.length})</span>
-            </button>
-          {/if}
-        </div>
+        <WorkspaceFilterBar
+          {activeFilter}
+          totalCount={activeContents.length}
+          {interactiveCount}
+          {materiCount}
+          {quizCount}
+          deletedCount={deletedContents.length}
+          {distinctActiveTypeCount}
+          {isOwner}
+          onSelect={(f) => (activeFilter = f)}
+        />
       {/if}
 
     <!-- Contents List -->

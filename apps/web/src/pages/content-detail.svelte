@@ -61,6 +61,20 @@
   }
 
   function goBack() {
+    const wsId = content?.workspaceId || workspace?.id;
+    if (f7router && wsId) {
+      const prevUrl = f7router.previousRoute?.url || '';
+      if (prevUrl.includes(`/workspace/${wsId}`)) {
+        f7router.back();
+      } else {
+        f7router.navigate(`/workspace/${wsId}`, { reloadCurrent: true });
+      }
+      return;
+    }
+    if (wsId) {
+      window.location.hash = `/workspace/${wsId}`;
+      return;
+    }
     if (f7router) {
       f7router.back();
     } else {

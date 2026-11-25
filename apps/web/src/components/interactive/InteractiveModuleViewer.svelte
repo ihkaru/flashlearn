@@ -8,6 +8,11 @@
   } from '@flashlearn/shared';
   import { api } from '../../stores/api';
   import { learningFeedback } from '../../lib/learningFeedback.svelte';
+  import {
+    progressSync,
+    buildProgressSnapshot,
+    toSaveProgressPayload,
+  } from '../../stores/progressSync.svelte';
   import { readLocalProgress, writeLocalProgress, getLearnerSessionKey } from '../../lib/learnerSession';
   import AdaptiveDeckStage from './AdaptiveDeckStage.svelte';
   import GuidedStepBody from './GuidedStepBody.svelte';
@@ -138,13 +143,15 @@
     await Promise.all(tasks);
   }
 
-  async function persistProgress(extra: { incrementStepsToday?: number; incrementProbesToday?: number } = {}) {
-    const stressSteps = steps.filter((s) => s.kind === 'stress_test');
-    const allStressSolved = stressSteps.every(
-      (s) => completedStepIds.includes(s.id) || (s.id === 'step-stress-test' && stressTestSolved)
-    );
-    const isCompleted = currentStepIndex >= steps.length - 1 && allStressSolved;
-    const snapshot: LearnerContentProgress = {
+  async function persistProgress(
+    extra: { incrementStepsToday?: number; incrementProbesToday?: number; forceCompleted?: boolean } = {}
+  ) {
+    const allStressSolved = steps
+      .filter((s) => s.kind === 'stress_test')
+      .every((s) => completedStepIds.includes(s.id) || (s.id === 'step-stress-test' && stressTestSolved));
+    const isCompleted =
+      Boolean(extra.forceCompleted) || (currentStepIndex >= steps.length - 1 && allStressSolved);
+    const snapshot = buildProgressSnapshot({
       contentId: content.id,
       sessionKey: getLearnerSessionKey(),
       currentStepIndex,
@@ -157,32 +164,26 @@
       lossVector,
       thetaMastery,
       isCompleted,
-      dailyActivityLog: {},
-      updatedAt: new Date().toISOString(),
-    };
+    });
     writeLocalProgress(content.id, snapshot);
+    progressSync.notifySaved(snapshot);
 
     saveStateLabel = 'saving';
     try {
-      await api.contents.saveProgress(content.id, {
-        sessionKey: snapshot.sessionKey || undefined,
-        currentStepIndex,
-        totalSteps: snapshot.totalSteps,
-        currentSlideIndex,
-        completedStepIds,
-        anchoringCompleted,
-        diagnosticAttempts,
-        lastLossScore,
-        lossVector,
-        thetaMastery,
-        isCompleted,
-        ...extra,
-      });
+      await api.contents.saveProgress(content.id, toSaveProgressPayload(snapshot, extra));
       saveStateLabel = 'saved';
     } catch (err) {
       console.debug('[guided] cloud save deferred to local', err);
       saveStateLabel = 'saved';
     }
+  }
+
+  async function finishAndLeave() {
+    if (activeStep && !completedStepIds.includes(activeStep.id)) {
+      completedStepIds = [...completedStepIds, activeStep.id];
+    }
+    await persistProgress({ forceCompleted: true, incrementStepsToday: 1 });
+    onFinished?.();
   }
 
   function goToStep(nextIndex: number) {
@@ -382,11 +383,11 @@
       {:else}
         <button
           type="button"
-          onclick={() => onFinished?.()}
+          onclick={finishAndLeave}
           class="fl-btn fl-btn-md"
-          style="background: #0f766e; color: #ffffff; border: none; font-weight: 700;"
+          style="background: var(--ws-accent, #0f766e); color: #ffffff; border: none; font-weight: 700;"
         >
-          Pilih Topik Lain
+          Selesai &amp; Pilih Topik Lain
         </button>
       {/if}
     </div>

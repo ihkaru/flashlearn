@@ -2,6 +2,7 @@
   import { Page } from 'framework7-svelte';
   import { api } from '../stores/api';
   import { auth } from '../stores/auth.svelte';
+  import { progressSync } from '../stores/progressSync.svelte';
   import type { Workspace } from '@flashlearn/shared';
   import type { ResumableSessionSummary } from '../stores/api/contents';
   import { getMonogram } from '../lib/monogram';
@@ -28,6 +29,41 @@
     const _t = auth.token;
     loadWorkspaces();
   });
+
+  // Immediately patch & re-sync "Lanjutkan Belajar" whenever any module saves/completes progress
+  $effect(() => {
+    const _v = progressSync.version;
+    if (_v === 0) return;
+    const latest = progressSync.latestByContentId;
+    if (recentSessions.length > 0) {
+      recentSessions = recentSessions.map((s) => {
+        const snap = latest[s.contentId];
+        if (!snap) return s;
+        return {
+          ...s,
+          currentStepIndex: snap.currentStepIndex,
+          totalSteps: snap.totalSteps,
+          isCompleted: snap.isCompleted,
+          updatedAt: snap.updatedAt,
+        };
+      });
+    }
+    api.contents
+      .listRecentResumable(4)
+      .then((recent) => {
+        if (Array.isArray(recent)) recentSessions = recent;
+      })
+      .catch(() => {});
+  });
+
+  function handlePageAfterIn() {
+    api.contents
+      .listRecentResumable(4)
+      .then((recent) => {
+        if (Array.isArray(recent)) recentSessions = recent;
+      })
+      .catch(() => {});
+  }
 
   $effect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -93,7 +129,7 @@
   }
 </script>
 
-<Page name="home">
+<Page name="home" onPageAfterIn={handlePageAfterIn}>
   <div class="home-page" style="max-width: 1040px; margin: 0 auto; padding: 24px 16px 48px;">
     <!-- Focused Hero Section -->
     <section
